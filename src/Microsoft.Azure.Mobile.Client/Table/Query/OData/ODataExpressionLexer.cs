@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.WindowsAzure.MobileServices.Query
 {
@@ -11,9 +12,15 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         private string text;
         private int textLen;
         private int textPos;
+        private static Regex dateTimeOffsetRegex;
         public char CurrentChar { get; private set; }
 
         public QueryToken Token { get; private set; }
+
+        static ODataExpressionLexer()
+        {
+            dateTimeOffsetRegex = new Regex(@"^(\d{2,4})-(\d{1,2})-(\d{1,2})(T|(\s+))(\d{1,2}):(\d{1,2})", RegexOptions.Compiled);
+        }
 
         public ODataExpressionLexer(string expression)
         {
@@ -80,6 +87,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
                         t = QueryTokenKind.Identifier;
                         break;
                     }
+                    //if (dateTimeOffsetRegex.IsMatch(this.text, tokenPos))
+                    //{
+                    //    this.SetTextPos(tokenPos + dateTimeOffsetRegex.Match(text, textPos).Value.Length);
+                    //    t = QueryTokenKind.DateTimeOffset;
+                    //    break;
+                    //}
                     if (Char.IsDigit(this.CurrentChar))
                     {
                         t = QueryTokenKind.IntegerLiteral;

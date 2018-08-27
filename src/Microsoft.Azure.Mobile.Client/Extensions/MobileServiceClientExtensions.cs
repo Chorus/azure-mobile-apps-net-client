@@ -15,7 +15,7 @@ namespace Microsoft.WindowsAzure.MobileServices
     {
         /// <summary>
         /// Name of the  JSON member in the token object that stores the
-        /// authentication token fo Microsoft Account.
+        /// authentication token for Microsoft Account.
         /// </summary>
         private const string MicrosoftAccountLoginAsyncAuthenticationTokenKey = "authenticationToken";
 

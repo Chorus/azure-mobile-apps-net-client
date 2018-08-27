@@ -208,30 +208,23 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             else if (handle.Equals(typeof(DateTime).TypeHandle))
             {
                 // Format dates in the official OData format
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "datetime'{0}'",
-                    Uri.EscapeDataString(
-                        ToRoundtripDateString(((DateTime)value)))
+                return Uri.EscapeDataString(
+                        ToRoundtripDateString(((DateTime)value))
                     );
             }
             else if (handle.Equals(typeof(DateTimeOffset).TypeHandle))
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "datetimeoffset'{0}'",
-                    Uri.EscapeDataString(
+                return Uri.EscapeDataString(
                         ((DateTimeOffset)value).ToString("o")
-                    ));
+                    );
             }
             else if (handle.Equals(typeof(Guid).TypeHandle))
             {
                 // GUIDs are in registry format without the { }s
                 Guid guid = (Guid)value;
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "guid'{0}'",
-                    guid.ToString().TrimStart('{').TrimEnd('}'));
+                return guid.ToString()
+                    .TrimStart('{')
+                    .TrimEnd('}');
             }
             else
             {

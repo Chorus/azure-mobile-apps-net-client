@@ -36,6 +36,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         And,
         LessThanEqual,
         GreaterThanEqual,
-        Or
+        Or,
+        DateTimeOffset
     }
 }

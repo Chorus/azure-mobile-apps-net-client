@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
-    internal abstract class MobileServicePKCEAuthentication : MobileServiceAuthentication
+    public abstract class MobileServicePKCEAuthentication : MobileServiceAuthentication
     {
         /// <summary>
         /// The <see cref="MobileServiceClient"/> used by this authentication session.

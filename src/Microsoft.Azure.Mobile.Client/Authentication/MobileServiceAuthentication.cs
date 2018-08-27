@@ -13,7 +13,7 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// <summary>
     /// Provides login functionality for the <see cref="MobileServiceClient"/>. 
     /// </summary>
-    internal abstract class MobileServiceAuthentication
+    public abstract class MobileServiceAuthentication
     {
         /// <summary>
         /// Name of the  JSON member in the config setting that stores the
@@ -117,7 +117,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// The start uri to use for authentication.
         /// The browser-based control should 
-        /// first navigate to this Uri in order to start the authenication flow.
+        /// first navigate to this Uri in order to start the authentication flow.
         /// </summary>
         internal Uri StartUri { get; private set; }
 
