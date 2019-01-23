@@ -5,10 +5,10 @@
     <TargetFrameworks>netstandard1.4;portable-net45+win8+wpa81+wp8;net45;MonoAndroid70;Xamarin.iOS10;uap10.0</TargetFrameworks>
     <DefaultLanguage>en-US</DefaultLanguage>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
-    <Version>4.0.2</Version>
+    <Version>4.1.1</Version>
     <PackageTitle>Azure Mobile Client SDK</PackageTitle>
     <Title>Azure Mobile Client SDK</Title>
-    <Authors>Microsoft, mobile-center</Authors>
+    <Authors>Microsoft</Authors>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <PackageLicenseUrl>http://go.microsoft.com/fwlink/?LinkId=286110</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps-net-client</PackageProjectUrl>
@@ -20,6 +20,7 @@
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps-net-client</RepositoryUrl>
     <PackageTags>microsoft;windows;azure;mobile;apps;services;windowsazureofficial</PackageTags>
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <!-- Workaround until Xamarin supports PPDB -->
     <DebugType>full</DebugType>
     <RootNamespace>Microsoft.WindowsAzure.MobileServices</RootNamespace>
@@ -77,7 +78,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.2.3" />
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.2.6" />
     <PackageReference Include="System.Linq.Queryable" Version="4.0.1" />
     <Compile Include="Platforms\uwp\**\*.cs" Exclude="Platforms\uwp\Extensions\MobileServiceCollectionViewExtensions.cs" />
   </ItemGroup>

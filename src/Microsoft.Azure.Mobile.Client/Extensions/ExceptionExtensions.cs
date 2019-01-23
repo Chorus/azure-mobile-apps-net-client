@@ -16,7 +16,7 @@ namespace Microsoft.WindowsAzure.MobileServices
     {
         public static bool IsNetworkError(this Exception ex)
         {
-            return ex is HttpRequestException;
+            return ex is HttpRequestException || ex is TimeoutException;
         }
 
         public static bool IsAuthenticationError(this Exception ex)

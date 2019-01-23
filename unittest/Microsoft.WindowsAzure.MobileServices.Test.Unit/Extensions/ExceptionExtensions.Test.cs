@@ -20,6 +20,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Test.Unit.Extensions
         public void IsNetworkError_ReturnsTrue_OnNetworkErrors()
         {
             Assert.IsTrue(ExceptionExtensions.IsNetworkError(new HttpRequestException()));
+            Assert.IsTrue(ExceptionExtensions.IsNetworkError(new TimeoutException()));
         }
 
         [TestMethod]

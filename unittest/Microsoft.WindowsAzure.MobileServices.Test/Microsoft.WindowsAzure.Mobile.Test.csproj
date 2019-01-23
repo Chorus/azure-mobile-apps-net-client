@@ -16,7 +16,7 @@
      <Reference Include="System.Net.Http" />
    </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.2.3" />
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.2.6" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'MonoAndroid70' ">

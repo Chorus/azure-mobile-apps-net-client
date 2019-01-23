@@ -75,7 +75,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Test
         {
             string registrationId = this.pushTestUtility.GetPushHandle();
             JObject templates = GetTemplates("bar");
-            JObject expectedTemplates = GetTemplates(null);
+            JObject expectedTemplates = GetTemplates("testGcmTemplate");
             var push = this.GetClient().GetPush();
             try
             {
@@ -107,7 +107,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Test
         {
             string registrationId = this.pushTestUtility.GetPushHandle();
             JObject templates = GetTemplates("bar", true);
-            JObject expectedTemplates = GetTemplates(null);
+            JObject expectedTemplates = GetTemplates("testGcmTemplate");
             var push = this.GetClient().GetPush();
             try
             {

@@ -79,7 +79,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Test
         {
             NSData channelUri = NSDataFromDescription(this.pushTestUtility.GetPushHandle());
             JObject templates = GetTemplates("foo");
-            JObject expectedTemplates = GetTemplates(null);
+            JObject expectedTemplates = GetTemplates("testApnsTemplate");
             var push = this.GetClient().GetPush();
             try
             {
@@ -117,7 +117,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Test
         {
             NSData channelUri = NSDataFromDescription(this.pushTestUtility.GetPushHandle());
             JObject templates = GetTemplates("foo", true);
-            JObject expectedTemplates = GetTemplates(null);
+            JObject expectedTemplates = GetTemplates("testApnsTemplate");
             var push = this.GetClient().GetPush();
             try
             {

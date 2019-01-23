@@ -58,8 +58,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Test
         /// </summary>
         public static IList<string> PlatformAssemblyNames = new string[] 
         {
-            "Microsoft.WindowsAzure.Mobile.Win8.Test",
-            "Microsoft.WindowsAzure.Mobile.Android.Test",
+            "Android.E2ETest",
             "MicrosoftWindowsAzureMobileiOSE2ETest"
         };
 

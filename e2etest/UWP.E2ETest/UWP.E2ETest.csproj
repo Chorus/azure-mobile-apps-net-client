@@ -164,7 +164,7 @@
       <Project>{d8bbc92a-b213-463b-911d-3a106f91d5f9}</Project>
       <Name>E2ETest</Name>
     </ProjectReference>
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.2.3" />
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.2.6" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' == 'SdkRel' ">
     <PackageReference Include="Microsoft.Azure.Mobile.Client.SQLiteStore" Version="4.0.0-alpha-001" />

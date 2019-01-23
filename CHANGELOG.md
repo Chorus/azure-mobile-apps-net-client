@@ -1,5 +1,16 @@
 # Azure Mobile Apps Managed SDK Change Log
 
+### Version 4.1.1
+- Fix assembly signing.
+
+### Version 4.1.0
+- [#409](https://github.com/Azure/azure-mobile-apps-net-client/pull/409) Fix a bug that causes `InvalidCastException` in `PullAsync`.
+- [#439](https://github.com/Azure/azure-mobile-apps-net-client/pull/439) Fix a parameter validation bug in `MobileServiceSyncTable`.
+- [#443](https://github.com/Azure/azure-mobile-apps-net-client/pull/443) [#449](https://github.com/Azure/azure-mobile-apps-net-client/pull/449) Fix a bug that missing operation item is not added to sync errors and causing `NullReferenceException` in offline sync.
+- [#448](https://github.com/Azure/azure-mobile-apps-net-client/pull/448) Fix a i18n bug of parsing number literal where different locale could have different decimal separator.
+- [#458](https://github.com/Azure/azure-mobile-apps-net-client/pull/458) Treat `TimeoutException` as network error in `MobileServiceHttpClient`.
+- [#478](https://github.com/Azure/azure-mobile-apps-net-client/pull/478) Update 'Microsoft.NETCore.UniversalWindowsPlatform' package to v5.2.6. 
+
 ### Version 4.0.2
 - Support [#338](https://github.com/Azure/azure-mobile-apps-net-client/pull/338) PCL-based Xamarin.Forms projects. PCL-based projects were previously supported in v3.1.0 but not in v4.0.1. They are now supported in v4.0.2.
 - Fix [#339](https://github.com/Azure/azure-mobile-apps-net-client/pull/339) a bug of RedirectUrlActivity in authentication

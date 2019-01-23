@@ -92,7 +92,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Test
         {
             var channelUri = await this.GetChannelUri();
             JObject templates = GetTemplates("foo");
-            JObject expectedTemplates = GetTemplates(null);
+            JObject expectedTemplates = GetTemplates("testTemplate");
             var push = this.GetClient().GetPush();
             try
             {

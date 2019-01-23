@@ -36,7 +36,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Test
                 string proxyUri = "YOUR_DEVICE_IP_ADDRESS";
                 staticClient = new MobileServiceClient(runtimeUrl, new HttpClientHandler
                 {
-                    Proxy = new Microsoft.WindowsAzure.MobileServices.Test.FunctionalTests.WebProxy(new System.Uri(proxyUri))
+                    Proxy = new WebProxy(new Uri(proxyUri))
                 });
                 */
             }
@@ -55,9 +55,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Test
 
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            Test.Log("    >>> {0} {1} {2}", request.Method, request.RequestUri, request.Content);
+            Test.Log("    >>> {0} {1} {2}", request.Method, request.RequestUri, request.Content?.ReadAsStringAsync().Result);
             HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
-            Test.Log("    <<< {0} {1} {2}", response.StatusCode, response.ReasonPhrase, response.Content);
+            Test.Log("    <<< {0} {1} {2}", (int)response.StatusCode, response.ReasonPhrase, response.Content?.ReadAsStringAsync().Result);
             return response;
         }
     }

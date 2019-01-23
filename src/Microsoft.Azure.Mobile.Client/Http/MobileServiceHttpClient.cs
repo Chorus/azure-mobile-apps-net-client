@@ -598,7 +598,15 @@ namespace Microsoft.WindowsAzure.MobileServices
             Debug.Assert(request != null);
 
             // Send the request and get the response back as string
-            HttpResponseMessage response = await client.SendAsync(request, cancellationToken);
+            HttpResponseMessage response;
+            try
+            {
+                response = await client.SendAsync(request, cancellationToken);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new TimeoutException();
+            }
 
             // Throw errors for any failing responses
             if (!response.IsSuccessStatusCode)
