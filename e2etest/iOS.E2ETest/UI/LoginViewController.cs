@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Foundation;
 using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.WindowsAzure.MobileServices.TestFramework;
@@ -41,11 +43,11 @@ namespace Microsoft.WindowsAzure.Mobile.iOS.Test
                 },
 
                 new Section{
-                    new StringElement("Login and Refresh with Microsoft Account", () => LoginAndRefreshWithMicrosoftAccount()),
-                    new StringElement("Login with Facebook", () => Login(MobileServiceAuthenticationProvider.Facebook)),
-                    new StringElement("Login with Twitter", () => Login(MobileServiceAuthenticationProvider.Twitter)),
-                    new StringElement("Login and Refresh with Google", () => LoginAndRefreshWithGoogle()),
-                    new StringElement("Login and Refresh with AAD", () => LoginAndRefreshWithAAD())
+                    new StringElement("Login and Refresh with Microsoft Account", HandleLoginErrorsAsync(LoginAndRefreshWithMicrosoftAccount)),
+                    new StringElement("Login with Facebook", HandleLoginErrorsAsync(LoginFacebook)),
+                    new StringElement("Login with Twitter", HandleLoginErrorsAsync(LoginTwitter)),
+                    new StringElement("Login and Refresh with Google", HandleLoginErrorsAsync(LoginAndRefreshWithGoogle)),
+                    new StringElement("Login and Refresh with AAD", HandleLoginErrorsAsync(LoginAndRefreshWithAAD))
                 }
             };
         }
@@ -90,7 +92,24 @@ namespace Microsoft.WindowsAzure.Mobile.iOS.Test
             NavigationController.PushViewController(new HarnessViewController(), true);
         }
 
-        private async void Login(MobileServiceAuthenticationProvider provider)
+        private Action HandleLoginErrorsAsync(Func<Task> login) => async () =>
+        {
+            try
+            {
+                await login();
+            }
+            catch (Exception e)
+            {
+                var alert = new UIAlertView("Error", e.Message, null, "OK");
+                alert.Show();
+            }
+        };
+
+        private Task LoginFacebook() => Login(MobileServiceAuthenticationProvider.Facebook);
+
+        private Task LoginTwitter() => Login(MobileServiceAuthenticationProvider.Twitter);
+
+        private async Task Login(MobileServiceAuthenticationProvider provider)
         {
             var client = new MobileServiceClient(this.uriEntry.Value);
             AppDelegate.ResumeWithURL = url => url.Scheme == uriScheme && client.ResumeWithURL(url);
@@ -99,7 +118,7 @@ namespace Microsoft.WindowsAzure.Mobile.iOS.Test
             alert.Show();
         }
 
-        private async void LoginAndRefreshWithMicrosoftAccount()
+        private async Task LoginAndRefreshWithMicrosoftAccount()
         {
             var client = new MobileServiceClient(this.uriEntry.Value);
             AppDelegate.ResumeWithURL = url => url.Scheme == uriScheme && client.ResumeWithURL(url);
@@ -115,7 +134,7 @@ namespace Microsoft.WindowsAzure.Mobile.iOS.Test
             alert.Show();
         }
 
-        private async void LoginAndRefreshWithAAD()
+        private async Task LoginAndRefreshWithAAD()
         {
             var client = new MobileServiceClient(this.uriEntry.Value);
             AppDelegate.ResumeWithURL = url => url.Scheme == uriScheme && client.ResumeWithURL(url);
@@ -135,7 +154,7 @@ namespace Microsoft.WindowsAzure.Mobile.iOS.Test
             alert.Show();
         }
 
-        private async void LoginAndRefreshWithGoogle()
+        private async Task LoginAndRefreshWithGoogle()
         {
             var client = new MobileServiceClient(this.uriEntry.Value);
             AppDelegate.ResumeWithURL = url => url.Scheme == uriScheme && client.ResumeWithURL(url);

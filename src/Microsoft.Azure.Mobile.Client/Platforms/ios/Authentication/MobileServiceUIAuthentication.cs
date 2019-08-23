@@ -59,7 +59,8 @@ namespace Microsoft.WindowsAzure.MobileServices
 
                 if (controller != null)
                 {
-                    controller.DismissViewController(true, completed);
+                    controller.DismissViewController(true, null);
+                    completed();
                 }
 
                 if (popover != null)
@@ -91,7 +92,8 @@ namespace Microsoft.WindowsAzure.MobileServices
 
                 if (controller != null)
                 {
-                    controller.DismissViewController(true, completed);
+                    controller.DismissViewController(true, null);
+                    completed();
                 }
 
                 if (popover != null)

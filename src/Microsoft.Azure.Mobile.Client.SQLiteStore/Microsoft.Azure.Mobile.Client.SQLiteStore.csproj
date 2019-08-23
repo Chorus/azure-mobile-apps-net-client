@@ -2,7 +2,7 @@
   <Import Project="..\..\build\Microsoft.Azure.Mobile.Client.Build.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard1.4;portable-net45+win8+wpa81+wp8;net45</TargetFrameworks>
-    <Version>4.1.1</Version>
+    <VersionPrefix>4.1.2</VersionPrefix>
     <PackageTitle>Azure Mobile SQLiteStore</PackageTitle>
     <Title>Azure Mobile SQLiteStore</Title>
     <Authors>Microsoft</Authors>

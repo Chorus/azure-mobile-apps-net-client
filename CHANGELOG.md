@@ -1,5 +1,8 @@
 # Azure Mobile Apps Managed SDK Change Log
 
+### Unreleased
+- [#488](https://github.com/Azure/azure-mobile-apps-net-client/pull/488) Fix canceling callback in iOS login view.
+
 ### Version 4.1.1
 - Fix assembly signing.
 
