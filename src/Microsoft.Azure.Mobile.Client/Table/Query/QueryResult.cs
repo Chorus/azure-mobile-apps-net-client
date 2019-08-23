@@ -21,6 +21,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         private const string InlineCountResultsKey = "results";
 
         /// <summary>
+        /// The name of the results key in an inline count response object (ODataV4).
+        /// </summary>
+        private const string InlineCountResultsKeyV4 = "value";
+
+        /// <summary>
         /// The name of the count key in an inline count response object.
         /// </summary>
         private const string InlineCountCountKey = "count";
@@ -92,7 +97,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             {
                 // Otherwise try and get the values from the results property
                 // (which is the case when we retrieve the count inline)
-                result.Values = response[InlineCountResultsKey] as JArray;
+                var tempValues = response[InlineCountResultsKey] as JArray;
+                if (tempValues == null)
+                {
+                   tempValues = response[InlineCountResultsKeyV4] as JArray;
+                }
+                result.Values = tempValues;
                 inlineCount = response.Value<long?>(InlineCountCountKey);
                 if (result.Values == null && validate)
                 {
