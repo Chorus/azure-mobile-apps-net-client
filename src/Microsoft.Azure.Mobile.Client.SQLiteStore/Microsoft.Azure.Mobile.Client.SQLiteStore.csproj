@@ -1,27 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\Microsoft.Azure.Mobile.Client.Build.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.4;portable-net45+win8+wpa81+wp8;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.4</TargetFrameworks>
     <VersionPrefix>4.1.2</VersionPrefix>
     <PackageTitle>Azure Mobile SQLiteStore</PackageTitle>
     <Title>Azure Mobile SQLiteStore</Title>
-    <Authors>Microsoft</Authors>
+    <Authors>Microsoft; Chorus</Authors>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <PackageLicenseUrl>http://go.microsoft.com/fwlink/?LinkId=286110</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps-net-client</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Chorus/azure-mobile-apps-net-client</PackageProjectUrl>
     <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</PackageIconUrl>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Description>This library provides features for creating offline sync-enabled Windows and Xamarin mobile apps that connect to Azure Mobile Apps. It provides an implementation of a local store based on SQLite. To learn more about Azure Mobile, go to http://azure.microsoft.com/mobile. </Description>
     <Summary>Azure Mobile Apps offline store for SQLite</Summary>
-    <PackageReleaseNotes>https://github.com/Azure/azure-mobile-apps-net-client/blob/master/CHANGELOG.md</PackageReleaseNotes>
-    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps-net-client</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/Chorus/azure-mobile-apps-net-client/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/Chorus/azure-mobile-apps-net-client</RepositoryUrl>
     <PackageTags>microsoft;windows;azure;mobile;apps;services;windowsazureofficial</PackageTags>
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <!-- Workaround until Xamarin supports PPDB -->
     <DebugType>full</DebugType>
     <RootNamespace>Microsoft.WindowsAzure.MobileServices.SQLiteStore</RootNamespace>
-    <Company>Microsoft, mobile-center</Company>
+    <Company>Microsoft, mobile-center, Chorus</Company>
+    <PackageId>Chorus.Azure.Mobile.Client.SQLiteStore</PackageId>
+    <Version>4.1.3</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'portable-net45+win8+wpa81+wp8' ">
       <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
