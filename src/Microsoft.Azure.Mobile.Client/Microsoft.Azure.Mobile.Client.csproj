@@ -2,7 +2,7 @@
 
   <Import Project="..\..\build\Microsoft.Azure.Mobile.Client.Build.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.4;net45;MonoAndroid70;Xamarin.iOS10;uap10.0</TargetFrameworks>
+    <TargetFrameworks>netstandard20;MonoAndroid70;Xamarin.iOS10;uap10.0</TargetFrameworks>
     <DefaultLanguage>en-US</DefaultLanguage>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <VersionPrefix>4.1.2</VersionPrefix>
@@ -80,7 +80,7 @@
 
   <ItemGroup>
     <PackageReference Include="MSBuild.Sdk.Extras" Version="1.0.5" PrivateAssets="All" />
-    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="5.2.6" />
@@ -91,12 +91,12 @@
     <PackageReference Include="Microsoft.Net.Http" Version="2.2.29" />
     <PackageReference Include="PCLCrypto" Version="2.0.147" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.4' ">
-    <Compile Include="Platforms\netstandard14\**\*.cs" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard20' ">
     <PackageReference Include="System.IO.IsolatedStorage" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
     <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.0" />
+    <Compile Include="Platforms\netstandard20\**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.Net.Http" />
