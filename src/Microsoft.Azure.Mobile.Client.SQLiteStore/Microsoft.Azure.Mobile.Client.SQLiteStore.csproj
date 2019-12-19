@@ -23,7 +23,7 @@
     <RootNamespace>Microsoft.WindowsAzure.MobileServices.SQLiteStore</RootNamespace>
     <Company>Microsoft, mobile-center, Chorus</Company>
     <PackageId>Chorus.Azure.Mobile.Client.SQLiteStore</PackageId>
-    <Version>4.1.4</Version>
+    <Version>4.1.6</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'portable-net45+win8+wpa81+wp8' ">
