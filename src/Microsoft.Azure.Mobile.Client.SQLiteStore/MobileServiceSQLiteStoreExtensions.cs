@@ -3,10 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -19,12 +16,23 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
     /// </summary>
     public static class MobileServiceSQLiteStoreExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="store"></param>
         public static void DefineTable<T>(this MobileServiceSQLiteStore store)
         {
             var settings = new MobileServiceJsonSerializerSettings();
             DefineTable<T>(store, settings);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="store"></param>
+        /// <param name="settings"></param>
         public static void DefineTable<T>(this MobileServiceSQLiteStore store, MobileServiceJsonSerializerSettings settings)
         {
             string tableName = settings.ContractResolver.ResolveTableName(typeof(T));
@@ -102,11 +110,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 JsonProperty contractProperty = contract.Properties[itemProperty.Name];
                 if (contractProperty.PropertyType == typeof(string) || contractProperty.PropertyType == typeof(Uri))
                 {
-                    item[itemProperty.Name] = String.Empty;
+                    item[itemProperty.Name] = string.Empty;
                 }
                 else if (contractProperty.PropertyType == typeof(byte[]))
                 {
-                    item[itemProperty.Name] = new byte[0];
+                    item[itemProperty.Name] = Array.Empty<byte>();
                 }
                 else if (contractProperty.PropertyType.GetTypeInfo().IsGenericType && contractProperty.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {

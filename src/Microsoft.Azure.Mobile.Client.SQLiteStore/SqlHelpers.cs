@@ -146,7 +146,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         public static string FormatTableName(string tableName)
         {
             ValidateIdentifier(tableName);
-            return string.Format("[{0}]", tableName);
+            return $"[{tableName}]";
         }
 
         public static string FormatMember(string memberName)
@@ -257,7 +257,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         {
             if (!IsValidIdentifier(identifier))
             {
-                throw new ArgumentException(string.Format("'{0}' is not a valid identifier. Identifiers must be under 128 characters in length, start with a letter or underscore, and can contain only alpha-numeric and underscore characters.", identifier), "identifier");
+                throw new ArgumentException($"'{identifier}' is not a valid identifier. Identifiers must be under 128 characters in length, start with a letter or underscore, and can contain only alpha-numeric and underscore characters.", nameof(identifier));
             }
         }
 

@@ -14,12 +14,12 @@ namespace System.Collections.Generic
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             if (maxLength <= 0)
             {
-                throw new ArgumentOutOfRangeException("maxLength");
+                throw new ArgumentOutOfRangeException(nameof(maxLength));
             }
 
             var enumerator = source.GetEnumerator();

@@ -64,7 +64,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             string selectIdQuery = formatter.FormatSelect();
             string idMemberName = SqlHelpers.FormatMember(MobileServiceSystemColumns.Id);
             string tableName = SqlHelpers.FormatTableName(delQuery.TableName);
-            string command = string.Format("DELETE FROM {0} WHERE {1} IN ({2})", tableName, idMemberName, selectIdQuery);
+            string command = $"DELETE FROM {tableName} WHERE {idMemberName} IN ({selectIdQuery})";
             this.Parameters = formatter.Parameters;
 
             return command;
