@@ -2,7 +2,7 @@
 
   <Import Project="..\..\build\Microsoft.Azure.Mobile.Client.Build.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard20;MonoAndroid80;Xamarin.iOS10;uap10.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;MonoAndroid80;Xamarin.iOS10;uap10.0</TargetFrameworks>
     <DefaultLanguage>en-US</DefaultLanguage>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <VersionPrefix>4.1.2</VersionPrefix>
@@ -91,12 +91,12 @@
     <PackageReference Include="Microsoft.Net.Http" Version="2.2.29" />
     <PackageReference Include="PCLCrypto" Version="2.0.147" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard20' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
     <PackageReference Include="System.IO.IsolatedStorage" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
     <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.0" />
-    <Compile Include="Platforms\netstandard20\**\*.cs" />
+    <Compile Include="Platforms\netstandard2.1\**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.Net.Http" />
