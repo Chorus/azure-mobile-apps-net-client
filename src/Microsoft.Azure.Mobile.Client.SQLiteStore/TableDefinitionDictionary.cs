@@ -12,15 +12,15 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
     /// A class that represents the structure of table on local store
     /// </summary>
     [SuppressMessage("Microsoft.Interoperability", "CA1405:ComVisibleTypeBaseTypesShouldBeComVisible")]
-    public class TableDefinition : Dictionary<string, ColumnDefinition>
+    public class TableDefinitionDictionary : Dictionary<string, ColumnDefinition>
     {
         public MobileServiceSystemProperties SystemProperties { get; private set; }
 
-        public TableDefinition()
+        public TableDefinitionDictionary()
         {
         }
 
-        public TableDefinition(IDictionary<string, ColumnDefinition> definition, MobileServiceSystemProperties systemProperties)
+        public TableDefinitionDictionary(IDictionary<string, ColumnDefinition> definition, MobileServiceSystemProperties systemProperties)
             : base(definition, StringComparer.OrdinalIgnoreCase)
         {
             this.SystemProperties = systemProperties;

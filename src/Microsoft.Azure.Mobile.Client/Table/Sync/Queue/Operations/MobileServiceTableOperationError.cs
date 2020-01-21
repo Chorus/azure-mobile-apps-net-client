@@ -106,7 +106,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             if (item == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
             }
 
             await this.Context.CancelAndUpdateItemAsync(this, item);
@@ -123,7 +123,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             if (item == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
             }
 
             await this.Context.UpdateOperationAsync(this, item);

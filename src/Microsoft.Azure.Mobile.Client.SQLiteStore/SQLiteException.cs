@@ -8,8 +8,17 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 {
     public class SQLiteException : Exception
     {
+        public SQLiteException()
+        {
+        }
+
         public SQLiteException(string message)
             : base(message)
+        {
+        }
+
+        public SQLiteException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
     }

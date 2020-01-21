@@ -17,11 +17,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     /// </summary>
     internal class PushAction : SyncAction
     {
-        private IMobileServiceSyncHandler syncHandler;
-        private MobileServiceClient client;
-        private MobileServiceSyncContext context;
-        private IEnumerable<string> tableNames;
-        private MobileServiceTableKind tableKind;
+        private readonly IMobileServiceSyncHandler _syncHandler;
+        private readonly MobileServiceClient _client;
+        private readonly MobileServiceSyncContext _context;
+        private readonly IEnumerable<string> _tableNames;
+        private readonly MobileServiceTableKind _tableKind;
 
         public PushAction(OperationQueue operationQueue,
                           IMobileServiceLocalStore store,
@@ -33,18 +33,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                           CancellationToken cancellationToken)
             : base(operationQueue, store, cancellationToken)
         {
-            this.tableKind = tableKind;
-            this.tableNames = tableNames;
-            this.client = client;
-            this.syncHandler = syncHandler;
-            this.context = context;
+            _tableKind = tableKind;
+            _tableNames = tableNames;
+            _client = client;
+            _syncHandler = syncHandler;
+            _context = context;
         }
 
         public override async Task ExecuteAsync()
         {
-            var batch = new OperationBatch(this.syncHandler, this.Store, this.context);
-            List<MobileServiceTableOperationError> syncErrors = new List<MobileServiceTableOperationError>();
-            MobileServicePushStatus batchStatus = MobileServicePushStatus.InternalError;
+            var batch = new OperationBatch(_syncHandler, Store, _context);
+            var syncErrors = new List<MobileServiceTableOperationError>();
+            var batchStatus = MobileServicePushStatus.InternalError;
 
             try
             {
@@ -61,7 +61,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private async Task<MobileServicePushStatus> ExecuteBatchAsync(OperationBatch batch, List<MobileServiceTableOperationError> syncErrors)
         {
             // when cancellation is requested, abort the batch
-            this.CancellationToken.Register(() => batch.Abort(MobileServicePushStatus.CancelledByToken));
+            CancellationToken.Register(() => batch.Abort(MobileServicePushStatus.CancelledByToken));
 
             try
             {
@@ -72,10 +72,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 batch.OtherErrors.Add(ex);
             }
 
-            MobileServicePushStatus batchStatus = batch.AbortReason.GetValueOrDefault(MobileServicePushStatus.Complete);
+            var batchStatus = batch.AbortReason.GetValueOrDefault(MobileServicePushStatus.Complete);
             try
             {
-                syncErrors.AddRange(await batch.LoadSyncErrorsAsync(this.client.SerializerSettings));
+                syncErrors.AddRange(await batch.LoadSyncErrorsAsync(this._client.SerializerSettings));
             }
             catch (Exception ex)
             {
@@ -115,7 +115,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     inner = batch.OtherErrors.Any() ? new AggregateException(batch.OtherErrors) : null;
                 }
 
-                // create a new result with only unhandled errors
+                // create a new result with only unhanded errors
                 result = new MobileServicePushCompletionResult(unhandledSyncErrors, batchStatus);
                 this.TaskSource.TrySetException(new MobileServicePushFailedException(result, inner));
             }
@@ -127,14 +127,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         private async Task ExecuteAllOperationsAsync(OperationBatch batch)
         {
-            MobileServiceTableOperation operation = await this.OperationQueue.PeekAsync(0, this.tableKind, this.tableNames);
+            MobileServiceTableOperation operation = await this.OperationQueue.PeekAsync(0, this._tableKind, this._tableNames);
 
             // keep taking out operations and executing them until queue is empty or operation finds the bookmark or batch is aborted 
             while (operation != null)
             {
-                using (await this.OperationQueue.LockItemAsync(operation.ItemId, this.CancellationToken))
+                using (await OperationQueue.LockItemAsync(operation.ItemId, this.CancellationToken))
                 {
-                    bool success = await this.ExecuteOperationAsync(operation, batch);
+                    bool success = await ExecuteOperationAsync(operation, batch);
 
                     if (batch.AbortReason.HasValue)
                     {
@@ -143,12 +143,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
                     if (success)
                     {
-                        // we successfuly executed an operation so remove it from queue
-                        await this.OperationQueue.DeleteAsync(operation.Id, operation.Version);
+                        // we successfully executed an operation so remove it from queue
+                        await OperationQueue.DeleteAsync(operation.Id, operation.Version);
                     }
 
                     // get next operation
-                    operation = await this.OperationQueue.PeekAsync(operation.Sequence, this.tableKind, this.tableNames);
+                    operation = await this.OperationQueue.PeekAsync(operation.Sequence, this._tableKind, this._tableNames);
                 }
             }
         }
@@ -160,8 +160,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 return false;
             }
 
-            operation.Table = await this.context.GetTable(operation.TableName);
-            await this.LoadOperationItem(operation, batch);
+            operation.Table = await this._context.GetTable(operation.TableName);
+            await LoadOperationItem(operation, batch);
 
             if (operation.Item == null || this.CancellationToken.IsCancellationRequested)
             {
@@ -205,11 +205,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             {
                 HttpStatusCode? statusCode = null;
                 string rawResult = null;
-                var iox = error as MobileServiceInvalidOperationException;
-                if (iox != null && iox.Response != null)
+                if (error is MobileServiceInvalidOperationException iox && iox.Response != null)
                 {
                     statusCode = iox.Response.StatusCode;
-                    Tuple<string, JToken> content = await MobileServiceTable.ParseContent(iox.Response, this.client.SerializerSettings);
+                    Tuple<string, JToken> content = await MobileServiceTable.ParseContent(iox.Response, this._client.SerializerSettings);
                     rawResult = content.Item1;
                     result = content.Item2.ValidItemOrNull();
                 }
@@ -222,8 +221,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                                                                         rawResult,
                                                                         result)
                                                                         {
-                                                                            TableKind = this.tableKind,
-                                                                            Context = this.context
+                                                                            TableKind = this._tableKind,
+                                                                            Context = this._context
                                                                         };
                 await batch.AddSyncErrorAsync(syncError);
             }
@@ -260,8 +259,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                                                                          operation.TableName,
                                                                          item, null, null)
                     {
-                        TableKind = this.tableKind,
-                        Context = this.context
+                        TableKind = _tableKind,
+                        Context = _context
                     };
                     await batch.AddSyncErrorAsync(syncError);
                 }

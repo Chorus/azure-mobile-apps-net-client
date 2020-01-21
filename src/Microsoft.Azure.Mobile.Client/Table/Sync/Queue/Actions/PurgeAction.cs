@@ -12,8 +12,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     internal class PurgeAction : TableAction
     {
-        private bool force;
-        private IMobileServiceEventManager eventManager;
+        private readonly bool _force;
+        private readonly IMobileServiceEventManager _eventManager;
 
         public PurgeAction(MobileServiceTable table,
                            MobileServiceTableKind tableKind,
@@ -28,23 +28,25 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                            CancellationToken cancellationToken)
             : base(table, tableKind, queryId, query, null, context, operationQueue, settings, store, cancellationToken)
         {
-            this.force = force;
-            this.eventManager = eventManager;
+            _force = force;
+            _eventManager = eventManager;
         }
 
         protected async override Task<bool> HandleDirtyTable()
         {
-            if (this.Query.Filter != null || !this.force)
+            if (this.Query.Filter != null || !_force)
             {
                 throw new InvalidOperationException("The table cannot be purged because it has pending operations.");
             }
 
-            var delOperationsQuery = new MobileServiceTableQueryDescription(MobileServiceLocalSystemTables.OperationQueue);
-            delOperationsQuery.Filter = new BinaryOperatorNode(BinaryOperatorKind.Equal, new MemberAccessNode(null, "tableName"), new ConstantNode(this.Table.TableName));
+            var delOperationsQuery = new MobileServiceTableQueryDescription(MobileServiceLocalSystemTables.OperationQueue)
+            {
+                Filter = new BinaryOperatorNode(BinaryOperatorKind.Equal, new MemberAccessNode(null, "tableName"), new ConstantNode(this.Table.TableName)),
 
-            // count ops to be deleted
-            delOperationsQuery.IncludeTotalCount = true;
-            delOperationsQuery.Top = 0;
+                // count ops to be deleted
+                IncludeTotalCount = true,
+                Top = 0
+            };
             long toRemove = QueryResult.Parse(await this.Store.ReadAsync(delOperationsQuery), null, validate: false).TotalCount;
 
             // delete operations
@@ -52,8 +54,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             await this.Store.DeleteAsync(delOperationsQuery);
 
             // delete errors
-            var delErrorsQuery = new MobileServiceTableQueryDescription(MobileServiceLocalSystemTables.SyncErrors);
-            delErrorsQuery.Filter = delOperationsQuery.Filter;
+            var delErrorsQuery = new MobileServiceTableQueryDescription(MobileServiceLocalSystemTables.SyncErrors)
+            {
+                Filter = delOperationsQuery.Filter
+            };
             await this.Store.DeleteAsync(delErrorsQuery);
 
             // update queue operation count
@@ -64,7 +68,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         protected override async Task ProcessTableAsync()
         {
-            if (!String.IsNullOrEmpty(this.QueryId))
+            if (!string.IsNullOrEmpty(this.QueryId))
             {
                 await this.Settings.ResetDeltaTokenAsync(this.Table.TableName, this.QueryId);
             }
@@ -72,7 +76,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
             if (!this.Table.TableName.StartsWith(MobileServiceLocalSystemTables.Prefix))
             {
-                this.eventManager.BackgroundPublish(new PurgeCompletedEvent(this.Table.TableName));
+                this._eventManager.BackgroundPublish(new PurgeCompletedEvent(this.Table.TableName));
             }
         }
     }

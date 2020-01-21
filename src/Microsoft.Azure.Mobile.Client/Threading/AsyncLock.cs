@@ -13,19 +13,19 @@ namespace Microsoft.WindowsAzure.MobileServices.Threading
 {
     internal sealed class AsyncLock : IDisposable
     {
-        private SemaphoreSlim semaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
         public async Task<IDisposable> Acquire(CancellationToken cancellationToken)
         {
-            await this.semaphore.WaitAsync(cancellationToken)
+            await _semaphore.WaitAsync(cancellationToken)
                                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            return new DisposeAction(() => this.semaphore.Release());
+            return new DisposeAction(() => _semaphore.Release());
         }
 
         public void Dispose()
         {
-            this.semaphore.Dispose();
+            _semaphore.Dispose();
         }
     }
 }

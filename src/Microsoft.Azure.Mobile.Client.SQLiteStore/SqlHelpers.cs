@@ -152,7 +152,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         public static string FormatMember(string memberName)
         {
             ValidateIdentifier(memberName);
-            return string.Format("[{0}]", memberName);
+            return $"[{memberName}]";
         }
 
         private static bool IsNumberType(string storeType)
@@ -263,13 +263,13 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
         private static bool IsValidIdentifier(string identifier)
         {
-            if (String.IsNullOrWhiteSpace(identifier) || identifier.Length > 128)
+            if (string.IsNullOrWhiteSpace(identifier) || identifier.Length > 128)
             {
                 return false;
             }
 
             char first = identifier[0];
-            if (!(Char.IsLetter(first) || first == '_'))
+            if (!(char.IsLetter(first) || first == '_'))
             {
                 return false;
             }
@@ -277,7 +277,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             for (int i = 1; i < identifier.Length; i++)
             {
                 char ch = identifier[i];
-                if (!(Char.IsLetterOrDigit(ch) || ch == '_'))
+                if (!(char.IsLetterOrDigit(ch) || ch == '_'))
                 {
                     return false;
                 }

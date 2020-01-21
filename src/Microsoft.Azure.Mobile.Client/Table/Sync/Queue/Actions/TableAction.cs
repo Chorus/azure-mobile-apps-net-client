@@ -18,8 +18,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         protected MobileServiceSyncContext Context { get; private set; }
 
         protected string QueryId { get; private set; }
+
         protected MobileServiceTableQueryDescription Query { get; private set; }
+
         public MobileServiceTable Table { get; private set; }
+
         public MobileServiceTableKind TableKind { get; private set; }
 
         protected MobileServiceSyncSettingsManager Settings { get; private set; }
@@ -51,29 +54,31 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             try
             {
-                await this.WaitPendingAction();
+                await WaitPendingAction();
 
-                using (await this.OperationQueue.LockTableAsync(this.Table.TableName, this.CancellationToken))
+                using (await OperationQueue.LockTableAsync(Table.TableName, CancellationToken))
                 {
-                    if (await this.OperationQueue.CountPending(this.Table.TableName) > 0 && !await this.HandleDirtyTable())
+                    var pendingOperationsCount = await OperationQueue.CountPending(Table.TableName);
+                    var handledDirty = await HandleDirtyTable();
+                    if (pendingOperationsCount > 0 && !handledDirty)
                     {
                         return; // table is dirty and we cannot proceed for execution as handle return false
                     }
 
-                    await this.ProcessTableAsync();
+                    await ProcessTableAsync();
                 }
             }
             catch (Exception ex)
             {
-                this.TaskSource.TrySetException(ex);
+                TaskSource.TrySetException(ex);
                 return;
             }
-            this.TaskSource.SetResult(0);
+            TaskSource.SetResult(0);
         }
 
         protected virtual Task WaitPendingAction()
         {
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         protected abstract Task<bool> HandleDirtyTable();

@@ -79,7 +79,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 }
                 else
                 {
-                    throw new SQLiteException("Unable to bind parameter with unsupported type: " + value.GetType().FullName);
+                    throw new SQLiteException($"Unable to bind parameter with unsupported type: {value.GetType().FullName}");
                 }
             }
 

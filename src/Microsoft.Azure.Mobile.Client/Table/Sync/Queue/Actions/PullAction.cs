@@ -16,12 +16,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     {
         private static readonly DateTimeOffset Epoch = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-        private IDictionary<string, string> parameters;
-        private MobileServiceRemoteTableOptions options; // the supported options on remote table 
-        private PullOptions pullOptions;
-        private readonly PullCursor cursor;
-        private Task pendingAction;
-        private PullStrategy strategy;
+        private readonly IDictionary<string, string> _parameters;
+        private readonly MobileServiceRemoteTableOptions _options; // the supported options on remote table 
+        private readonly PullOptions _pullOptions;
+        private readonly PullCursor _cursor;
+        private Task _pendingAction;
+        private PullStrategy _strategy;
 
         public PullAction(MobileServiceTable table,
                           MobileServiceTableKind tableKind,
@@ -39,27 +39,28 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                           CancellationToken cancellationToken)
             : base(table, tableKind, queryId, query, relatedTables, context, operationQueue, settings, store, cancellationToken)
         {
-            this.options = options;
-            this.parameters = parameters;
-            this.cursor = new PullCursor(query);
-            this.pullOptions = pullOptions;
-            this.Reader = reader ?? new MobileServiceObjectReader();
+            _options = options;
+            _parameters = parameters;
+            _cursor = new PullCursor(query);
+            _pullOptions = pullOptions;
+            Reader = reader ?? new MobileServiceObjectReader();
         }
 
         public MobileServiceObjectReader Reader { get; private set; }
 
+        public IDictionary<string, string> Parameters => _parameters;
 
         protected override Task<bool> HandleDirtyTable()
         {
             // there are pending operations on the same table so defer the action
-            this.pendingAction = this.Context.DeferTableActionAsync(this);
+            _pendingAction = Context.DeferTableActionAsync(this);
             // we need to return in order to give PushAsync a chance to execute so we don't await the pending push
             return Task.FromResult(false);
         }
 
         protected override Task WaitPendingAction()
         {
-            return this.pendingAction ?? Task.FromResult(0);
+            return _pendingAction ?? Task.CompletedTask;
         }
 
         protected async override Task ProcessTableAsync()
@@ -69,60 +70,59 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             QueryResult result;
             do
             {
-                this.CancellationToken.ThrowIfCancellationRequested();
+                CancellationToken.ThrowIfCancellationRequested();
 
-                string query = this.Query.ToODataString();
-                if (this.Query.UriPath != null)
+                string query = Query.ToODataString();
+                if (Query.UriPath != null)
                 {
-                    query = MobileServiceUrlBuilder.CombinePathAndQuery(this.Query.UriPath, query);
+                    query = MobileServiceUrlBuilder.CombinePathAndQuery(Query.UriPath, query);
                 }
-                result = await this.Table.ReadAsync(query, MobileServiceTable.IncludeDeleted(parameters), this.Table.Features);
-                await this.ProcessAll(result.Values); // process the first batch
+                result = await Table.ReadAsync(query, MobileServiceTable.IncludeDeleted(_parameters), Table.Features);
+                await ProcessAll(result.Values); // process the first batch
 
                 result = await FollowNextLinks(result);
             }
             // if we are not at the end of result and there is no link to get more results                
-            while (!this.EndOfResult(result) && await this.strategy.MoveToNextPageAsync());
+            while (!EndOfResult(result) && await _strategy.MoveToNextPageAsync());
 
-            await this.strategy.PullCompleteAsync();
+            await _strategy.PullCompleteAsync();
         }
 
         private async Task ProcessAll(JArray items)
         {
-            this.CancellationToken.ThrowIfCancellationRequested();
+            CancellationToken.ThrowIfCancellationRequested();
 
             var deletedIds = new List<string>();
             var upsertList = new List<JObject>();
 
             foreach (var token in items)
             {
-                var item = token as JObject;
-                if (item == null)
+                if (!(token is JObject item))
                 {
                     continue;
                 }
 
-                if (!this.cursor.OnNext())
+                if (!_cursor.OnNext())
                 {
                     break;
                 }
 
-                string id = this.Reader.GetId(item);
+                string id = Reader.GetId(item);
                 if (id == null)
                 {
                     continue;
                 }
 
-                var pendingOperation = await this.OperationQueue.GetOperationByItemIdAsync(this.Table.TableName, id);
+                var pendingOperation = await OperationQueue.GetOperationByItemIdAsync(Table.TableName, id);
                 if (pendingOperation != null)
                 {
                     continue;
                 }
 
-                DateTimeOffset updatedAt = this.Reader.GetUpdatedAt(item).GetValueOrDefault(Epoch).ToUniversalTime();
-                strategy.SetUpdateAt(updatedAt);
+                DateTimeOffset updatedAt = Reader.GetUpdatedAt(item).GetValueOrDefault(Epoch).ToUniversalTime();
+                _strategy.SetUpdateAt(updatedAt);
 
-                if (this.Reader.IsDeleted(item))
+                if (Reader.IsDeleted(item))
                 {
                     deletedIds.Add(id);
                 }
@@ -134,27 +134,27 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
             if (upsertList.Any())
             {
-                await this.Store.UpsertAsync(this.Table.TableName, upsertList, ignoreMissingColumns: true);
+                await Store.UpsertAsync(Table.TableName, upsertList, ignoreMissingColumns: true);
             }
 
             if (deletedIds.Any())
             {
-                await this.Store.DeleteAsync(this.Table.TableName, deletedIds);
+                await Store.DeleteAsync(Table.TableName, deletedIds);
             }
 
-            await this.strategy.OnResultsProcessedAsync();
+            await _strategy.OnResultsProcessedAsync();
         }
 
         // follows next links in the query result and returns final result
         private async Task<QueryResult> FollowNextLinks(QueryResult result)
         {
-            while (!this.EndOfResult(result) && // if we are not at the end of result
-                    IsNextLinkValid(result.NextLink, this.options)) // and there is a valid link to get more results
+            while (!EndOfResult(result) && // if we are not at the end of result
+                    IsNextLinkValid(result.NextLink, _options)) // and there is a valid link to get more results
             {
-                this.CancellationToken.ThrowIfCancellationRequested();
+                CancellationToken.ThrowIfCancellationRequested();
 
-                result = await this.Table.ReadAsync(result.NextLink);
-                await this.ProcessAll(result.Values); // process the results as soon as we've gotten them
+                result = await Table.ReadAsync(result.NextLink);
+                await ProcessAll(result.Values); // process the results as soon as we've gotten them
             }
             return result;
         }
@@ -187,21 +187,21 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             // if we got as many as we initially wanted 
             // or there are no more results
             // then we're at the end
-            return cursor.Complete || result.Values.Count == 0;
+            return _cursor.Complete || result.Values.Count == 0;
         }
 
         private async Task CreatePullStrategy()
         {
-            bool isIncrementalSync = !String.IsNullOrEmpty(this.QueryId);
+            bool isIncrementalSync = !string.IsNullOrEmpty(QueryId);
             if (isIncrementalSync)
             {
-                this.strategy = new IncrementalPullStrategy(this.Table, this.Query, this.QueryId, this.Settings, this.cursor, this.options, this.pullOptions);
+                _strategy = new IncrementalPullStrategy(Table, Query, QueryId, Settings, _cursor, _options, _pullOptions);
             }
             else
             {
-                this.strategy = new PullStrategy(this.Query, this.cursor, this.options, this.pullOptions);
+                _strategy = new PullStrategy(Query, _cursor, _options, _pullOptions);
             }
-            await this.strategy.InitializeAsync();
+            await _strategy.InitializeAsync();
         }
     }
 }

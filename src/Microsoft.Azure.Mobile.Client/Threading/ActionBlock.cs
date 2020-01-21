@@ -14,20 +14,20 @@ namespace Microsoft.WindowsAzure.MobileServices.Threading
     /// <summary>
     /// Queue for executing asynchronous tasks in a first-in-first-out fashion.
     /// </summary>
-    internal class ActionBlock: IDisposable
+    internal class ActionBlock : IDisposable
     {
-        AsyncLock theLock;
+        private readonly AsyncLock _asyncLock;
 
         public ActionBlock()
         {
-            theLock = new AsyncLock();
+            _asyncLock = new AsyncLock();
         }
 
         public async Task Post(Func<Task> action, CancellationToken cancellationToken)
         {
-            using (await theLock.Acquire(cancellationToken))
+            using (await _asyncLock.Acquire(cancellationToken))
             {
-                await action(); 
+                await action();
             }
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Threading
         {
             if (disposing)
             {
-                this.theLock.Dispose();
+                _asyncLock.Dispose();
             }
         }
     }
