@@ -626,14 +626,12 @@ namespace Microsoft.WindowsAzure.MobileServices
             }
             catch (JsonSerializationException ex)
             {
-                var obj = token as JObject;
-                if (obj == null)
+                if (!(token is JObject obj))
                 {
                     throw;
                 }
-              
-                object id;
-                bool idTokenIsString = TryGetId(obj, true, out id) && id.GetType() == typeof(string);
+
+                bool idTokenIsString = TryGetId(obj, true, out object id) && id.GetType() == typeof(string);
 
                 JsonProperty idProperty = this.SerializerSettings.ContractResolver.ResolveIdProperty(typeof(T), throwIfNotFound: false);
                 bool idPropertyIsInteger = idProperty != null && IsIntegerId(idProperty);

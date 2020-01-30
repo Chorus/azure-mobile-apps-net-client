@@ -33,63 +33,46 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// The ID of the batch this operation belongs to.
         /// </summary>
-        public string BatchId
-        {
-            get { return this.batchId; }
-        }
+        public string BatchId => batchId;
 
         /// <summary>
         /// Describes the source this operation was triggered from.
         /// </summary>
-        public StoreOperationSource Source
-        {
-            get { return this.source; }
-        }
+        public StoreOperationSource Source => source;
 
         /// <summary>
         /// The number of operations executed within this batch.
         /// </summary>
-        public int OperationCount 
-        { 
-            get 
-            { 
-                return this.operationsCountByType.Sum(kvp=> kvp.Value);
-            }
-        }
+        public int OperationCount => operationsCountByType.Sum(kvp => kvp.Value);
 
         /// <summary>
         /// Gets the number of operations matching the provided operation kind executed within this batch.
         /// </summary>
         /// <param name="operationKind">The kind of operation.</param>
         /// <returns>The number of operations matching the provided count.</returns>
-        public int GetOperationCountByKind(LocalStoreOperationKind operationKind)
-        {
-            if (this.operationsCountByType.ContainsKey(operationKind))
-            {
-                return this.operationsCountByType[operationKind];
-            }
-
-            return 0;
-        }
+        public int GetOperationCountByKind(LocalStoreOperationKind operationKind) =>
+            operationsCountByType.ContainsKey(operationKind)
+            ? operationsCountByType[operationKind]
+            : 0;
 
         internal async Task IncrementOperationCount(LocalStoreOperationKind operationKind)
         {
             try
             {
-                await this.operationsCountSemaphore.WaitAsync();
+                await operationsCountSemaphore.WaitAsync();
 
-                if (!this.operationsCountByType.ContainsKey(operationKind))
+                if (!operationsCountByType.ContainsKey(operationKind))
                 {
-                    this.operationsCountByType.Add(operationKind, 1);
+                    operationsCountByType.Add(operationKind, 1);
                 }
                 else
                 {
-                    this.operationsCountByType[operationKind]++;
+                    operationsCountByType[operationKind]++;
                 }
             }
             finally
             {
-                this.operationsCountSemaphore.Release();
+                operationsCountSemaphore.Release();
             }
         }
     }

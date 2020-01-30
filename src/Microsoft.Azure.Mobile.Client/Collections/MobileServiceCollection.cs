@@ -72,27 +72,18 @@ namespace Microsoft.WindowsAzure.MobileServices
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Overridable method is only used for change notifications")]
         public MobileServiceCollection(IMobileServiceTableQuery<TTable> query, Func<IEnumerable<TTable>, IEnumerable<TCollection>> selector, int pageSize = 0)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException("query");
-            }
-            if (selector == null)
-            {
-                throw new ArgumentNullException("selector");
-            }
             if (pageSize < 0)
             {
                 throw new ArgumentOutOfRangeException("pageSize");
             }
 
-            this.query = query;
-            MobileServiceTableQuery<TTable> tableQuery = query as MobileServiceTableQuery<TTable>;
-            if (tableQuery != null)
+            this.query = query ?? throw new ArgumentNullException("query");
+            if (query is MobileServiceTableQuery<TTable> tableQuery)
             {
                 tableQuery.QueryProvider.Features = MobileServiceFeatures.TableCollection;
             }
 
-            this.selectorFunction = selector;
+            selectorFunction = selector ?? throw new ArgumentNullException("selector");
             this.pageSize = pageSize;
 
             this.HasMoreItems = true;
@@ -149,13 +140,13 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         public long TotalCount
         {
-            get { return this.totalCount; }
+            get => totalCount;
             private set
             {
-                if (this.totalCount != value)
+                if (totalCount != value)
                 {
-                    this.totalCount = value;
-                    this.OnPropertyChanged();
+                    totalCount = value;
+                    OnPropertyChanged();
                 }
             }
         }
@@ -171,7 +162,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         public string NextLink
         {
-            get { return this.nextLink; }
+            get => nextLink;
             private set
             {
                 if (this.nextLink != value)
@@ -331,18 +322,18 @@ namespace Microsoft.WindowsAzure.MobileServices
                 else
                 {
                     //disable paging if pagesize is 0
-                    this.HasMoreItems = false;
+                    HasMoreItems = false;
                 }
 
-                results = await this.ProcessQueryAsync(token, query);
+                results = await ProcessQueryAsync(token, query);
 
                 if (results == 0)
                 {
-                    this.HasMoreItems = false;
+                    HasMoreItems = false;
                 }
                 else
                 {
-                    this.itemsReceived += results;
+                    itemsReceived += results;
                 }
                 //safe conversion since there can't be negative results
                 return results;
@@ -350,15 +341,14 @@ namespace Microsoft.WindowsAzure.MobileServices
             catch
             {
                 // in case of error don't automatically try again
-                this.HasMoreItems = false;
+                HasMoreItems = false;
                 throw;
             }
             finally
             {
                 busy = false;
 
-                EventHandler<LoadingCompleteEventArgs> loadingComplete = LoadingComplete;
-                if (loadingComplete != null) { loadingComplete(this, new LoadingCompleteEventArgs() { TotalItemsLoaded = results }); }
+                LoadingComplete?.Invoke(this, new LoadingCompleteEventArgs() { TotalItemsLoaded = results });
             }
         }
 

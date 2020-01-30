@@ -21,13 +21,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// A singleton instance of the <see cref="ExpressionUtility"/>.
         /// </summary>
-        public static IExpressionUtility Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
+        public static IExpressionUtility Instance => instance;
 
         /// <summary>
         /// Evaluate all subtrees of an expression that aren't dependent on

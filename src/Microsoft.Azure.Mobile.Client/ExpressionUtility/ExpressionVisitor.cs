@@ -255,27 +255,27 @@ namespace Microsoft.WindowsAzure.MobileServices
 
         protected virtual IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
         {
-            List<MemberBinding> list = null;
+            List<MemberBinding> memberBindings = null;
             for (int i = 0, n = original.Count; i < n; i++)
             {
-                MemberBinding b = this.VisitBinding(original[i]);
-                if (list != null)
+                var memberBinding = VisitBinding(original[i]);
+                memberBindings?.Add(memberBinding);
+
+                if (memberBinding != original[i])
                 {
-                    list.Add(b);
-                }
-                else if (b != original[i])
-                {
-                    list = new List<MemberBinding>(n);
+                    memberBindings = new List<MemberBinding>(n);
                     for (int j = 0; j < i; j++)
                     {
-                        list.Add(original[j]);
+                        memberBindings.Add(original[j]);
                     }
-                    list.Add(b);
+                    memberBindings.Add(memberBinding);
                 }
             }
-            if (list != null)
+
+            //return
+            if (memberBindings != null)
             {
-                return list;
+                return memberBindings;
             }
             return original;
         }

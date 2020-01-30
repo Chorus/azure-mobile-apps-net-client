@@ -46,8 +46,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Returns the complete uri excluding the query part
         public static string GetUriWithoutQuery(Uri uri)
         {
-            string path = uri.GetComponents(UriComponents.Scheme | UriComponents.UserInfo | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.UriEscaped);
-            return path;
+            return uri.GetComponents(UriComponents.Scheme | UriComponents.UserInfo | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.UriEscaped);
         }
 
         /// <summary>

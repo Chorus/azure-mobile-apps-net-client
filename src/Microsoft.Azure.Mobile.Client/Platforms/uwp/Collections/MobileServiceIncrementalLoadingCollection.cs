@@ -32,7 +32,7 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// Use the <see cref="MobileServiceIncrementalLoadingCollection{T}"/> class if the table and 
     /// collection items are of the same type.
     /// </remarks>
-    public class MobileServiceIncrementalLoadingCollection<TTable, TCollection> : 
+    public class MobileServiceIncrementalLoadingCollection<TTable, TCollection> :
         MobileServiceCollection<TTable, TCollection>,
         ISupportIncrementalLoading
     {
@@ -46,9 +46,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="selector">
         /// A selector function to provide client side projections.
         /// </param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification="Overridable method is only used for change notifications")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors", Justification = "Overridable method is only used for change notifications")]
         public MobileServiceIncrementalLoadingCollection(IMobileServiceTableQuery<TTable> query, Func<IEnumerable<TTable>, IEnumerable<TCollection>> selector)
-            :base(query, selector, 1) 
+            : base(query, selector, 1)
         {
             this.ThrowExceptionsFromLoading = true;
         }
@@ -75,13 +75,13 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         public MobileServiceIncrementalLoadingCollection(IMobileServiceTableQuery<TTable> query)
             : this(query, ie => ie.Cast<TCollection>()) { }
-        
+
         /// <summary>
         /// Indicates if more items can be requested by the control.
         /// </summary>
-        bool ISupportIncrementalLoading.HasMoreItems 
-        { 
-            get { return this.HasMoreItems; }
+        bool ISupportIncrementalLoading.HasMoreItems
+        {
+            get => HasMoreItems;
         }
 
         /// <summary>
@@ -102,24 +102,24 @@ namespace Microsoft.WindowsAzure.MobileServices
         IAsyncOperation<LoadMoreItemsResult> ISupportIncrementalLoading.LoadMoreItemsAsync(uint count)
         {
             // we pass the count argument to override the pageSize
-            return AsyncInfo.Run(async (c) => 
+            return AsyncInfo.Run(async (c) =>
             {
                 int results = 0;
                 try
                 {
-                    results = await base.LoadMoreItemsAsync(c, (int)count);   
+                    results = await base.LoadMoreItemsAsync(c, (int)count);
                 }
                 catch (Exception e)
                 {
                     OnExceptionOccurred(e);
 
-                    if (this.ThrowExceptionsFromLoading)
+                    if (ThrowExceptionsFromLoading)
                     {
                         throw;
                     }
                 }
 
-                return new LoadMoreItemsResult() { Count = (uint)results };
+                return new LoadMoreItemsResult { Count = (uint)results };
             });
         }
 

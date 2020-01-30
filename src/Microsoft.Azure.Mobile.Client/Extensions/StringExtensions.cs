@@ -4,8 +4,6 @@
 
 using System;
 using System.Globalization;
-using System.IO;
-using Microsoft.WindowsAzure.MobileServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -13,6 +11,12 @@ namespace System
 {
     internal static class StringExtensions
     {
+        public static bool IsNullOrEmpty(this string value) => 
+            string.IsNullOrEmpty(value);
+
+        public static bool IsNullOrWhiteSpace(this string value) =>
+            string.IsNullOrWhiteSpace(value);
+
         public static string FormatInvariant(this string format, params object[] args)
         {
             return string.Format(CultureInfo.InvariantCulture, format, args);

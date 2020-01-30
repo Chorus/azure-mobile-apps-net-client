@@ -98,29 +98,26 @@ namespace Microsoft.WindowsAzure.MobileServices
                     // By default, use the type name itself
                     name = type.Name;
 
-                    DataContractAttribute dataContractAttribute = type.GetTypeInfo().GetCustomAttributes(typeof(DataContractAttribute), true)
-                                                                      .FirstOrDefault() as DataContractAttribute;
-                    if (dataContractAttribute != null)
+                    if (type.GetTypeInfo().GetCustomAttributes(typeof(DataContractAttribute), true)
+                                                                      .FirstOrDefault() is DataContractAttribute dataContractAttribute)
                     {
-                        if (!string.IsNullOrWhiteSpace(dataContractAttribute.Name))
+                        if (!dataContractAttribute.Name.IsNullOrWhiteSpace())
                         {
                             name = dataContractAttribute.Name;
                         }
                     }
 
-                    JsonContainerAttribute jsonContainerAttribute = type.GetTypeInfo().GetCustomAttributes(typeof(JsonContainerAttribute), true)
-                                                                        .FirstOrDefault() as JsonContainerAttribute;
-                    if (jsonContainerAttribute != null)
+                    if (type.GetTypeInfo().GetCustomAttributes(typeof(JsonContainerAttribute), true)
+                                                                        .FirstOrDefault() is JsonContainerAttribute jsonContainerAttribute)
                     {
-                        if (!string.IsNullOrWhiteSpace(jsonContainerAttribute.Title))
+                        if (!jsonContainerAttribute.Title.IsNullOrWhiteSpace())
                         {
                             name = jsonContainerAttribute.Title;
                         }
                     }
 
-                    DataTableAttribute dataTableAttribute = type.GetTypeInfo().GetCustomAttributes(typeof(DataTableAttribute), true)
-                                                                .FirstOrDefault() as DataTableAttribute;
-                    if (dataTableAttribute != null)
+                    if (type.GetTypeInfo().GetCustomAttributes(typeof(DataTableAttribute), true)
+                                                                .FirstOrDefault() is DataTableAttribute dataTableAttribute)
                     {
                         if (!string.IsNullOrEmpty(dataTableAttribute.Name))
                         {
@@ -128,7 +125,7 @@ namespace Microsoft.WindowsAzure.MobileServices
                         }
                     }
 
-                    this.tableNameCache[type] = name;
+                    tableNameCache[type] = name;
 
                     // Build the JsonContract now to catch any contract errors early
                     this.CreateContract(type);
@@ -155,11 +152,10 @@ namespace Microsoft.WindowsAzure.MobileServices
 
         internal JsonProperty ResolveIdProperty(Type type, bool throwIfNotFound)
         {
-            JsonProperty property = null;
-            if (!this.idPropertyCache.TryGetValue(type, out property))
+            if (!idPropertyCache.TryGetValue(type, out JsonProperty property))
             {
                 ResolveContract(type);
-                this.idPropertyCache.TryGetValue(type, out property);
+                idPropertyCache.TryGetValue(type, out property);
             }
 
             if (property == null && throwIfNotFound)
@@ -186,7 +182,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         public virtual MobileServiceSystemProperties ResolveSystemProperties(Type type)
         {
             MobileServiceSystemProperties systemProperties = MobileServiceSystemProperties.None;
-            this.systemPropertyCache.TryGetValue(type, out systemProperties);
+            systemPropertyCache.TryGetValue(type, out systemProperties);
             return systemProperties;
         }
 
@@ -237,9 +233,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         protected override string ResolvePropertyName(string propertyName)
         {
-            if (this.CamelCasePropertyNames)
+            if (CamelCasePropertyNames)
             {
-                if (!string.IsNullOrWhiteSpace(propertyName) && char.IsUpper(propertyName[0]))
+                if (!propertyName.IsNullOrWhiteSpace() && char.IsUpper(propertyName[0]))
                 {
                     string original = propertyName;
                     propertyName = char.ToLower(propertyName[0]).ToString();
@@ -275,7 +271,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         {
             JsonObjectContract contract = base.CreateObjectContract(objectType);
 
-            DataContractAttribute dataContractAttribute = objectType.GetTypeInfo().GetCustomAttributes(typeof(DataContractAttribute), true)
+            var dataContractAttribute = objectType.GetTypeInfo().GetCustomAttributes(typeof(DataContractAttribute), true)
                                                               .FirstOrDefault() as DataContractAttribute;
             if (dataContractAttribute == null)
             {
@@ -527,7 +523,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             idProperty.PropertyName = MobileServiceSystemColumns.Id;
             idProperty.NullValueHandling = NullValueHandling.Ignore;
             idProperty.DefaultValueHandling = DefaultValueHandling.Ignore;
-            this.idPropertyCache[type] = idProperty;
+            idPropertyCache[type] = idProperty;
 
             return idProperty;
         }
@@ -588,14 +584,9 @@ namespace Microsoft.WindowsAzure.MobileServices
             {
                 // The NullHandlingConverter will ensure that nulls get treated as the default value
                 // for value types.
-                if (property.MemberConverter == null)
-                {
-                    property.MemberConverter = NullHandlingConverter.Instance;
-                }
-                else
-                {
-                    property.MemberConverter = new NullHandlingConverter(property.MemberConverter);
-                }
+                property.MemberConverter = property.MemberConverter == null 
+                    ? NullHandlingConverter.Instance 
+                    : new NullHandlingConverter(property.MemberConverter);
             }
         }
 
