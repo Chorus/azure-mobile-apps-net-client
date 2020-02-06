@@ -33,10 +33,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         {
             Debug.Assert(tableName != null, "tableName cannot be null");
 
-            this.TableName = tableName;
-            this.Selection = new List<string>();
-            this.Projections = new List<Delegate>();
-            this.Ordering = new List<OrderByNode>();
+            TableName = tableName;
+            Selection = new List<string>();
+            Projections = new List<Delegate>();
+            Ordering = new List<OrderByNode>();
         }
 
         /// <summary>
@@ -99,21 +99,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// Creates a copy of <see cref="MobileServiceTableQueryDescription"/>
         /// </summary>
         /// <returns>The cloned query</returns>
-        public MobileServiceTableQueryDescription Clone()
-        {
-            var clone = new MobileServiceTableQueryDescription(this.TableName);
-
-            clone.Filter = this.Filter;
-            clone.Selection = this.Selection.ToList();
-            clone.Ordering = this.Ordering.ToList();
-            clone.Projections = this.Projections.ToList();
-            clone.ProjectionArgumentType = this.ProjectionArgumentType;
-            clone.Skip = this.Skip;
-            clone.Top = this.Top;
-            clone.IncludeTotalCount = this.IncludeTotalCount;
-
-            return clone;
-        }
+        public MobileServiceTableQueryDescription Clone() =>
+             new MobileServiceTableQueryDescription(TableName)
+             {
+                 Filter = Filter,
+                 Selection = Selection.ToList(),
+                 Ordering = Ordering.ToList(),
+                 Projections = Projections.ToList(),
+                 ProjectionArgumentType = ProjectionArgumentType,
+                 Skip = Skip,
+                 Top = Top,
+                 IncludeTotalCount = IncludeTotalCount
+             };
 
         /// <summary>
         /// Convert the query structure into the standard OData URI protocol
@@ -128,7 +125,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             StringBuilder text = new StringBuilder();
 
             // Add the filter
-            if (this.Filter != null)
+            if (Filter != null)
             {
                 string filterStr = ODataExpressionVisitor.ToODataString(this.Filter);
                 text.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}={2}", separator, ODataOptions.Filter, filterStr);
@@ -136,46 +133,43 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             }
 
             // Add the ordering
-            if (this.Ordering.Count > 0)
+            if (Ordering.Count > 0)
             {
-                IEnumerable<string> orderings = this.Ordering
-                                                    .Select(o =>
-                                                    {
-                                                        string result = ODataExpressionVisitor.ToODataString(o.Expression);
-                                                        if (o.Direction == OrderByDirection.Descending)
-                                                        {
-                                                            result += " desc";
-                                                        }
-                                                        return result;
-                                                    });
+                var orderings = Ordering.Select(o =>
+                {
+                    string result = ODataExpressionVisitor.ToODataString(o.Expression);
+                    return o.Direction == OrderByDirection.Descending
+                    ? result += " desc"
+                    : result;
+                });
 
                 text.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}={2}", separator, ODataOptions.OrderBy, string.Join(",", orderings));
                 separator = '&';
             }
 
             // Skip any elements
-            if (this.Skip.HasValue && this.Skip >= 0)
+            if (Skip.HasValue && this.Skip >= 0)
             {
                 text.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}={2}", separator, ODataOptions.Skip, this.Skip);
                 separator = '&';
             }
 
             // Take the desired number of elements
-            if (this.Top.HasValue && this.Top >= 0)
+            if (Top.HasValue && this.Top >= 0)
             {
                 text.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}={2}", separator, ODataOptions.Top, this.Top);
                 separator = '&';
             }
 
             // Add the selection
-            if (this.Selection.Count > 0)
+            if (Selection.Count > 0)
             {
                 text.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}={2}", separator, ODataOptions.Select, string.Join(",", this.Selection.Select(Uri.EscapeDataString)));
                 separator = '&';
             }
 
             // Add the total count
-            if (this.IncludeTotalCount)
+            if (IncludeTotalCount)
             {
                 text.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}=allpages", separator, ODataOptions.InlineCount);
                 separator = '&';
@@ -192,18 +186,16 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// <returns>An instance of <see cref="MobileServiceTableQueryDescription"/></returns>
         public static MobileServiceTableQueryDescription Parse(string tableName, string query)
         {
-            query = query ?? String.Empty;
+            query ??= string.Empty;
 
             return Parse(tableName, query, null);
         }
 
         internal static MobileServiceTableQueryDescription Parse(Uri applicationUri, string tableName, string query)
         {
-            query = query ?? String.Empty;
+            query ??= String.Empty;
             string uriPath = null;
-            Uri uri;
-            bool absolute;
-            if (HttpUtility.TryParseQueryUri(applicationUri, query, out uri, out absolute))
+            if (HttpUtility.TryParseQueryUri(applicationUri, query, out Uri uri, out bool absolute))
             {
                 query = uri.Query.Length > 0 ? uri.Query.Substring(1) : String.Empty;
                 uriPath = uri.AbsolutePath;

@@ -12,53 +12,53 @@ namespace Microsoft.WindowsAzure.MobileServices.Threading
 {
     internal class AsyncReaderWriterLock
     {
-        private readonly Task<DisposeAction> readerReleaser;
-        private readonly Task<DisposeAction> writerReleaser;
-        private readonly Queue<TaskCompletionSource<DisposeAction>> waitingWriters = new Queue<TaskCompletionSource<DisposeAction>>(); 
-        private TaskCompletionSource<DisposeAction> waitingReader = new TaskCompletionSource<DisposeAction>(); 
+        private readonly Task<DisposeAction> _readerReleaser;
+        private readonly Task<DisposeAction> _writerReleaser;
+        private readonly Queue<TaskCompletionSource<DisposeAction>> _waitingWriters = new Queue<TaskCompletionSource<DisposeAction>>(); 
+        private TaskCompletionSource<DisposeAction> _waitingReader = new TaskCompletionSource<DisposeAction>(); 
         private int readersWaiting;
 
         private int lockStatus; // -1 means write lock, >=0 no. of read locks
 
         public AsyncReaderWriterLock()
         {
-            this.readerReleaser = Task.FromResult(new DisposeAction(this.ReaderRelease));
-            this.writerReleaser = Task.FromResult(new DisposeAction(this.WriterRelease)); 
+            _readerReleaser = Task.FromResult(new DisposeAction(ReaderRelease));
+            _writerReleaser = Task.FromResult(new DisposeAction(WriterRelease)); 
         }
 
         public Task<DisposeAction> ReaderLockAsync() 
         {
-            lock (this.waitingWriters) 
+            lock (this._waitingWriters) 
             {
-                bool hasPendingReaders = this.lockStatus >= 0;
-                bool hasNoPendingWritiers = this.waitingWriters.Count == 0;
+                bool hasPendingReaders = lockStatus >= 0;
+                bool hasNoPendingWritiers = _waitingWriters.Count == 0;
                 if (hasPendingReaders && hasNoPendingWritiers) 
                 {
-                    ++this.lockStatus;
-                    return this.readerReleaser; 
+                    ++lockStatus;
+                    return _readerReleaser; 
                 } 
                 else 
                 {
-                    ++this.readersWaiting;
-                    return this.waitingReader.Task.ContinueWith(t => t.Result);
+                    ++readersWaiting;
+                    return _waitingReader.Task.ContinueWith(t => t.Result);
                 } 
             } 
         }
 
         public Task<DisposeAction> WriterLockAsync() 
         {
-            lock (this.waitingWriters) 
+            lock (this._waitingWriters) 
             {
                 bool hasNoPendingReaders = this.lockStatus == 0;
                 if (hasNoPendingReaders) 
                 {
                     this.lockStatus = -1;
-                    return this.writerReleaser; 
+                    return this._writerReleaser; 
                 } 
                 else 
                 { 
                     var waiter = new TaskCompletionSource<DisposeAction>();
-                    this.waitingWriters.Enqueue(waiter); 
+                    this._waitingWriters.Enqueue(waiter); 
                     return waiter.Task; 
                 } 
             } 
@@ -68,13 +68,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Threading
         { 
             TaskCompletionSource<DisposeAction> toWake = null;
 
-            lock (this.waitingWriters) 
+            lock (this._waitingWriters) 
             {
                 --this.lockStatus;
-                if (this.lockStatus == 0 && this.waitingWriters.Count > 0) 
+                if (this.lockStatus == 0 && this._waitingWriters.Count > 0) 
                 {
                     this.lockStatus = -1;
-                    toWake = this.waitingWriters.Dequeue(); 
+                    toWake = this._waitingWriters.Dequeue(); 
                 } 
             }
 
@@ -88,19 +88,19 @@ namespace Microsoft.WindowsAzure.MobileServices.Threading
             TaskCompletionSource<DisposeAction> toWake = null;
             Action wakeupAction = this.ReaderRelease;
 
-            lock (this.waitingWriters)
+            lock (this._waitingWriters)
             {
-                if (this.waitingWriters.Count > 0)
+                if (this._waitingWriters.Count > 0)
                 {
-                    toWake = this.waitingWriters.Dequeue();
+                    toWake = this._waitingWriters.Dequeue();
                     wakeupAction = this.WriterRelease;
                 }
                 else if (this.readersWaiting > 0)
                 {
-                    toWake = this.waitingReader;
+                    toWake = this._waitingReader;
                     this.lockStatus = this.readersWaiting;
                     this.readersWaiting = 0;
-                    this.waitingReader = new TaskCompletionSource<DisposeAction>();
+                    this._waitingReader = new TaskCompletionSource<DisposeAction>();
                 }
                 else
                 {

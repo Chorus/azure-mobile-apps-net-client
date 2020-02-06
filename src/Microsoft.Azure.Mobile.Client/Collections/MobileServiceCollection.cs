@@ -74,19 +74,19 @@ namespace Microsoft.WindowsAzure.MobileServices
         {
             if (pageSize < 0)
             {
-                throw new ArgumentOutOfRangeException("pageSize");
+                throw new ArgumentOutOfRangeException(nameof(pageSize));
             }
 
-            this.query = query ?? throw new ArgumentNullException("query");
+            this.query = query ?? throw new ArgumentNullException(nameof(query));
             if (query is MobileServiceTableQuery<TTable> tableQuery)
             {
                 tableQuery.QueryProvider.Features = MobileServiceFeatures.TableCollection;
             }
 
-            selectorFunction = selector ?? throw new ArgumentNullException("selector");
+            selectorFunction = selector ?? throw new ArgumentNullException(nameof(selector));
             this.pageSize = pageSize;
 
-            this.HasMoreItems = true;
+            HasMoreItems = true;
         }
 
         /// <summary>
@@ -296,10 +296,8 @@ namespace Microsoft.WindowsAzure.MobileServices
 
             busy = true;
 
-            EventHandler loadingItems = LoadingItems;
-            if (loadingItems != null) { loadingItems(this, new EventArgs()); }
-
-            int results = 0;
+            LoadingItems?.Invoke(this, new EventArgs());
+            var results = 0;
 
             try
             {
@@ -370,9 +368,9 @@ namespace Microsoft.WindowsAzure.MobileServices
             // the CallerMemberName attribute
             if (propertyName == null)
             {
-                throw new ArgumentNullException("propertyName");
+                throw new ArgumentNullException(nameof(propertyName));
             }
-            this.OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
+            OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
         }
     }
 

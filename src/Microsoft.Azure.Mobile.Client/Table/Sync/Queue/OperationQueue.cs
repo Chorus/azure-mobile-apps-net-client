@@ -20,13 +20,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     {
         private readonly AsyncLockDictionary tableLocks = new AsyncLockDictionary();
         private readonly AsyncLockDictionary itemLocks = new AsyncLockDictionary();
-        private readonly IMobileServiceLocalStore store;
+        private readonly IMobileServiceLocalStore _store;
         private long sequenceId;
         private long pendingOperations;
 
         public OperationQueue(IMobileServiceLocalStore store)
         {
-            this.store = store;
+            _store = store;
         }
 
         public async virtual Task<MobileServiceTableOperation> PeekAsync(long prevSequenceId, MobileServiceTableKind tableKind, IEnumerable<string> tableNames)
@@ -48,7 +48,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             query.Ordering.Add(new OrderByNode(new MemberAccessNode(null, "sequence"), OrderByDirection.Ascending));
             query.Top = 1;
 
-            JObject op = await this.store.FirstOrDefault(query);
+            JObject op = await this._store.FirstOrDefault(query);
             if (op == null)
             {
                 return null;
@@ -57,10 +57,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return MobileServiceTableOperation.Deserialize(op);
         }
 
-        public long PendingOperations
-        {
-            get { return pendingOperations; }
-        }
+        public long PendingOperations => pendingOperations;
 
         internal void UpdateOperationCount(long delta)
         {
@@ -77,18 +74,15 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             MobileServiceTableQueryDescription query = CreateQuery();
             query.Filter = new BinaryOperatorNode(BinaryOperatorKind.Equal, new MemberAccessNode(null, "tableName"), new ConstantNode(tableName));
-            return await this.store.CountAsync(query);
+            return await this._store.CountAsync(query);
         }
 
-        public virtual Task<IDisposable> LockTableAsync(string name, CancellationToken cancellationToken)
-        {
-            return this.tableLocks.Acquire(name, cancellationToken);
-        }
+        public virtual Task<IDisposable> LockTableAsync(string name, CancellationToken cancellationToken) =>
+            tableLocks.Acquire(name, cancellationToken);
 
-        public Task<IDisposable> LockItemAsync(string id, CancellationToken cancellationToken)
-        {
-            return this.itemLocks.Acquire(id, cancellationToken);
-        }
+
+        public Task<IDisposable> LockItemAsync(string id, CancellationToken cancellationToken) =>
+            itemLocks.Acquire(id, cancellationToken);
 
         public virtual async Task<MobileServiceTableOperation> GetOperationByItemIdAsync(string tableName, string itemId)
         {
@@ -96,24 +90,22 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             query.Filter = new BinaryOperatorNode(BinaryOperatorKind.And,
                                 Compare(BinaryOperatorKind.Equal, "tableName", tableName),
                                 Compare(BinaryOperatorKind.Equal, "itemId", itemId));
-            JObject op = await this.store.FirstOrDefault(query);
+            JObject op = await this._store.FirstOrDefault(query);
             return MobileServiceTableOperation.Deserialize(op);
         }
 
         public async Task<MobileServiceTableOperation> GetOperationAsync(string id)
         {
-            JObject op = await this.store.LookupAsync(MobileServiceLocalSystemTables.OperationQueue, id);
-            if (op == null)
-            {
-                return null;
-            }
-            return MobileServiceTableOperation.Deserialize(op);
+            JObject op = await this._store.LookupAsync(MobileServiceLocalSystemTables.OperationQueue, id);
+            return op == null
+                ? null
+                : MobileServiceTableOperation.Deserialize(op);
         }
 
         public async Task EnqueueAsync(MobileServiceTableOperation op)
         {
             op.Sequence = Interlocked.Increment(ref this.sequenceId);
-            await this.store.UpsertAsync(MobileServiceLocalSystemTables.OperationQueue, op.Serialize(), fromServer: false);
+            await this._store.UpsertAsync(MobileServiceLocalSystemTables.OperationQueue, op.Serialize(), fromServer: false);
             Interlocked.Increment(ref this.pendingOperations);
         }
 
@@ -127,7 +119,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     return false;
                 }
 
-                await this.store.DeleteAsync(MobileServiceLocalSystemTables.OperationQueue, id);
+                await this._store.DeleteAsync(MobileServiceLocalSystemTables.OperationQueue, id);
                 Interlocked.Decrement(ref this.pendingOperations);
                 return true;
             }
@@ -141,7 +133,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             try
             {
-                await this.store.UpsertAsync(MobileServiceLocalSystemTables.OperationQueue, op.Serialize(), fromServer: false);
+                await this._store.UpsertAsync(MobileServiceLocalSystemTables.OperationQueue, op.Serialize(), fromServer: false);
             }
             catch (Exception ex)
             {

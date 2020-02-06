@@ -35,9 +35,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
             MobileServiceLocalSystemTables.DefineAll(this);
 
-            await this.OnInitialize();
+            await OnInitialize();
 
-            this.Initialized = true;
+            Initialized = true;
         }
 
         /// <summary>

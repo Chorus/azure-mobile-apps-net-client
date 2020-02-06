@@ -13,36 +13,35 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     {
         // --- Persisted properties -- //
         public string Id { get; private set; }
+
         public abstract MobileServiceTableOperationKind Kind { get; }
+
         public MobileServiceTableKind TableKind { get; private set; }
+
         public string TableName { get; private set; }
+
         public string ItemId { get; private set; }
+
         public JObject Item { get; set; }
 
         public MobileServiceTableOperationState State { get; internal set; }
+
         public long Sequence { get; set; }
+
         public long Version { get; set; }
 
         // --- Non persisted properties -- //
-        IMobileServiceTable IMobileServiceTableOperation.Table
-        {
-            get { return this.Table; }
-        }
+        IMobileServiceTable IMobileServiceTableOperation.Table => Table;
 
         public MobileServiceTable Table { get; set; }
 
         public bool IsCancelled { get; private set; }
+
         public bool IsUpdated { get; private set; }
 
-        public virtual bool CanWriteResultToStore
-        {
-            get { return true; }
-        }
+        public virtual bool CanWriteResultToStore => true;
 
-        protected virtual bool SerializeItemToQueue
-        {
-            get { return false; }
-        }
+        protected virtual bool SerializeItemToQueue => false;
 
         protected MobileServiceTableOperation(string tableName, MobileServiceTableKind tableKind, string itemId)
         {
@@ -123,10 +122,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 { MobileServiceSystemColumns.Id, String.Empty },
                 { "kind", 0 },
                 { "state", 0 },
-                { "tableName", String.Empty },
+                { "tableName", string.Empty },
                 { "tableKind", 0 },
-                { "itemId", String.Empty },
-                { "item", String.Empty },
+                { "itemId", string.Empty },
+                { "item", string.Empty },
                 { MobileServiceSystemColumns.CreatedAt, DateTime.Now },
                 { "sequence", 0 },
                 { "version", 0 }

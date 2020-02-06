@@ -78,13 +78,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             var errors = new List<MobileServiceTableOperationError>();
 
-            JToken result = await this.Store.ReadAsync(new MobileServiceTableQueryDescription(MobileServiceLocalSystemTables.SyncErrors));
+            JToken result = await Store.ReadAsync(new MobileServiceTableQueryDescription(MobileServiceLocalSystemTables.SyncErrors));
             if (result is JArray)
             {
                 foreach (JObject error in result)
                 {
                     var obj = MobileServiceTableOperationError.Deserialize(error, serializerSettings);
-                    obj.Context = this.context;
+                    obj.Context = context;
                     errors.Add(obj);
                 }
             }            

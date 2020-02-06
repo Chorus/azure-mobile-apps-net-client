@@ -127,12 +127,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         private async Task ExecuteAllOperationsAsync(OperationBatch batch)
         {
-            MobileServiceTableOperation operation = await this.OperationQueue.PeekAsync(0, this._tableKind, this._tableNames);
+            MobileServiceTableOperation operation = await OperationQueue.PeekAsync(0, _tableKind, _tableNames);
 
             // keep taking out operations and executing them until queue is empty or operation finds the bookmark or batch is aborted 
             while (operation != null)
             {
-                using (await OperationQueue.LockItemAsync(operation.ItemId, this.CancellationToken))
+                using (await OperationQueue.LockItemAsync(operation.ItemId, CancellationToken))
                 {
                     bool success = await ExecuteOperationAsync(operation, batch);
 
@@ -148,22 +148,22 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     }
 
                     // get next operation
-                    operation = await this.OperationQueue.PeekAsync(operation.Sequence, this._tableKind, this._tableNames);
+                    operation = await OperationQueue.PeekAsync(operation.Sequence, _tableKind, _tableNames);
                 }
             }
         }
 
         private async Task<bool> ExecuteOperationAsync(MobileServiceTableOperation operation, OperationBatch batch)
         {
-            if (operation.IsCancelled || this.CancellationToken.IsCancellationRequested)
+            if (operation.IsCancelled || CancellationToken.IsCancellationRequested)
             {
                 return false;
             }
 
-            operation.Table = await this._context.GetTable(operation.TableName);
+            operation.Table = await _context.GetTable(operation.TableName);
             await LoadOperationItem(operation, batch);
 
-            if (operation.Item == null || this.CancellationToken.IsCancellationRequested)
+            if (operation.Item == null || CancellationToken.IsCancellationRequested)
             {
                 return false;
             }
@@ -199,7 +199,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             // save the result if ExecuteTableOperation did not throw
             if (error == null && result.IsValidItem() && operation.CanWriteResultToStore)
             {
-                await TryStoreOperation(() => this.Store.UpsertAsync(operation.TableName, result, fromServer: true), batch, "Failed to update the item in the local store.");
+                await TryStoreOperation(() => Store.UpsertAsync(operation.TableName, result, fromServer: true), batch, "Failed to update the item in the local store.");
             }
             else if (error != null)
             {
@@ -234,7 +234,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private async Task TryUpdateOperationState(MobileServiceTableOperation operation, MobileServiceTableOperationState state, OperationBatch batch)
         {
             operation.State = state;
-            await TryStoreOperation(() => this.OperationQueue.UpdateAsync(operation), batch, "Failed to update operation in the local store.");
+            await TryStoreOperation(() => OperationQueue.UpdateAsync(operation), batch, "Failed to update operation in the local store.");
         }
 
         private async Task LoadOperationItem(MobileServiceTableOperation operation, OperationBatch batch)
