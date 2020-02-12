@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides extension methods for single sign-on.

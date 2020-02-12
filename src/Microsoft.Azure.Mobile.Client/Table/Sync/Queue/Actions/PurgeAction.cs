@@ -5,10 +5,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Eventing;
-using Microsoft.WindowsAzure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Eventing;
+using Microsoft.Azure.MobileServices.Query;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     internal class PurgeAction : TableAction
     {

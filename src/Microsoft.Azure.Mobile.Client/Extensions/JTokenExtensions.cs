@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     internal static class JTokenExtensions
     {

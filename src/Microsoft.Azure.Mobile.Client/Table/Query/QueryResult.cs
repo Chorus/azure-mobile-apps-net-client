@@ -5,10 +5,11 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using Microsoft.Azure.MobileServices.Table.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices.Query
+namespace Microsoft.Azure.MobileServices.Query
 {
     /// <summary>
     /// Represents the result of odata query returned from Mobile Service
@@ -58,7 +59,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// <summary>
         /// The deserialized response
         /// </summary>
-        public JToken Response { get; private set; }
+        public OdataResult Response { get; private set; }
 
         /// <summary>
         /// Parse a JSON response into <see cref="QueryResult"/> object 
@@ -79,49 +80,31 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         {
             Debug.Assert(httpResponse != null);
 
-            JToken response = httpResponse.Content.ParseToJToken(serializerSettings);
+            var response = httpResponse.ContentObject;
 
-            Uri link = httpResponse.Link != null && httpResponse.Link.Relation == NextRelation ? httpResponse.Link.Uri : null;
+            Uri link = httpResponse.Link != null
+                && httpResponse.Link.Relation == NextRelation
+                ? httpResponse.Link.Uri
+                : null;
             return Parse(response, link, validate);
         }
 
-        public static QueryResult Parse(JToken response, Uri nextLink, bool validate)
+        public static QueryResult Parse(OdataResult response, Uri nextLink, bool validate)
         {
-            var result = new QueryResult() { Response = response };
+            var result = new QueryResult
+            {
+                Response = response
+            };
 
             long? inlineCount = null;
 
             // Try and get the values as an array
-            result.Values = response as JArray;
-            if (result.Values == null && response is JObject)
-            {
-                // Otherwise try and get the values from the results property
-                // (which is the case when we retrieve the count inline)
-                var tempValues = response[InlineCountResultsKey] as JArray;
-                if (tempValues == null)
-                {
-                   tempValues = response[InlineCountResultsKeyV4] as JArray;
-                }
-                result.Values = tempValues;
-                inlineCount = response.Value<long?>(InlineCountCountKey);
-                if (result.Values == null && validate)
-                {
-                    string responseStr = response != null ? response.ToString() : "null";
-                    throw new InvalidOperationException(String.Format(CultureInfo.InvariantCulture,
-                                                                      "Could not get an array from response {0}.",
-                                                                      responseStr));
-                }
-                else if (result.Values == null)
-                {
-                    result.Values = new JArray(response);
-                }
-            }
+            result.Values = response.Value;
+            inlineCount = response.Count;
 
             // Get the count via the inline count or default an unspecified count to -1
             result.TotalCount = inlineCount.GetValueOrDefault(-1L);
-
             result.NextLink = nextLink;
-
             return result;
         }
 
@@ -130,7 +113,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             var result = new JObject()
             {
                 { InlineCountCountKey, this.TotalCount },
-                { InlineCountResultsKey, this.Values },                
+                { InlineCountResultsKey, this.Values },
             };
 
             if (this.NextLink != null)

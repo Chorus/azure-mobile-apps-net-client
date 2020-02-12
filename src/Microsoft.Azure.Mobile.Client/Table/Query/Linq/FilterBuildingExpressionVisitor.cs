@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Text;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.WindowsAzure.MobileServices.Query
+namespace Microsoft.Azure.MobileServices.Query
 {
     /// <summary>
     /// Create an OData filter expression by walking an expression tree.

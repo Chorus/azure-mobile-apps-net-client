@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     /// <summary>
     /// Exception thrown from table operation when push is aborted

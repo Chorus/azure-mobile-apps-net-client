@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     internal static class TypeExtensions
     {

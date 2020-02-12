@@ -6,7 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// The QueryResultEnumerable{T} class provides next link, records returned by a query

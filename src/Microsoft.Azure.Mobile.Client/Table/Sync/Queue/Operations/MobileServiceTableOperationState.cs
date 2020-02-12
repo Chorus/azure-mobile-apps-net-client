@@ -1,5 +1,5 @@
 ﻿
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     /// <summary>
     /// Enumeration for the state of table operation.

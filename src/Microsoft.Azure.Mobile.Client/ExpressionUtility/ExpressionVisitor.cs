@@ -9,7 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     internal abstract class ExpressionVisitor
     {

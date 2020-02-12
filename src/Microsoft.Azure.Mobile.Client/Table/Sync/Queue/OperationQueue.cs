@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Query;
-using Microsoft.WindowsAzure.MobileServices.Threading;
+using Microsoft.Azure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Threading;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     /// <summary>
     /// Queue of all operations i.e. Push, Pull, Insert, Update, Delete
@@ -189,20 +189,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
             QueryResult result = await store.QueryAsync(query);
             opQueue.pendingOperations = result.TotalCount;
-            opQueue.sequenceId = result.Values == null ? 0 : result.Values.Select(v => v.Value<long>("sequence")).FirstOrDefault();
+            opQueue.sequenceId = result.Values == null
+                ? 0
+                : result.Values.Select(v => v.Value<long>("sequence")).FirstOrDefault();
 
             return opQueue;
         }
 
-        private static MobileServiceTableQueryDescription CreateQuery()
-        {
-            var query = new MobileServiceTableQueryDescription(MobileServiceLocalSystemTables.OperationQueue);
-            return query;
-        }
+        private static MobileServiceTableQueryDescription CreateQuery() =>
+            new MobileServiceTableQueryDescription(MobileServiceLocalSystemTables.OperationQueue);
 
-        private static BinaryOperatorNode Compare(BinaryOperatorKind kind, string member, object value)
-        {
-            return new BinaryOperatorNode(kind, new MemberAccessNode(null, member), new ConstantNode(value));
-        }
+        private static BinaryOperatorNode Compare(BinaryOperatorKind kind, string member, object value) =>
+            new BinaryOperatorNode(kind, new MemberAccessNode(null, member), new ConstantNode(value));
     }
 }

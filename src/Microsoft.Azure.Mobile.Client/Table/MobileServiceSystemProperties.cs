@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// A flags enum for the available system properties in 

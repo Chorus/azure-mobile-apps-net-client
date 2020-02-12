@@ -10,9 +10,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Query;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// An asynchronous data source that can wrap the results of a Mobile

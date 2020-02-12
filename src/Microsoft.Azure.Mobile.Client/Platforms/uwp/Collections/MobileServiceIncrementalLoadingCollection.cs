@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.UI.Xaml.Data;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// An asynchronous data source that implements ISupportIncrementalLoading and 

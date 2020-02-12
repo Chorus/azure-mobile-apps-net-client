@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     /// <summary>
     /// Provides additional details of failed sync store operation

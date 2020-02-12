@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// The IQueryResultEnumerable{T} interface provides extra details returned with response

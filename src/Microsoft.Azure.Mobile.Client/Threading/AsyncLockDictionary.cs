@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices.Threading
+namespace Microsoft.Azure.MobileServices.Threading
 {
     internal class AsyncLockDictionary
     {

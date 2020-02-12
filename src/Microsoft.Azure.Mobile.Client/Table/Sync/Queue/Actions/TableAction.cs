@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Query;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     /// <summary>
     /// Base class for table specific sync actions that push all the pending changes on that table before executing i.e. Purge and Pull

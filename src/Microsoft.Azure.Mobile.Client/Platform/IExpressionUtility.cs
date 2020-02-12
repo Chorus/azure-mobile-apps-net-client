@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// An interface for platform-specific assemblies to provide utility functions

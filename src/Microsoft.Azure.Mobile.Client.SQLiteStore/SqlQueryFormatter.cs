@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.WindowsAzure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Query;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
+namespace Microsoft.Azure.MobileServices.SQLiteStore
 {
     internal class SqlQueryFormatter : QueryNodeVisitor<QueryNode>
     {

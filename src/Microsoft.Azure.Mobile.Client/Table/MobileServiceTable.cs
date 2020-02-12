@@ -9,11 +9,11 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides operations on tables for a Microsoft Azure Mobile Service.

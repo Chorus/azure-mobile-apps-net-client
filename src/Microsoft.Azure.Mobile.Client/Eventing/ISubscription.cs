@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.WindowsAzure.MobileServices.Eventing
+namespace Microsoft.Azure.MobileServices.Eventing
 {
     /// <summary>
     /// Represents a <see cref="IMobileServiceEventManager"/> subscription.

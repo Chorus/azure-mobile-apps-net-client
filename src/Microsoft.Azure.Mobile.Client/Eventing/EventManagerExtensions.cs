@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices.Eventing
+namespace Microsoft.Azure.MobileServices.Eventing
 {
     internal static class EventManagerExtensions
     {

@@ -7,7 +7,7 @@ using System;
 using Windows.Foundation.Collections;
 using Windows.Storage;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// An implementation of the <see cref="IApplicationStorage"/> interface

@@ -12,7 +12,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.WindowsAzure.MobileServices.Query
+namespace Microsoft.Azure.MobileServices.Query
 {
     /// <summary>
     /// Compiles a LINQ expression tree into a

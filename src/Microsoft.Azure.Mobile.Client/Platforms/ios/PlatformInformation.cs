@@ -9,7 +9,7 @@ using UIKit;
 using MonoTouch.UIKit;
 #endif
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     internal class PlatformInformation : IPlatformInformation
     {

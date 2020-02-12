@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Represents the loaded status changed event arguments.

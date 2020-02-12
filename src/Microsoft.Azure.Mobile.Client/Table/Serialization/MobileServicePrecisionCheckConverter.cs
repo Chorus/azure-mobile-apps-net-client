@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// An implementation of <see cref="JsonConverter"/> to be used with

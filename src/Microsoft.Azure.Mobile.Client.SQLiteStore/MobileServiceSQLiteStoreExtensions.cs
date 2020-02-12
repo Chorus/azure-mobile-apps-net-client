@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
+namespace Microsoft.Azure.MobileServices.SQLiteStore
 {
     /// <summary>
     ///  Provides extension methods on <see cref="MobileServiceSQLiteStore"/>.

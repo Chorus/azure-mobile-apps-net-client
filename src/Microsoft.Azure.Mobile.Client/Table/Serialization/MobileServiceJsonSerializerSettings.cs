@@ -7,7 +7,7 @@ using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// JSON serializer settings to use with a <see cref="MobileServiceClient"/>.
@@ -20,13 +20,13 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         public MobileServiceJsonSerializerSettings()
         {
-            this.NullValueHandling = NullValueHandling.Include;
-            this.ContractResolver = new MobileServiceContractResolver();
-            this.ObjectCreationHandling = ObjectCreationHandling.Replace;
+            NullValueHandling = NullValueHandling.Include;
+            ContractResolver = new MobileServiceContractResolver();
+            ObjectCreationHandling = ObjectCreationHandling.Replace;
 
-            this.Converters.Add(new MobileServiceIsoDateTimeConverter());
-            this.Converters.Add(new MobileServicePrecisionCheckConverter());
-            this.Converters.Add(new StringEnumConverter());
+            Converters.Add(new MobileServiceIsoDateTimeConverter());
+            Converters.Add(new MobileServicePrecisionCheckConverter());
+            Converters.Add(new StringEnumConverter());
         }
 
         /// <summary>

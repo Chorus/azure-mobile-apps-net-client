@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Exception type representing exceptions in parsing of OData queries.
@@ -20,11 +20,11 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         public int ErrorPosition { get; private set; }
 
-        /// <summary>Creates a new instance of the <see cref="T:Microsoft.WindowsAzure.MobileService.MobileServiceODataException" /> class.</summary>
+        /// <summary>Creates a new instance of the <see cref="T:Microsoft.Azure.MobileService.MobileServiceODataException" /> class.</summary>
         public MobileServiceODataException() : base()
         {
         }
-        /// <summary>Creates a new instance of the <see cref="T:Microsoft.WindowsAzure.MobileService.MobileServiceODataException" /> class with an error message.</summary>
+        /// <summary>Creates a new instance of the <see cref="T:Microsoft.Azure.MobileService.MobileServiceODataException" /> class with an error message.</summary>
         /// <param name="message">The plain text error message for this exception.</param>
         /// <param name="errorPos">The position in string where error exists.</param>
         public MobileServiceODataException(string message, int errorPos)
@@ -32,7 +32,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         {
         }
         
-        /// <summary>Creates a new instance of the <see cref="T:Microsoft.WindowsAzure.MobileService.MobileServiceODataException" /> class with an error message and an inner exception.</summary>
+        /// <summary>Creates a new instance of the <see cref="T:Microsoft.Azure.MobileService.MobileServiceODataException" /> class with an error message and an inner exception.</summary>
         /// <param name="message">The plain text error message for this exception.</param>
         /// <param name="errorPos">The position in string where error exists.</param>
         /// <param name="innerException">The inner exception that is the cause of this exception to be thrown.</param>

@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     internal class PushUtility : IPushUtility
     {

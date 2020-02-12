@@ -10,7 +10,7 @@ using MonoTouch.Foundation;
 using MonoTouch.UIKit;
 #endif
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Extension methods for UI-based login.
@@ -20,7 +20,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="viewController" type="MonoTouch.UIKit.UIViewController">
@@ -43,7 +43,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="viewController" type="MonoTouch.UIKit.UIViewController">
@@ -69,7 +69,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="viewController" type="MonoTouch.UIKit.UIViewController">
@@ -92,7 +92,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="viewController" type="MonoTouch.UIKit.UIViewController">
@@ -118,7 +118,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="rectangle" type="System.Drawing.RectangleF">
@@ -144,7 +144,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="rectangle" type="System.Drawing.RectangleF">
@@ -173,7 +173,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="rectangle" type="System.Drawing.RectangleF">
@@ -199,7 +199,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="rectangle" type="System.Drawing.RectangleF">
@@ -228,7 +228,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="barButtonItem" type="MonoTouch.UIKit.UIBarButtonItem">
@@ -251,7 +251,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="barButtonItem" type="MonoTouch.UIKit.UIBarButtonItem">
@@ -277,7 +277,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="barButtonItem" type="MonoTouch.UIKit.UIBarButtonItem">
@@ -300,7 +300,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="barButtonItem" type="MonoTouch.UIKit.UIBarButtonItem">

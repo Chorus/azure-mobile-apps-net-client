@@ -5,9 +5,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.Azure.MobileServices.Sync;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides extension methods on <see cref="IMobileServiceSyncTable"/>

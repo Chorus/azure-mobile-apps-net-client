@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices.Query
+namespace Microsoft.Azure.MobileServices.Query
 {
     /// <summary>
     /// Node representing a unary operator.

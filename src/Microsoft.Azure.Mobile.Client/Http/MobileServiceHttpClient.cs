@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -13,9 +14,11 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.MobileServices.Table.Query;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     internal class MobileServiceHttpClient : IDisposable
     {
@@ -169,7 +172,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         {
             IDictionary<string, string> requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders: null, features: features);
             MobileServiceHttpResponse response = await this.RequestAsync(false, method, uriPathAndQuery, user, content, false, requestHeaders);
-            return response.Content;
+            return response.ContentString;
         }
 
         /// <summary>
@@ -251,45 +254,27 @@ namespace Microsoft.WindowsAzure.MobileServices
                                                         string content = null,
                                                         bool ensureResponseContent = true,
                                                         IDictionary<string, string> requestHeaders = null,
-                                                        CancellationToken cancellationToken = default(CancellationToken))
+                                                        CancellationToken cancellationToken = default)
         {
-            Debug.Assert(method != null);
-            Debug.Assert(!string.IsNullOrEmpty(uriPathAndQuery));
-
             // Create the request
-            HttpContent httpContent = CreateHttpContent(content);
-            HttpRequestMessage request = this.CreateHttpRequestMessage(method, uriPathAndQuery, requestHeaders, httpContent, user);
+            using HttpContent httpContent = CreateHttpContent(content);
+            using HttpRequestMessage request = this.CreateHttpRequestMessage(method, uriPathAndQuery, requestHeaders, httpContent, user);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(RequestJsonContentType));
-
             // Get the response
-            HttpClient client;
-            if (UseHandlers)
-            {
-                client = this.httpClient;
-            }
-            else
-            {
-                client = this.httpClientSansHandlers;
-            }
-            HttpResponseMessage response = await this.SendRequestAsync(client, request, ensureResponseContent, cancellationToken);
-            string responseContent = await GetResponseContent(response);
-            string etag = null;
-            if (response.Headers.ETag != null)
-            {
-                etag = response.Headers.ETag.Tag;
-            }
-
-            LinkHeaderValue link = null;
-            if (response.Headers.Contains("Link"))
-            {
-                link = LinkHeaderValue.Parse(response.Headers.GetValues("Link").FirstOrDefault());
-            }
-
-            // Dispose of the request and response
-            request.Dispose();
-            response.Dispose();
-
-            return new MobileServiceHttpResponse(responseContent, etag, link);
+            var client = UseHandlers
+                ? httpClient
+                : httpClientSansHandlers;
+            using var response = await SendRequestAsync(client, request, ensureResponseContent, cancellationToken);
+            var responseStream = await GetResponseStream(response);
+            var serializer = new JsonSerializer();
+            using var sr = new StreamReader(responseStream);
+            using var reader = new JsonTextReader(sr);
+            var contentObject = serializer.Deserialize<OdataResult>(reader);
+            var etag = response.Headers.ETag?.Tag ?? null;
+            var link = response.Headers.Contains("Link")
+                ? LinkHeaderValue.Parse(response.Headers.GetValues("Link").FirstOrDefault())
+                : null;
+            return new MobileServiceHttpResponse(contentObject, etag, link);
         }
 
         /// <summary>
@@ -393,10 +378,11 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The response content as a string.
         /// </returns>
-        private static async Task<string> GetResponseContent(HttpResponseMessage response) =>
-            response.Content == null
-            ? null
-            : await response.Content.ReadAsStringAsync();
+        private static Task<string> GetResponseContent(HttpResponseMessage response) =>
+            response.Content?.ReadAsStringAsync();
+
+        private static Task<Stream> GetResponseStream(HttpResponseMessage response) =>
+            response.Content?.ReadAsStreamAsync();
 
 
         /// <summary>
@@ -593,12 +579,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             // If there was supposed to be response content and there was not, throw
             if (ensureResponseContent)
             {
-                long? contentLength = null;
-                if (response.Content != null)
-                {
-                    contentLength = response.Content.Headers.ContentLength;
-                }
-
+                long? contentLength = response.Content?.Headers.ContentLength ?? null;
                 if (contentLength == null || contentLength <= 0)
                 {
                     throw new MobileServiceInvalidOperationException("The server did not provide a response with the expected content.", request, response);

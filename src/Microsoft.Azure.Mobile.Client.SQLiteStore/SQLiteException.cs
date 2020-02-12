@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
+namespace Microsoft.Azure.MobileServices.SQLiteStore
 {
     public class SQLiteException : Exception
     {

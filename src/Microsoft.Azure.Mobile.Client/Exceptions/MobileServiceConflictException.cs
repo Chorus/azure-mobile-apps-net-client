@@ -4,7 +4,7 @@
 
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides details of http response with status code of 'Conflict'

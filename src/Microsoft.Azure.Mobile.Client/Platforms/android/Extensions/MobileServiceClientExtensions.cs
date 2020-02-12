@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Android.Content;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Extension methods for UI-based login.
@@ -12,7 +12,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="context" type="Android.Content.Context">
@@ -35,7 +35,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="context" type="Android.Content.Context">
@@ -61,7 +61,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="context" type="Android.Content.Context">
@@ -84,7 +84,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Log a user into a Mobile Services application given a provider name.
         /// </summary>
-        /// <param name="client" type="Microsoft.WindowsAzure.MobileServices.MobileServiceClient">
+        /// <param name="client" type="Microsoft.Azure.MobileServices.MobileServiceClient">
         /// The MobileServiceClient instance to login with
         /// </param>
         /// <param name="context" type="Android.Content.Context">

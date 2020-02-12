@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// The QueryResultList{T} class provides next link, records returned by a query

@@ -6,7 +6,7 @@ using System;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
+namespace Microsoft.Azure.MobileServices.SQLiteStore
 {
     internal class SqlHelpers
     {
@@ -199,7 +199,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             if (columnType == JTokenType.Date)
             {
                 return value.Value<DateTime>()
-                    .ToString(_efCoreDateTimeFormat);
+                            .ToString(_efCoreDateTimeFormat);
             }
 
             return value.ToString();

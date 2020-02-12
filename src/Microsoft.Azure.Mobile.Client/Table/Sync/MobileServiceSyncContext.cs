@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Eventing;
-using Microsoft.WindowsAzure.MobileServices.Query;
-using Microsoft.WindowsAzure.MobileServices.Threading;
+using Microsoft.Azure.MobileServices.Eventing;
+using Microsoft.Azure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Threading;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     internal class MobileServiceSyncContext : IMobileServiceSyncContext, IDisposable
     {

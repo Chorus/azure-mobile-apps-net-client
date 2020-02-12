@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.Azure.MobileServices.Sync;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices.Query
+namespace Microsoft.Azure.MobileServices.Query
 {
     internal class MobileServiceTableQueryProvider
     {

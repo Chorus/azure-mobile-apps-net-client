@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.WindowsAzure.MobileServices.Threading
+namespace Microsoft.Azure.MobileServices.Threading
 {
     internal struct DisposeAction : IDisposable
     {

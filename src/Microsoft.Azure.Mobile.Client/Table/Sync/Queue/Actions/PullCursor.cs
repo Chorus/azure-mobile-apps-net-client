@@ -3,9 +3,9 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using Microsoft.WindowsAzure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Query;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     /// <summary>
     /// An object to represent the current position of pull in full query resullt

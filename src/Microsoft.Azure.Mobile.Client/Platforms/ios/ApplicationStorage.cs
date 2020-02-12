@@ -6,7 +6,7 @@ using Foundation;
 using MonoTouch.Foundation;
 #endif
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     internal class ApplicationStorage : IApplicationStorage
     {

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 
-namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
+namespace Microsoft.Azure.MobileServices.SQLiteStore
 {
     internal static class SqlColumnType
     {

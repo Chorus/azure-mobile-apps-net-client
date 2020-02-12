@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.IO.IsolatedStorage;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// An implementation of the <see cref="IApplicationStorage"/> interface

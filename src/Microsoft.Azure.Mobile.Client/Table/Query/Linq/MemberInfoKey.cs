@@ -8,7 +8,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Microsoft.WindowsAzure.MobileServices.Query
+namespace Microsoft.Azure.MobileServices.Query
 {
     /// <summary>
     ///  Encapsulates information about a class member that can be used as a key

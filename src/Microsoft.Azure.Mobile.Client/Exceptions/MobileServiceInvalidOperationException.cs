@@ -6,7 +6,7 @@ using System;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides additional details of an invalid operation specific to a

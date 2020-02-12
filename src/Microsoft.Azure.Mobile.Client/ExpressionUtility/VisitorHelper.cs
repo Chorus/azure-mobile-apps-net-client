@@ -5,7 +5,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Visit all the members of specific types of expression tree nodes.  This

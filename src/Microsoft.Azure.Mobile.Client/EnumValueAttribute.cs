@@ -5,7 +5,7 @@
 using System;
 using System.Reflection;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Attribute used to associate a name to an enum value.

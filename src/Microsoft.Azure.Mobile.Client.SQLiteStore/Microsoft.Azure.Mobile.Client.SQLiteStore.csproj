@@ -15,12 +15,12 @@
     <Summary>Azure Mobile Apps offline store for SQLite</Summary>
     <PackageReleaseNotes>https://github.com/Chorus/azure-mobile-apps-net-client/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/Chorus/azure-mobile-apps-net-client</RepositoryUrl>
-    <PackageTags>microsoft;windows;azure;mobile;apps;services;windowsazureofficial</PackageTags>
+    <PackageTags>microsoft;windows;azure;mobile;apps;services;Azureofficial</PackageTags>
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <!-- Workaround until Xamarin supports PPDB -->
     <DebugType>full</DebugType>
-    <RootNamespace>Microsoft.WindowsAzure.MobileServices.SQLiteStore</RootNamespace>
+    <RootNamespace>Microsoft.Azure.MobileServices.SQLiteStore</RootNamespace>
     <Company>Microsoft, mobile-center, Chorus</Company>
     <PackageId>Chorus.Azure.Mobile.Client.SQLiteStore</PackageId>
     <Version>4.1.6</Version>
@@ -42,7 +42,7 @@
     </PackageReference>
     <PackageReference Include="MSBuild.Sdk.Extras" Version="1.0.5" PrivateAssets="All" />
     <ProjectReference Include="..\Microsoft.Azure.Mobile.Client\Microsoft.Azure.Mobile.Client.csproj" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.0.2" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="1.1.14" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs" AutoGen="True" DesignTime="True" DependentUpon="Resources.resx" />

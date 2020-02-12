@@ -10,11 +10,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Eventing;
-using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.Azure.MobileServices.Eventing;
+using Microsoft.Azure.MobileServices.Sync;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides basic access to a Microsoft Azure Mobile Service.

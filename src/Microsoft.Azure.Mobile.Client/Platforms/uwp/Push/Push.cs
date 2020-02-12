@@ -4,7 +4,7 @@
 
 using Windows.ApplicationModel;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     using System;
     using System.Collections.Concurrent;

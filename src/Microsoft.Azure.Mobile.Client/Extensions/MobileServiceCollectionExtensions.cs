@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.Azure.MobileServices.Sync;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides extension methods on <see cref="T:IMobileServiceTableQuery`1{T}"/>

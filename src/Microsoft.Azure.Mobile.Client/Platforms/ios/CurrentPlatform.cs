@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides access to platform specific functionality for the current client platform.
@@ -50,7 +50,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Returns a platform-specific implementation of a utility class
         /// that provides functionality for platform-specifc push capabilities.
         /// </summary>
-        IPushUtility IPlatform.PushUtility { get { return Microsoft.WindowsAzure.MobileServices.PushUtility.Instance; } }
+        IPushUtility IPlatform.PushUtility { get { return Microsoft.Azure.MobileServices.PushUtility.Instance; } }
 
         /// <summary>
         /// Returns a platform-specific path for storing offline databases

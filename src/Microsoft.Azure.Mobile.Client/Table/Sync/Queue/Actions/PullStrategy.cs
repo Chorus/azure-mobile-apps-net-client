@@ -4,8 +4,8 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Query;
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+using Microsoft.Azure.MobileServices.Query;
+namespace Microsoft.Azure.MobileServices.Sync
 {
     internal class PullStrategy
     {

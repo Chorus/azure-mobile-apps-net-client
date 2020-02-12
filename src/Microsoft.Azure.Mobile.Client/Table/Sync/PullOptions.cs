@@ -5,7 +5,7 @@
 using System;
 using System.Globalization;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.Azure.MobileServices.Sync
 {
     public class PullOptions
     {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Android.Content;
 using Xamarin.Auth._MobileServices;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     internal class MobileServiceUIAuthentication : MobileServicePKCEAuthentication
     {

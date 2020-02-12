@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Implements the <see cref="IPlatform"/> interface for the Windows

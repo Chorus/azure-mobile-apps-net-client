@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Eventing;
-using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.Azure.MobileServices.Eventing;
+using Microsoft.Azure.MobileServices.Sync;
 using Newtonsoft.Json.Linq;
 using System.Threading;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Interface for the <see cref="MobileServiceClient"/>.

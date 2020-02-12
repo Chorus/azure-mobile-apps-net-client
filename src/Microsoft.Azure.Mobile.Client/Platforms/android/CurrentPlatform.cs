@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides access to platform specific functionality for the current client platform.
@@ -52,7 +52,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         IPushUtility IPlatform.PushUtility
         {
-            get { return Microsoft.WindowsAzure.MobileServices.PushUtility.Instance; }
+            get { return Microsoft.Azure.MobileServices.PushUtility.Instance; }
         }
 
         /// <summary>

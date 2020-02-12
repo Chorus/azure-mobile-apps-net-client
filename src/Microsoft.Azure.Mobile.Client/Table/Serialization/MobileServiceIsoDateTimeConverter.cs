@@ -10,7 +10,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Converts DateTime and DateTimeOffset object into UTC DateTime and creates a ISO string representation
@@ -23,8 +23,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         public MobileServiceIsoDateTimeConverter()
         {
-            this.Culture = CultureInfo.InvariantCulture;
-            this.DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK";
+            Culture = CultureInfo.InvariantCulture;
+            DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK";
         }
 
         /// <summary>
@@ -38,19 +38,14 @@ namespace Microsoft.WindowsAzure.MobileServices
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             object datetimeObject = base.ReadJson(reader, objectType, existingValue, serializer);
-
-            if(datetimeObject != null)
+            if (datetimeObject is DateTime dateTime)
             {
-                if(datetimeObject is DateTime)
-                {
-                    return ((DateTime)datetimeObject).ToLocalTime();
-                }
-                else if(datetimeObject is DateTimeOffset)
-                {
-                    return new DateTimeOffset((DateTime)reader.Value).ToLocalTime();
-                }
+                return dateTime.ToLocalTime();
             }
-
+            else if (datetimeObject is DateTimeOffset)
+            {
+                return new DateTimeOffset((DateTime)reader.Value).ToLocalTime();
+            }
             return datetimeObject;
         }
 
@@ -63,9 +58,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             DateTime dateTime;
-            if (value is DateTime)
+            if (value is DateTime dateTimeValue)
             {
-                dateTime = ((DateTime)value).ToUniversalTime();
+                dateTime = dateTimeValue.ToUniversalTime();
             }
             else
             {

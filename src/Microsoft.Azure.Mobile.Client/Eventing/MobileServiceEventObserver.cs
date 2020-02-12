@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices.Eventing
+namespace Microsoft.Azure.MobileServices.Eventing
 {
     internal interface IEventObserver<out T> : IObserver<IMobileServiceEvent> { }
 

@@ -9,7 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Microsoft.WindowsAzure.MobileServices.Query
+namespace Microsoft.Azure.MobileServices.Query
 {
     /// <summary>
     /// Represents the structural elements of a Mobile Services query over the
@@ -186,14 +186,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// <returns>An instance of <see cref="MobileServiceTableQueryDescription"/></returns>
         public static MobileServiceTableQueryDescription Parse(string tableName, string query)
         {
-            query ??= string.Empty;
+            query = query ?? string.Empty;
 
             return Parse(tableName, query, null);
         }
 
         internal static MobileServiceTableQueryDescription Parse(Uri applicationUri, string tableName, string query)
         {
-            query ??= String.Empty;
+            query = query ?? string.Empty;
             string uriPath = null;
             if (HttpUtility.TryParseQueryUri(applicationUri, query, out Uri uri, out bool absolute))
             {

@@ -6,7 +6,7 @@ using System;
 using System.Globalization;
 using System.Reflection;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides access to platform-specific framework API's.

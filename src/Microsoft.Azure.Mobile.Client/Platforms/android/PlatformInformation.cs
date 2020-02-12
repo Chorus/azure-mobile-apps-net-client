@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Android.OS;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     class PlatformInformation : IPlatformInformation
     {

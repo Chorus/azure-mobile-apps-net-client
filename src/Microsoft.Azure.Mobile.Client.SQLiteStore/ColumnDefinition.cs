@@ -5,7 +5,7 @@
 using System;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
+namespace Microsoft.Azure.MobileServices.SQLiteStore
 {
     /// <summary>
     /// A class that represents the type of column on local store

@@ -3,9 +3,9 @@ using Android.App;
 using Android.Content;
 using Android.OS;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
-    [Activity(Name = "com.microsoft.windowsazure.mobileservices.authentication.RedirectUrlActivity")]
+    [Activity(Name = "com.microsoft.Azure.mobileservices.authentication.RedirectUrlActivity")]
     public class RedirectUrlActivity : Activity
     {
         protected override void OnCreate(Bundle savedInstanceState)

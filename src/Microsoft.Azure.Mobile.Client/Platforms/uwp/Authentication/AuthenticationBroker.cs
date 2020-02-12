@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Windows.Security.Authentication.Web;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// AuthenticationBroker for the Windows Store Platform that uses the Windows Store

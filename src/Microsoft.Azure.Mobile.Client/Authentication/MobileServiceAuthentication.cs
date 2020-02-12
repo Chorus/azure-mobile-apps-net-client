@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Provides login functionality for the <see cref="MobileServiceClient"/>. 
@@ -40,7 +40,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// The name for the Azure Active Directory authentication provider as used by the
         /// service REST API.
         /// </summary>
-        internal const string WindowsAzureActiveDirectoryRestApiPathName = "aad";
+        internal const string AzureActiveDirectoryRestApiPathName = "aad";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MobileServiceAuthentication"/> class.
@@ -102,9 +102,9 @@ namespace Microsoft.WindowsAzure.MobileServices
             private set
             {
                 this.providerName = value.ToLowerInvariant();
-                if (this.providerName.Equals(MobileServiceAuthenticationProvider.WindowsAzureActiveDirectory.ToString(), StringComparison.OrdinalIgnoreCase))
+                if (this.providerName.Equals(MobileServiceAuthenticationProvider.AzureActiveDirectory.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
-                    this.providerName = WindowsAzureActiveDirectoryRestApiPathName;
+                    this.providerName = AzureActiveDirectoryRestApiPathName;
                 }
             }
         }

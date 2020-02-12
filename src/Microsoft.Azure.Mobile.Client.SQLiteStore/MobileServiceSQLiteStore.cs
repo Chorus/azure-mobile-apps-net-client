@@ -9,12 +9,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Query;
-using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.Azure.MobileServices.Query;
+using Microsoft.Azure.MobileServices.Sync;
 using Newtonsoft.Json.Linq;
 using SQLitePCL;
 
-namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
+namespace Microsoft.Azure.MobileServices.SQLiteStore
 {
     /// <summary>
     /// SQLite based implementation of <see cref="IMobileServiceLocalStore"/>
@@ -635,7 +635,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             var row = new JObject();
             for (var index = 0; index < raw.sqlite3_column_count(statement); index++)
             {
-                string name = raw.sqlite3_column_name(statement, index).utf8_to_string();
+                string name = raw.sqlite3_column_name(statement, index);
                 object value = SQLitePCLRawHelpers.GetValue(statement, index);
 
                 if (table.TryGetValue(name, out var column))

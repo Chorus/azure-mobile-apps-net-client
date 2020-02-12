@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     /// <summary>
     /// Authentication providers supported by Mobile Services.
@@ -32,6 +32,6 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// Azure Active Directory authentication provider.
         /// </summary>
-        WindowsAzureActiveDirectory,
+        AzureActiveDirectory,
     }
 }

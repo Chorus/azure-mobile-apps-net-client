@@ -10,7 +10,7 @@ using PCLCrypto;
 using System.Security.Cryptography;
 #endif
 
-namespace Microsoft.WindowsAzure.MobileServices
+namespace Microsoft.Azure.MobileServices
 {
     public abstract class MobileServicePKCEAuthentication : MobileServiceAuthentication
     {
