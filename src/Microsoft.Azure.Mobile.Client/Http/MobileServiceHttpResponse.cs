@@ -9,9 +9,7 @@ namespace Microsoft.Azure.MobileServices
 {
     internal class MobileServiceHttpResponse
     {
-        public string ContentString { get; private set; }
-
-        public OdataResult ContentObject { get; set; }
+        public string Content { get; private set; }
 
         public string Etag { get; private set; }
 
@@ -19,14 +17,7 @@ namespace Microsoft.Azure.MobileServices
 
         public MobileServiceHttpResponse(string content, string etag, LinkHeaderValue link)
         {
-            ContentString = content;
-            Etag = etag;
-            Link = link;
-        }
-
-        public MobileServiceHttpResponse(OdataResult content, string etag, LinkHeaderValue link)
-        {
-            ContentObject = content;
+            Content = content;
             Etag = etag;
             Link = link;
         }

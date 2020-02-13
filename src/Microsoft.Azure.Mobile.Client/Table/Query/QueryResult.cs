@@ -59,7 +59,7 @@ namespace Microsoft.Azure.MobileServices.Query
         /// <summary>
         /// The deserialized response
         /// </summary>
-        public OdataResult Response { get; private set; }
+        public JToken Response { get; private set; }
 
         /// <summary>
         /// Parse a JSON response into <see cref="QueryResult"/> object 
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.MobileServices.Query
         {
             Debug.Assert(httpResponse != null);
 
-            var response = httpResponse.ContentObject;
+            JToken response = httpResponse.Content.ParseToJToken(serializerSettings);
 
             Uri link = httpResponse.Link != null
                 && httpResponse.Link.Relation == NextRelation
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.MobileServices.Query
             return Parse(response, link, validate);
         }
 
-        public static QueryResult Parse(OdataResult response, Uri nextLink, bool validate)
+        public static QueryResult Parse(JToken response, Uri nextLink, bool validate)
         {
             var result = new QueryResult
             {
@@ -99,8 +99,30 @@ namespace Microsoft.Azure.MobileServices.Query
             long? inlineCount = null;
 
             // Try and get the values as an array
-            result.Values = response.Value;
-            inlineCount = response.Count;
+            result.Values = response as JArray;
+            if (result.Values == null && response is JObject)
+            {
+                // Otherwise try and get the values from the results property
+                // (which is the case when we retrieve the count inline)
+                var tempValues = response[InlineCountResultsKey] as JArray;
+                if (tempValues == null)
+                {
+                    tempValues = response[InlineCountResultsKeyV4] as JArray;
+                }
+                result.Values = tempValues;
+                inlineCount = response.Value<long?>(InlineCountCountKey);
+                if (result.Values == null && validate)
+                {
+                    string responseStr = response != null ? response.ToString() : "null";
+                    throw new InvalidOperationException(String.Format(CultureInfo.InvariantCulture,
+                                                                      "Could not get an array from response {0}.",
+                                                                      responseStr));
+                }
+                else if (result.Values == null)
+                {
+                    result.Values = new JArray(response);
+                }
+            }
 
             // Get the count via the inline count or default an unspecified count to -1
             result.TotalCount = inlineCount.GetValueOrDefault(-1L);

@@ -172,7 +172,7 @@ namespace Microsoft.Azure.MobileServices
         {
             IDictionary<string, string> requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders: null, features: features);
             MobileServiceHttpResponse response = await this.RequestAsync(false, method, uriPathAndQuery, user, content, false, requestHeaders);
-            return response.ContentString;
+            return response.Content;
         }
 
         /// <summary>
@@ -257,24 +257,24 @@ namespace Microsoft.Azure.MobileServices
                                                         CancellationToken cancellationToken = default)
         {
             // Create the request
-            using HttpContent httpContent = CreateHttpContent(content);
-            using HttpRequestMessage request = this.CreateHttpRequestMessage(method, uriPathAndQuery, requestHeaders, httpContent, user);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(RequestJsonContentType));
-            // Get the response
-            var client = UseHandlers
-                ? httpClient
-                : httpClientSansHandlers;
-            using var response = await SendRequestAsync(client, request, ensureResponseContent, cancellationToken);
-            var responseStream = await GetResponseStream(response);
-            var serializer = new JsonSerializer();
-            using var sr = new StreamReader(responseStream);
-            using var reader = new JsonTextReader(sr);
-            var contentObject = serializer.Deserialize<OdataResult>(reader);
-            var etag = response.Headers.ETag?.Tag ?? null;
-            var link = response.Headers.Contains("Link")
-                ? LinkHeaderValue.Parse(response.Headers.GetValues("Link").FirstOrDefault())
-                : null;
-            return new MobileServiceHttpResponse(contentObject, etag, link);
+            using (HttpContent httpContent = CreateHttpContent(content))
+            using (HttpRequestMessage request = CreateHttpRequestMessage(method, uriPathAndQuery, requestHeaders, httpContent, user))
+            {
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(RequestJsonContentType));
+                // Get the response
+                var client = UseHandlers
+                    ? httpClient
+                    : httpClientSansHandlers;
+                using (var response = await SendRequestAsync(client, request, ensureResponseContent, cancellationToken))
+                {
+                    var responseContent = await GetResponseContent(response);
+                    var etag = response.Headers.ETag?.Tag ?? null;
+                    var link = response.Headers.Contains("Link")
+                        ? LinkHeaderValue.Parse(response.Headers.GetValues("Link").FirstOrDefault())
+                        : null;
+                    return new MobileServiceHttpResponse(responseContent, etag, link);
+                }
+            }
         }
 
         /// <summary>
