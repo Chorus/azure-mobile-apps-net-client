@@ -199,6 +199,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             if (columnType == JTokenType.Date)
             {
                 return value.Value<DateTime>()
+                    .ToUniversalTime()
                     .ToString(_efCoreDateTimeFormat);
             }
 
