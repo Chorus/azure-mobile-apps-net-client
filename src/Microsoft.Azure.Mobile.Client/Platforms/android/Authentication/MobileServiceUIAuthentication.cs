@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Android.Content;
-using Xamarin.Auth._MobileServices;
+using Xamarin.Auth;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
@@ -31,7 +31,6 @@ namespace Microsoft.WindowsAzure.MobileServices
             
             CurrentAuthenticator = new WebRedirectAuthenticator (LoginUri, CallbackUri)
             {
-                IsUsingNativeUI = true, // Xamarin.Auth takes care about fallback
                 ClearCookiesBeforeLogin = false
             };
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
-using Xamarin.Auth._MobileServices;
+using Xamarin.Auth;
 #if __UNIFIED__
 using Foundation;
 using UIKit;
@@ -40,7 +40,6 @@ namespace Microsoft.WindowsAzure.MobileServices
 
             CurrentAuthenticator = new WebRedirectAuthenticator(LoginUri, CallbackUri)
             {
-                IsUsingNativeUI = ObjCRuntime.Class.GetHandle("SFSafariViewController") != IntPtr.Zero,
                 ClearCookiesBeforeLogin = false
             };
 
