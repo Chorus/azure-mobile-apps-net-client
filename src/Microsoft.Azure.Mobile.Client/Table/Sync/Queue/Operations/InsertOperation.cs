@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class InsertOperation : MobileServiceTableOperation
+    internal class InsertOperation<T> : MobileServiceTableOperation<T>
     {
         public override MobileServiceTableOperationKind Kind
         {
@@ -27,14 +27,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return this.Table.InsertAsync(item);
         }
 
-        public override void Validate(MobileServiceTableOperation newOperation)
+        public override void Validate(MobileServiceTableOperation<T> newOperation)
         {
             if (newOperation.ItemId != ItemId)
             {
                 throw new ArgumentException("ItemId does not match", nameof(newOperation));
             }
 
-            if (newOperation is InsertOperation)
+            if (newOperation is InsertOperation<T>)
             {
                 throw new InvalidOperationException("An insert operation on the item is already in the queue.");
             }
@@ -46,7 +46,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
         }
 
-        public override void Collapse(MobileServiceTableOperation newOperation)
+        public override void Collapse(MobileServiceTableOperation<T> newOperation)
         {
             if (newOperation.ItemId != ItemId)
             {

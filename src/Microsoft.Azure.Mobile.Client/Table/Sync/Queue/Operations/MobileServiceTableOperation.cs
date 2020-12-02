@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal abstract class MobileServiceTableOperation : IMobileServiceTableOperation
+    internal abstract class MobileServiceTableOperation<T> : IMobileServiceTableOperation<T>
     {
         // --- Persisted properties -- //
         public string Id { get; private set; }
@@ -17,16 +17,16 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public MobileServiceTableKind TableKind { get; private set; }
         public string TableName { get; private set; }
         public string ItemId { get; private set; }
-        public JObject Item { get; set; }
+        public T Item { get; set; }
 
         public MobileServiceTableOperationState State { get; internal set; }
         public long Sequence { get; set; }
         public long Version { get; set; }
 
         // --- Non persisted properties -- //
-        IMobileServiceTable IMobileServiceTableOperation.Table => this.Table;
+        IMobileServiceTable<T> IMobileServiceTableOperation<T>.Table => this.Table;
 
-        public MobileServiceTable Table { get; set; }
+        public MobileServiceTable<T> Table { get; set; }
 
         public bool IsCancelled { get; private set; }
         public bool IsUpdated { get; private set; }
@@ -93,12 +93,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// Validates that the operation can collapse with the late operation
         /// </summary>
         /// <exception cref="InvalidOperationException">This method throws when the operation cannot collapse with new operation.</exception>
-        public abstract void Validate(MobileServiceTableOperation newOperation);
+        public abstract void Validate(MobileServiceTableOperation<T> newOperation);
 
         /// <summary>
         /// Collapse this operation with the late operation by cancellation of either operation.
         /// </summary>
-        public abstract void Collapse(MobileServiceTableOperation newOperation);
+        public abstract void Collapse(MobileServiceTableOperation<T> newOperation);
 
         /// <summary>
         /// Defines the the table for storing operations
@@ -139,7 +139,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return obj;
         }
 
-        internal static MobileServiceTableOperation Deserialize(JObject obj)
+        internal static MobileServiceTableOperation<T> Deserialize(JObject obj)
         {
             if (obj == null)
             {
@@ -152,15 +152,15 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             string itemId = obj.Value<string>("itemId");
 
 
-            MobileServiceTableOperation operation = null;
+            MobileServiceTableOperation<T> operation = null;
             switch (kind)
             {
                 case MobileServiceTableOperationKind.Insert:
-                    operation = new InsertOperation(tableName, tableKind, itemId); break;
+                    operation = new InsertOperation<T>(tableName, tableKind, itemId); break;
                 case MobileServiceTableOperationKind.Update:
-                    operation = new UpdateOperation(tableName, tableKind, itemId); break;
+                    operation = new UpdateOperation<T>(tableName, tableKind, itemId); break;
                 case MobileServiceTableOperationKind.Delete:
-                    operation = new DeleteOperation(tableName, tableKind, itemId); break;
+                    operation = new DeleteOperation<T>(tableName, tableKind, itemId); break;
             }
 
             if (operation != null)

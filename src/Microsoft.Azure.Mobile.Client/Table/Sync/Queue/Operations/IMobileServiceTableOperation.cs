@@ -10,7 +10,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     /// <summary>
     /// An object representing table operation against remote table
     /// </summary>
-    public interface IMobileServiceTableOperation
+    public interface IMobileServiceTableOperation<T>
     {
         /// <summary>
         /// The kind of operation
@@ -25,12 +25,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// The table that the operation will be executed against.
         /// </summary>
-        IMobileServiceTable Table { get; }
+        IMobileServiceTable<T> Table { get; }
 
         /// <summary>
         /// The item associated with the operation.
         /// </summary>
-        JObject Item { get; set; }
+        T Item { get; set; }
 
         /// <summary>
         /// Executes the operation against remote table.

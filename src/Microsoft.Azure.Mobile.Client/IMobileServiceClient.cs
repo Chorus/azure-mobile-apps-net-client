@@ -56,18 +56,6 @@ namespace Microsoft.WindowsAzure.MobileServices
         IMobileServiceEventManager EventManager { get; }
 
         /// <summary>
-        /// Returns a <see cref="IMobileServiceTable"/> instance, which provides 
-        /// untyped data operations for that table.
-        /// </summary>
-        /// <param name="tableName">
-        /// The name of the table.
-        /// </param>
-        /// <returns>
-        /// The table.
-        /// </returns>
-        IMobileServiceTable GetTable(string tableName);
-
-        /// <summary>
         /// Returns a <see cref="IMobileServiceSyncTable"/> instance, which provides
         /// untyped data operations for a local table.
         /// </summary>

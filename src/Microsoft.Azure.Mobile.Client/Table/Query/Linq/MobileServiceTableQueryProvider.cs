@@ -86,26 +86,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
 
             // Send the query
             string odata = compiledQuery.ToODataString();
-            QueryResult result = await this.Execute<T>(query, odata);
-
+            var result = await Execute(query, odata);
             return new QueryResultEnumerable<T>(
                 result.TotalCount,
                 result.NextLink,
-                query.Table.MobileServiceClient.Serializer.Deserialize(result.Values, compiledQuery.ProjectionArgumentType).Select(
-                    value =>
-                    {
-                        // Apply the projection to the instance transforming it
-                        // as desired
-                        foreach (Delegate projection in compiledQuery.Projections)
-                        {
-                            value = projection.DynamicInvoke(value);
-                        }
-
-                        return (T)value;
-                    }));
+                result.Values);
         }
 
-        protected virtual async Task<QueryResult> Execute<T>(IMobileServiceTableQuery<T> query, string odata)
+        protected virtual async Task<QueryResult<T>> Execute<T>(IMobileServiceTableQuery<T> query, string odata)
         {
             JToken result;
             if (this.syncTable == null)

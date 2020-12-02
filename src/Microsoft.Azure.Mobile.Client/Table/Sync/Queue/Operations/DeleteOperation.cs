@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class DeleteOperation : MobileServiceTableOperation
+    internal class DeleteOperation<T> : MobileServiceTableOperation<T>
     {
         public override MobileServiceTableOperationKind Kind => MobileServiceTableOperationKind.Delete;
 
@@ -40,7 +40,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
         }
 
-        public override void Validate(MobileServiceTableOperation newOperation)
+        public override void Validate(MobileServiceTableOperation<T> newOperation)
         {
             if (newOperation.ItemId != ItemId)
             {
@@ -51,7 +51,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             throw new InvalidOperationException("A delete operation on the item is already in the queue.");
         }
 
-        public override void Collapse(MobileServiceTableOperation other)
+        public override void Collapse(MobileServiceTableOperation<T> other)
         {
             // nothing to collapse we don't allow any operation after delete
         }

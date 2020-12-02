@@ -13,7 +13,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
     /// <summary>
     /// Represents the result of odata query returned from Mobile Service
     /// </summary>
-    internal class QueryResult
+    internal class QueryResult<T>
     {
         /// <summary>
         /// The name of the results key in an inline count response object.
@@ -48,7 +48,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// <summary>
         /// Items in query result 
         /// </summary>
-        public JArray Values { get; private set; }
+        public T[] Values { get; private set; }
 
         /// <summary>
         /// Gets the link to next page of result that is returned in response headers.
@@ -75,7 +75,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// <param name="validate">
         /// To throw if the content is null or empty
         /// </param>
-        public static QueryResult Parse(MobileServiceHttpResponse httpResponse, JsonSerializerSettings serializerSettings, bool validate)
+        public static QueryResult<T> Parse<T>(MobileServiceHttpResponse<T> httpResponse, JsonSerializerSettings serializerSettings, bool validate)
         {
             Arguments.IsNotNull(httpResponse, nameof(httpResponse));
 
@@ -85,9 +85,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             return Parse(response, link, validate);
         }
 
-        public static QueryResult Parse(JToken response, Uri nextLink, bool validate)
+        public static QueryResult<T> Parse(JToken response, Uri nextLink, bool validate)
         {
-            var result = new QueryResult() { Response = response };
+            var result = new QueryResult<T>() { Response = response };
 
             long? inlineCount = null;
 

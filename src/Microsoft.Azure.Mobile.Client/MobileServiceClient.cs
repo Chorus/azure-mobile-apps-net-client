@@ -252,24 +252,6 @@ namespace Microsoft.WindowsAzure.MobileServices
         }
 
         /// <summary>
-        /// Returns a <see cref="IMobileServiceTable"/> instance, which provides
-        /// untyped data operations for that table.
-        /// </summary>
-        /// <param name="tableName">
-        /// The name of the table.
-        /// </param>
-        /// <returns>
-        /// The table.
-        /// </returns>
-        public IMobileServiceTable GetTable(string tableName)
-        {
-            ValidateTableName(tableName);
-
-            return new MobileServiceTable(tableName, this);
-        }
-
-
-        /// <summary>
         /// Returns a <see cref="IMobileServiceSyncTable"/> instance, which provides
         /// untyped data operations for that table.
         /// </summary>

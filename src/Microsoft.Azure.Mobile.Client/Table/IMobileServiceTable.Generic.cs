@@ -16,7 +16,7 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// <typeparam name="T">
     /// The type of instances in the table (which implies the table).
     /// </typeparam>
-    public interface IMobileServiceTable<T> : IMobileServiceTable
+    public interface IMobileServiceTable<T> //: IMobileServiceTable
     {
         /// <summary>
         /// Executes a query against the table.

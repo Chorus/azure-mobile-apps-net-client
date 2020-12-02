@@ -672,6 +672,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             return row;
         }
 
+        //private T ReadRowAs<T>(TableDefinition table, sqlite3_stmt statement) 
+        //{
+        //    return ReadRow(table, statement).ToObject<T>();
+        //}
+
         private static MobileServiceSystemProperties GetSystemProperties(JObject item)
         {
             var sysProperties = MobileServiceSystemProperties.None;

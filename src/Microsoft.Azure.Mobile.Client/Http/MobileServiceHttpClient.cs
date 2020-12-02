@@ -2,7 +2,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,6 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -162,10 +162,10 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The content of the response as a string.
         /// </returns>
-        public async Task<string> RequestWithoutHandlersAsync(HttpMethod method, string uriPathAndQuery, MobileServiceUser user, string content = null, MobileServiceFeatures features = MobileServiceFeatures.None)
+        public async Task<ODataResponse<T>> RequestWithoutHandlersAsync<T>(HttpMethod method, string uriPathAndQuery, MobileServiceUser user, string content = null, MobileServiceFeatures features = MobileServiceFeatures.None)
         {
             IDictionary<string, string> requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders: null, features: features);
-            MobileServiceHttpResponse response = await RequestAsync(false, method, uriPathAndQuery, user, content, false, requestHeaders);
+            var response = await RequestAsync<T>(false, method, uriPathAndQuery, user, content, false, requestHeaders);
             return response.Content;
         }
 
@@ -199,7 +199,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The response.
         /// </returns>
-        public Task<MobileServiceHttpResponse> RequestAsync(HttpMethod method,
+        public Task<MobileServiceHttpResponse<T>> RequestAsync<T>(HttpMethod method,
                                                              string uriPathAndQuery,
                                                              MobileServiceUser user,
                                                              string content = null,
@@ -209,7 +209,7 @@ namespace Microsoft.WindowsAzure.MobileServices
                                                              CancellationToken cancellationToken = default)
         {
             requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders, features);
-            return RequestAsync(true, method, uriPathAndQuery, user, content, ensureResponseContent, requestHeaders, cancellationToken);
+            return RequestAsync<T>(true, method, uriPathAndQuery, user, content, ensureResponseContent, requestHeaders, cancellationToken);
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The content of the response as a string.
         /// </returns>
-        private async Task<MobileServiceHttpResponse> RequestAsync(bool UseHandlers,
+        private async Task<MobileServiceHttpResponse<T>> RequestAsync<T>(bool UseHandlers,
                                                         HttpMethod method,
                                                         string uriPathAndQuery,
                                                         MobileServiceUser user,
@@ -255,13 +255,13 @@ namespace Microsoft.WindowsAzure.MobileServices
 
             // Create the request
             HttpContent httpContent = CreateHttpContent(content);
-            HttpRequestMessage request = this.CreateHttpRequestMessage(method, uriPathAndQuery, requestHeaders, httpContent, user);
+            using var request = CreateHttpRequestMessage(method, uriPathAndQuery, requestHeaders, httpContent, user);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(RequestJsonContentType));
 
             // Get the response
             HttpClient client = UseHandlers ? httpClient : httpClientSansHandlers;
-            HttpResponseMessage response = await SendRequestAsync(client, request, ensureResponseContent, cancellationToken);
-            string responseContent = await GetResponseContent(response);
+            using var response = await SendRequestAsync(client, request, ensureResponseContent, cancellationToken);
+            var responseContent = await GetResponseContent<T>(response);
             string etag = response.Headers.ETag?.Tag;
 
             LinkHeaderValue link = null;
@@ -269,12 +269,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             {
                 link = LinkHeaderValue.Parse(response.Headers.GetValues("Link").FirstOrDefault());
             }
-
-            // Dispose of the request and response
-            request.Dispose();
-            response.Dispose();
-
-            return new MobileServiceHttpResponse(responseContent, etag, link);
+            return new MobileServiceHttpResponse<T>(responseContent, etag, link);
         }
 
         /// <summary>
@@ -401,6 +396,24 @@ namespace Microsoft.WindowsAzure.MobileServices
             }
 
             return responseContent;
+        }
+
+        /// <summary>
+        /// Returns the content from the <paramref name="response"/> as a string.
+        /// </summary>
+        /// <param name="response">
+        /// The <see cref="HttpResponseMessage"/> from which to read the content as a string.
+        /// </param>
+        /// <returns>
+        /// The response content as a string.
+        /// </returns>
+        private static async Task<ODataResponse<T>> GetResponseContent<T>(HttpResponseMessage response)
+        {
+            if (response.Content == null)
+            {
+                return null;
+            }
+            return await JsonSerializer.DeserializeAsync<ODataResponse<T>>(await response.Content.ReadAsStreamAsync());
         }
 
         /// <summary>

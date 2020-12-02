@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class UpdateOperation : MobileServiceTableOperation
+    internal class UpdateOperation<T> : MobileServiceTableOperation<T>
     {
         public override MobileServiceTableOperationKind Kind
         {
@@ -26,17 +26,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return this.Table.UpdateAsync(this.Item);
         }
 
-        public override void Validate(MobileServiceTableOperation newOperation)
+        public override void Validate(MobileServiceTableOperation<T> newOperation)
         {
             Debug.Assert(newOperation.ItemId == this.ItemId);
 
-            if (newOperation is InsertOperation)
+            if (newOperation is InsertOperation<T>)
             {
                 throw new InvalidOperationException("An update operation on the item is already in the queue.");
             }
         }
 
-        public override void Collapse(MobileServiceTableOperation newOperation)
+        public override void Collapse(MobileServiceTableOperation<T> newOperation)
         {
             Debug.Assert(newOperation.ItemId == this.ItemId);
 
@@ -45,7 +45,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 this.Cancel();
                 newOperation.Update();
             }
-            else if (newOperation is UpdateOperation)
+            else if (newOperation is UpdateOperation<T>)
             {
                 this.Update();
                 newOperation.Cancel();
