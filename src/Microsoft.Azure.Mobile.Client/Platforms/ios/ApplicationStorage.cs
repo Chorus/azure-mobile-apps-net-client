@@ -1,20 +1,14 @@
-﻿using System;
+﻿// ----------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// ----------------------------------------------------------------------------
 
-#if __UNIFIED__
 using Foundation;
-#else
-using MonoTouch.Foundation;
-#endif
+using System;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
     internal class ApplicationStorage : IApplicationStorage
     {
-        /// <summary>
-        /// A singleton instance of the <see cref="ApplicationStorage"/>.
-        /// </summary>
-        private static readonly IApplicationStorage instance = new ApplicationStorage();
-
         private ApplicationStorage()
             : this(string.Empty)
         {
@@ -22,7 +16,7 @@ namespace Microsoft.WindowsAzure.MobileServices
 
         internal ApplicationStorage(string name)
         {
-            this.StoragePrefix = name;
+            StoragePrefix = name;
         }
 
         private string StoragePrefix { get; set; }
@@ -30,21 +24,11 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// A singleton instance of the <see cref="ApplicationStorage"/>.
         /// </summary>
-        internal static IApplicationStorage Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
+        internal static IApplicationStorage Instance { get; } = new ApplicationStorage();
 
-        public bool TryReadSetting (string name, out object value)
+        public bool TryReadSetting(string name, out object value)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException("An application setting name must be provided. Null, empty or whitespace only names are not allowed.", "name");
-            }
-
+            Arguments.IsNotNullOrWhiteSpace(name, nameof(name));
             value = null;
 
             var defaults = NSUserDefaults.StandardUserDefaults;
@@ -54,12 +38,12 @@ namespace Microsoft.WindowsAzure.MobileServices
                 return false;
             }
 
-            try 
+            try
             {
-                int sepIndex = svalue.IndexOf (":");
-                string valueStr = svalue.Substring (sepIndex + 1);
-                TypeCode type = (TypeCode) Enum.Parse (typeof (TypeCode), svalue.Substring (0, sepIndex));
-                value = Convert.ChangeType (valueStr, type);
+                int sepIndex = svalue.IndexOf(":");
+                string valueStr = svalue.Substring(sepIndex + 1);
+                TypeCode type = (TypeCode)Enum.Parse(typeof(TypeCode), svalue.Substring(0, sepIndex));
+                value = Convert.ChangeType(valueStr, type);
             }
             catch (Exception)
             {
@@ -69,12 +53,9 @@ namespace Microsoft.WindowsAzure.MobileServices
             return true;
         }
 
-        public void WriteSetting (string name, object value)
+        public void WriteSetting(string name, object value)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException("An application setting name must be provided. Null, empty or whitespace only names are not allowed.", "name");
-            }
+            Arguments.IsNotNullOrWhiteSpace(name, nameof(name));
 
             var defaults = NSUserDefaults.StandardUserDefaults;
             if (value == null)
@@ -88,14 +69,14 @@ namespace Microsoft.WindowsAzure.MobileServices
             TypeCode type = Type.GetTypeCode(value.GetType());
             if (type == TypeCode.Object || type == TypeCode.DBNull)
             {
-                throw new ArgumentException("Settings of type " + type + " are not supported");
+                throw new ArgumentException("Settings of type " + type + " are not supported", nameof(value));
             }
             else
             {
                 svalue = value.ToString();
             }
 
-            defaults.SetString(type + ":" + svalue, string.Concat(this.StoragePrefix, name));            
+            defaults.SetString(type + ":" + svalue, string.Concat(this.StoragePrefix, name));
         }
 
         public void Save()

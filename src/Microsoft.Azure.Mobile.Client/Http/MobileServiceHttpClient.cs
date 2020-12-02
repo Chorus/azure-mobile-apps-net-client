@@ -2,19 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
@@ -74,11 +72,11 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// The user-agent header value to use with all requests.
         /// </summary>
-        private string userAgentHeaderValue;
+        private readonly string userAgentHeaderValue;
 
         /// <summary>
         /// Represents a handler used to process HTTP requests and responses
-        /// associated with the Mobile Service.  
+        /// associated with the Mobile Service.
         /// </summary>
         public HttpMessageHandler httpHandler;
 
@@ -107,12 +105,12 @@ namespace Microsoft.WindowsAzure.MobileServices
         internal static Func<HttpMessageHandler> DefaultHandlerFactory = GetDefaultHttpClientHandler;
 
         /// <summary>
-        /// Instantiates a new <see cref="MobileServiceHttpClient"/>, 
+        /// Instantiates a new <see cref="MobileServiceHttpClient"/>,
         /// which does all the request to a mobile service.
         /// </summary>
         /// <param name="handlers">
-        /// Chain of <see cref="HttpMessageHandler" /> instances. 
-        /// All but the last should be <see cref="DelegatingHandler"/>s. 
+        /// Chain of <see cref="HttpMessageHandler" /> instances.
+        /// All but the last should be <see cref="DelegatingHandler"/>s.
         /// </param>
         /// <param name="applicationUri">
         /// The URI for the Microsoft Azure Mobile Service.
@@ -122,16 +120,14 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         public MobileServiceHttpClient(IEnumerable<HttpMessageHandler> handlers, Uri applicationUri, string installationId)
         {
-            Debug.Assert(handlers != null);
-            Debug.Assert(applicationUri != null);
+            Arguments.IsNotNull(handlers, nameof(handlers));
+            Arguments.IsNotNull(applicationUri, nameof(applicationUri));
 
             this.applicationUri = applicationUri;
             this.installationId = installationId;
-
             this.httpHandler = CreatePipeline(handlers);
             this.httpClient = new HttpClient(httpHandler);
             this.httpClientSansHandlers = new HttpClient(DefaultHandlerFactory());
-
             this.userAgentHeaderValue = GetUserAgentHeader();
 
             // Work around user agent header passing mono bug
@@ -169,7 +165,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         public async Task<string> RequestWithoutHandlersAsync(HttpMethod method, string uriPathAndQuery, MobileServiceUser user, string content = null, MobileServiceFeatures features = MobileServiceFeatures.None)
         {
             IDictionary<string, string> requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders: null, features: features);
-            MobileServiceHttpResponse response = await this.RequestAsync(false, method, uriPathAndQuery, user, content, false, requestHeaders);
+            MobileServiceHttpResponse response = await RequestAsync(false, method, uriPathAndQuery, user, content, false, requestHeaders);
             return response.Content;
         }
 
@@ -200,7 +196,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Value indicating which features of the SDK are being used in this call. Useful for telemetry.
         /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
-        /// <returns> 
+        /// <returns>
         /// The response.
         /// </returns>
         public Task<MobileServiceHttpResponse> RequestAsync(HttpMethod method,
@@ -210,15 +206,15 @@ namespace Microsoft.WindowsAzure.MobileServices
                                                              bool ensureResponseContent = true,
                                                              IDictionary<string, string> requestHeaders = null,
                                                              MobileServiceFeatures features = MobileServiceFeatures.None,
-                                                             CancellationToken cancellationToken = default(CancellationToken))
+                                                             CancellationToken cancellationToken = default)
         {
             requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders, features);
-            return this.RequestAsync(true, method, uriPathAndQuery, user, content, ensureResponseContent, requestHeaders, cancellationToken);
+            return RequestAsync(true, method, uriPathAndQuery, user, content, ensureResponseContent, requestHeaders, cancellationToken);
         }
 
         /// <summary>
         /// Makes an HTTP request that includes the standard Mobile Services
-        /// headers. It will use an HttpClient that optionally has user-defined 
+        /// headers. It will use an HttpClient that optionally has user-defined
         /// http handlers.
         /// </summary>
         /// <param name="UseHandlers">Determines if the HttpClient will use user-defined http handlers</param>
@@ -252,10 +248,10 @@ namespace Microsoft.WindowsAzure.MobileServices
                                                         string content = null,
                                                         bool ensureResponseContent = true,
                                                         IDictionary<string, string> requestHeaders = null,
-                                                        CancellationToken cancellationToken = default(CancellationToken))
+                                                        CancellationToken cancellationToken = default)
         {
-            Debug.Assert(method != null);
-            Debug.Assert(!string.IsNullOrEmpty(uriPathAndQuery));
+            Arguments.IsNotNull(method, nameof(method));
+            Arguments.IsNotNull(uriPathAndQuery, nameof(uriPathAndQuery));
 
             // Create the request
             HttpContent httpContent = CreateHttpContent(content);
@@ -263,22 +259,10 @@ namespace Microsoft.WindowsAzure.MobileServices
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(RequestJsonContentType));
 
             // Get the response
-            HttpClient client;
-            if (UseHandlers)
-            {
-                client = this.httpClient;
-            }
-            else
-            {
-                client = this.httpClientSansHandlers;
-            }
-            HttpResponseMessage response = await this.SendRequestAsync(client, request, ensureResponseContent, cancellationToken);
+            HttpClient client = UseHandlers ? httpClient : httpClientSansHandlers;
+            HttpResponseMessage response = await SendRequestAsync(client, request, ensureResponseContent, cancellationToken);
             string responseContent = await GetResponseContent(response);
-            string etag = null;
-            if (response.Headers.ETag != null)
-            {
-                etag = response.Headers.ETag.Tag;
-            }
+            string etag = response.Headers.ETag?.Tag;
 
             LinkHeaderValue link = null;
             if (response.Headers.Contains("Link"))
@@ -321,24 +305,19 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// An <see cref="HttpResponseMessage"/>.
         /// </returns>
         public async Task<HttpResponseMessage> RequestAsync(HttpMethod method,
-                                                            string uriPathAndQuery, 
-                                                            MobileServiceUser user, 
-                                                            HttpContent content, 
-                                                            IDictionary<string, string> requestHeaders, 
+                                                            string uriPathAndQuery,
+                                                            MobileServiceUser user,
+                                                            HttpContent content,
+                                                            IDictionary<string, string> requestHeaders,
                                                             MobileServiceFeatures features = MobileServiceFeatures.None,
-                                                            CancellationToken cancellationToken = default(CancellationToken))
+                                                            CancellationToken cancellationToken = default)
         {
-            Debug.Assert(method != null);
-            Debug.Assert(!string.IsNullOrEmpty(uriPathAndQuery));
+            Arguments.IsNotNull(method, nameof(method));
+            Arguments.IsNotNull(uriPathAndQuery, nameof(uriPathAndQuery));
 
             requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders, features);
-            // Create the request
             HttpRequestMessage request = this.CreateHttpRequestMessage(method, uriPathAndQuery, requestHeaders, content, user);
-
-            // Get the response
-            HttpResponseMessage response = await this.SendRequestAsync(httpClient, request, ensureResponseContent: false, cancellationToken: cancellationToken);
-
-            return response;
+            return await SendRequestAsync(httpClient, request, ensureResponseContent: false, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -387,7 +366,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Creates an <see cref="HttpContent"/> instance from a string.
         /// </summary>
         /// <param name="content">
-        /// The string content from which to create the <see cref="HttpContent"/> instance. 
+        /// The string content from which to create the <see cref="HttpContent"/> instance.
         /// </param>
         /// <returns>
         /// An <see cref="HttpContent"/> instance or null if the <paramref name="content"/>
@@ -435,10 +414,12 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         private static async Task ThrowInvalidResponse(HttpRequestMessage request, HttpResponseMessage response)
         {
-            Debug.Assert(request != null);
-            Debug.Assert(response != null);
-            Debug.Assert(!response.IsSuccessStatusCode);
-
+            Arguments.IsNotNull(request, nameof(request));
+            Arguments.IsNotNull(response, nameof(response));
+            if (response.IsSuccessStatusCode)
+            {
+                throw new ArgumentException("'response' should not be successful", nameof(response));
+            }
             string responseContent = response.Content == null ? null : await response.Content.ReadAsStringAsync();
 
             // Create either an invalid response or connection failed message
@@ -514,7 +495,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         }
 
         /// <summary>
-        /// Creates an <see cref="HttpRequestMessage"/> with all of the 
+        /// Creates an <see cref="HttpRequestMessage"/> with all of the
         /// required Mobile Service headers.
         /// </summary>
         /// <param name="method">
@@ -534,19 +515,19 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// The object representing the user on behalf of whom the request will be sent.
         /// </param>
         /// <returns>
-        /// An <see cref="HttpRequestMessage"/> with all of the 
+        /// An <see cref="HttpRequestMessage"/> with all of the
         /// required Mobile Service headers.
         /// </returns>
         private HttpRequestMessage CreateHttpRequestMessage(HttpMethod method, string uriPathAndQuery, IDictionary<string, string> requestHeaders, HttpContent content, MobileServiceUser user)
         {
-            Debug.Assert(method != null);
-            Debug.Assert(!string.IsNullOrEmpty(uriPathAndQuery));
+            Arguments.IsNotNull(method, nameof(method));
+            Arguments.IsNotNullOrEmpty(uriPathAndQuery, nameof(uriPathAndQuery));
 
-            HttpRequestMessage request = new HttpRequestMessage();
-
-            // Set the Uri and Http Method
-            request.RequestUri = new Uri(this.applicationUri, uriPathAndQuery);
-            request.Method = method;
+            HttpRequestMessage request = new HttpRequestMessage
+            {
+                RequestUri = new Uri(this.applicationUri, uriPathAndQuery),
+                Method = method
+            };
 
             // Add the user's headers
             if (requestHeaders != null)
@@ -573,6 +554,28 @@ namespace Microsoft.WindowsAzure.MobileServices
             return request;
         }
 
+        private static bool IsResponseCompressed(HttpResponseMessage response)
+        {
+            response.Headers.TryGetValues("Content-Encoding", out IEnumerable<string> EncodingList);
+            if (EncodingList == null)
+            {
+                response.Headers.TryGetValues("Vary", out IEnumerable<string> VaryList);
+                if (VaryList == null)
+                {
+                    return false;
+                }
+                string allVaryValues = VaryList.Aggregate((allValues, next) => allValues = allValues + ";" + next);
+                return !string.IsNullOrEmpty(allVaryValues) && allVaryValues.Contains("Accept-Encoding");
+            }
+
+            string allAcceptEncodingValues = EncodingList.Aggregate((allValues, next) => allValues = allValues + ";" + next);
+            return !string.IsNullOrEmpty(allAcceptEncodingValues) &&
+                 (allAcceptEncodingValues.Contains("gzip") ||
+                 allAcceptEncodingValues.Contains("deflate") ||
+                 allAcceptEncodingValues.Contains("br") ||
+                 allAcceptEncodingValues.Contains("compress"));
+        }
+
         /// <summary>
         /// Sends the <paramref name="request"/> with the given <paramref name="client"/>.
         /// </summary>
@@ -594,8 +597,8 @@ namespace Microsoft.WindowsAzure.MobileServices
                                                                  bool ensureResponseContent,
                                                                  CancellationToken cancellationToken)
         {
-            Debug.Assert(client != null);
-            Debug.Assert(request != null);
+            Arguments.IsNotNull(client, nameof(client));
+            Arguments.IsNotNull(request, nameof(request));
 
             // Send the request and get the response back as string
             HttpResponseMessage response;
@@ -617,15 +620,16 @@ namespace Microsoft.WindowsAzure.MobileServices
             // If there was supposed to be response content and there was not, throw
             if (ensureResponseContent)
             {
-                long? contentLength = null;
-                if (response.Content != null)
-                {
-                    contentLength = response.Content.Headers.ContentLength;
-                }
+                bool responseIsCompressed = IsResponseCompressed(response);
 
-                if (contentLength == null || contentLength <= 0)
+                if (!responseIsCompressed && response.Content != null)
                 {
-                    throw new MobileServiceInvalidOperationException("The server did not provide a response with the expected content.", request, response);
+
+                    long? contentLength = response.Content.Headers.ContentLength;
+                    if (contentLength == null || contentLength <= 0)
+                    {
+                        throw new MobileServiceInvalidOperationException("The server did not provide a response with the expected content.", request, response);
+                    }
                 }
             }
 
@@ -637,15 +641,14 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// a chain of <see cref="HttpMessageHandler"/>s.
         /// </summary>
         /// <param name="handlers">
-        /// Chain of <see cref="HttpMessageHandler" /> instances. 
-        /// All but the last should be <see cref="DelegatingHandler"/>s. 
+        /// Chain of <see cref="HttpMessageHandler" /> instances.
+        /// All but the last should be <see cref="DelegatingHandler"/>s.
         /// </param>
         /// <returns>A chain of <see cref="HttpMessageHandler"/>s</returns>
         private static HttpMessageHandler CreatePipeline(IEnumerable<HttpMessageHandler> handlers)
         {
             HttpMessageHandler pipeline = handlers.LastOrDefault() ?? DefaultHandlerFactory();
-            DelegatingHandler dHandler = pipeline as DelegatingHandler;
-            if (dHandler != null && dHandler.InnerHandler == null)
+            if (pipeline is DelegatingHandler dHandler && dHandler.InnerHandler == null)
             {
                 dHandler.InnerHandler = DefaultHandlerFactory();
                 pipeline = dHandler;
@@ -750,8 +753,10 @@ namespace Microsoft.WindowsAzure.MobileServices
                 {
                     if (requestHeaders == null || !requestHeaders.ContainsKey(ZumoFeaturesHeader))
                     {
-                        requestHeaders = new Dictionary<string, string>(requestHeaders ?? new Dictionary<string, string>());
-                        requestHeaders.Add(ZumoFeaturesHeader, FeaturesToString(features));
+                        requestHeaders = new Dictionary<string, string>(requestHeaders ?? new Dictionary<string, string>())
+                        {
+                            { ZumoFeaturesHeader, FeaturesToString(features) }
+                        };
                     }
                 }
 

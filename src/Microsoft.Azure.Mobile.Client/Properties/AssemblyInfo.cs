@@ -1,5 +1,8 @@
-﻿using System.Reflection;
-using System.Resources;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
-[assembly: NeutralResourcesLanguage("en-US")]
+[assembly: InternalsVisibleTo("Android.E2ETest")]
+[assembly: InternalsVisibleTo("iOS.E2ETest")]
+[assembly: InternalsVisibleTo("UWP.E2ETest")]
+[assembly: InternalsVisibleTo("MobileClient.Tests")]
+[assembly: InternalsVisibleTo("SQLiteStore.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

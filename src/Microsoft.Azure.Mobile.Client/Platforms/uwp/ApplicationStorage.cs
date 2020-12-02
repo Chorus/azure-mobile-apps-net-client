@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using System;
-
 using Windows.Foundation.Collections;
 using Windows.Storage;
 
@@ -16,11 +15,6 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// </summary>
     internal class ApplicationStorage : IApplicationStorage
     {
-        /// <summary>
-        /// A singleton instance of the <see cref="IApplicationStorage"/>.
-        /// </summary>
-        private static readonly IApplicationStorage instance = new ApplicationStorage();
-
         private ApplicationStorage()
         {
             this.Values = ApplicationData.Current.LocalSettings.Values;
@@ -34,13 +28,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// A singleton instance of the <see cref="IApplicationStorage"/>.
         /// </summary>
-        internal static IApplicationStorage Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
+        internal static IApplicationStorage Instance { get; } = new ApplicationStorage();
 
         public IPropertySet Values { get; set; }
 
@@ -60,12 +48,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </exception>
         bool IApplicationStorage.TryReadSetting(string name, out object value)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                string message = "An application setting name must be provided. Null, empty or whitespace only names are not allowed.";
-                throw new ArgumentException(message);
-            }
-
+            Arguments.IsNotNullOrWhiteSpace(name, nameof(name));
             return this.Values.TryGetValue(name, out value);
         }
 
@@ -84,18 +67,13 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </exception>
         void IApplicationStorage.WriteSetting(string name, object value)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                string message = "An application setting name must be provided. Null, empty or whitespace only names are not allowed.";
-                throw new ArgumentException(message);
-            }
-
+            Arguments.IsNotNullOrWhiteSpace(name, nameof(name));
             this.Values[name] = value;
         }
 
         public void Save()
         {
             // This operation is a no-op on Windows 8
-        }        
+        }
     }
 }

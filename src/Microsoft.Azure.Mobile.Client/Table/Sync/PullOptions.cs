@@ -3,10 +3,12 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
+    /// <summary>
+    /// Options used to adjust the pull synchronization operation.
+    /// </summary>
     public class PullOptions
     {
         private int _maxPageSize;
@@ -29,8 +31,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             {
                 if (value <= 0)
                 {
-                    throw new ArgumentException(string.Format(CultureInfo.InvariantCulture,
-                        "Tried to set MaxPageSize to invalid value {0}", value));
+                    throw new ArgumentException($"Tried to set MaxPageSize to invalid value {value}", nameof(value));
                 }
 
                 _maxPageSize = value;

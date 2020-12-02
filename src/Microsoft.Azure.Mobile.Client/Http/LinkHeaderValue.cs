@@ -9,25 +9,24 @@ namespace Microsoft.WindowsAzure.MobileServices
 {
     internal class LinkHeaderValue
     {
-        static Regex pattern = new Regex(@"^(?<uri>.*?);\s*rel\s*=\s*(?<rel>\w+)\s*$");
+        static readonly Regex pattern = new Regex(@"^(?<uri>.*?);\s*rel\s*=\s*(?<rel>\w+)\s*$");
         public Uri Uri { get; private set; }
         public string Relation { get; private set; }
 
         public LinkHeaderValue(string uri, string rel)
         {
-            Uri value;
-            Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out value);
-            this.Uri = value;
-            this.Relation = rel;
+            Uri.TryCreate(uri, UriKind.RelativeOrAbsolute, out Uri value);
+            Uri = value;
+            Relation = rel;
         }
 
         public static LinkHeaderValue Parse(string value)
         {
             string uri = null, rel = null;
 
-            if (!String.IsNullOrEmpty(value))
+            if (!string.IsNullOrEmpty(value))
             {
-                Match result = pattern.Match(value ?? String.Empty);
+                Match result = pattern.Match(value ?? string.Empty);
                 uri = result.Groups["uri"].Value;
                 rel = result.Groups["rel"].Value;
             }

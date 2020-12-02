@@ -3,10 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -20,13 +16,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         public const string EventName = "MobileServices.StoreOperationCompleted";
 
+        /// <summary>
+        /// Creates a new store operation completed event.
+        /// </summary>
+        /// <param name="operation">The operation that was completed.</param>
         public StoreOperationCompletedEvent(StoreOperation operation)
         {
-            if (operation == null)
-            {
-                throw new ArgumentNullException("operation");
-            }
-
+            Arguments.IsNotNull(operation, nameof(operation));
             Operation = operation;
         }
 

@@ -9,8 +9,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
 {
     internal sealed class ODataExpressionLexer
     {
-        private string text;
-        private int textLen;
+        private readonly string text;
+        private readonly int textLen;
         private int textPos;
         private static Regex dateTimeOffsetRegex;
         public char CurrentChar { get; private set; }
@@ -143,7 +143,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
                     break;
             }
             this.Token.Kind = t;
-            this.Token.Text = this.text.Substring(tokenPos, this.textPos - tokenPos);
+            this.Token.Text = text.Substring(tokenPos, this.textPos - tokenPos);
             this.Token.Position = tokenPos;
 
             this.ReClassifyToken();

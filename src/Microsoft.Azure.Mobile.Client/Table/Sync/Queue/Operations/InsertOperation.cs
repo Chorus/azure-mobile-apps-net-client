@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -23,15 +22,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         protected override Task<JToken> OnExecuteAsync()
         {
-            string version;
             // for insert operations version should not be sent so strip it out
-            JObject item = MobileServiceSerializer.RemoveSystemProperties(this.Item, out version);
+            JObject item = MobileServiceSerializer.RemoveSystemProperties(this.Item, out _);
             return this.Table.InsertAsync(item);
         }
 
         public override void Validate(MobileServiceTableOperation newOperation)
         {
-            Debug.Assert(newOperation.ItemId == this.ItemId);
+            if (newOperation.ItemId != ItemId)
+            {
+                throw new ArgumentException("ItemId does not match", nameof(newOperation));
+            }
 
             if (newOperation is InsertOperation)
             {
@@ -47,7 +48,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public override void Collapse(MobileServiceTableOperation newOperation)
         {
-            Debug.Assert(newOperation.ItemId == this.ItemId);
+            if (newOperation.ItemId != ItemId)
+            {
+                throw new ArgumentException("ItemId does not match", nameof(newOperation));
+            }
 
             if (newOperation is DeleteOperation)
             {

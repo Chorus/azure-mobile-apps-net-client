@@ -18,7 +18,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private static readonly int queryIdKeySize = 255;
 
         private static readonly Regex queryIdRegex = new Regex($"^[^|]{{0,{queryIdKeySize}}}$");
-        private MobileServiceSyncContext syncContext;
+        private readonly MobileServiceSyncContext syncContext;
 
         public MobileServiceClient MobileServiceClient { get; private set; }
 
@@ -107,8 +107,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         // we want to keep version as it rides on the object until the sync operation happens using classic table.
         internal static JObject RemoveSystemPropertiesKeepVersion(JObject instance)
         {
-            string version;
-            instance = MobileServiceSerializer.RemoveSystemProperties(instance, out version);
+            instance = MobileServiceSerializer.RemoveSystemProperties(instance, out string version);
             if (version != null)
             {
                 instance[MobileServiceSystemColumns.Version] = version;
@@ -119,10 +118,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         // we don't support int id tables for offline. therefore id must be of type string
         private static string EnsureIdIsString(JObject instance)
         {
-            if (instance == null)
-            {
-                throw new ArgumentNullException("instance");
-            }
+            Arguments.IsNotNull(instance, nameof(instance));
 
             object id = MobileServiceSerializer.GetId(instance, ignoreCase: false, allowDefault: false);
             return EnsureIdIsString(id);
@@ -141,21 +137,15 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                         string.Format(
                             CultureInfo.InvariantCulture,
                             $"The query id must not contain pipe character and should be less than {queryIdKeySize} characters in length."),
-                            "queryId");
+                            nameof(queryId));
             }
         }
 
         protected static string EnsureIdIsString(object id)
         {
-            string strId = id as string;
-            if (strId == null)
+            if (!(id is string strId))
             {
-                throw new ArgumentException(
-                     string.Format(
-                        CultureInfo.InvariantCulture,
-                        "The {0} must be of type string.",
-                        MobileServiceSystemColumns.Id),
-                     "instance");
+                throw new ArgumentException($"The {MobileServiceSystemColumns.Id} must be of type string.", nameof(id));
             }
             return strId;
         }

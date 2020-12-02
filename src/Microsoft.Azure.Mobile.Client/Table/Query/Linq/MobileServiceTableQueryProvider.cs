@@ -2,19 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Sync;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microsoft.WindowsAzure.MobileServices.Query
 {
     internal class MobileServiceTableQueryProvider
     {
-        private IMobileServiceSyncTable syncTable;
+        private readonly IMobileServiceSyncTable syncTable;
 
         public MobileServiceTableQueryProvider(IMobileServiceSyncTable syncTable = null)
         {
@@ -57,19 +56,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
                                                         IDictionary<string, string> parameters,
                                                         bool includeTotalCount)
         {
-            Debug.Assert(table != null, "table cannot be null!");
-            Debug.Assert(query != null, "query cannot be null!");
-            Debug.Assert(parameters != null, "parameters cannot be null!");
+            Arguments.IsNotNull(table, nameof(table));
+            Arguments.IsNotNull(query, nameof(query));
+            Arguments.IsNotNull(parameters, nameof(parameters));
 
             // NOTE: Make sure any changes to this logic are reflected in the
             // Select method below which has its own version of this code to
             // work around type changes for its projection.
-            return new MobileServiceTableQuery<T>(
-                table,
-                this,
-                query,
-                parameters,
-                includeTotalCount);
+            return new MobileServiceTableQuery<T>(table, this, query, parameters, includeTotalCount);
         }
 
         /// <summary>
@@ -116,8 +110,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             JToken result;
             if (this.syncTable == null)
             {
-                var table = query.Table as MobileServiceTable;
-                if (table != null)
+                if (query.Table is MobileServiceTable table)
                 {
                     // Add telemetry information if possible.
                     return await table.ReadAsync(odata, query.Parameters, this.Features | MobileServiceFeatures.TypedTable);
