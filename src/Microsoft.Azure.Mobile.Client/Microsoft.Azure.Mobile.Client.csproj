@@ -8,7 +8,7 @@
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <PackageTitle>Azure Mobile Client SDK</PackageTitle>
     <Title>Azure Mobile Client SDK</Title>
-    <Authors>Microsoft</Authors>
+    <Authors>Microsoft;Chorus</Authors>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>icon.png</PackageIcon>
@@ -17,7 +17,7 @@
     <Description>This library provides features for creating Windows and Xamarin mobile apps that connect to Azure Mobile Apps. Azure Mobile Apps allows you to develop an app with a scalable backed hosted in Azure App Service, with support for mobile authentication, offline sync, and push notifications. To learn more about Azure Mobile, go to http://azure.microsoft.com/mobile. </Description>
     <Summary>Azure Mobile Apps SDK</Summary>
     <PackageReleaseNotes>https://github.com/Azure/azure-mobile-apps-net-client/blob/master/CHANGELOG.md</PackageReleaseNotes>
-    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps-net-client</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Chorus/azure-mobile-apps-net-client</RepositoryUrl>
     <PackageTags>microsoft;windows;azure;mobile;apps;services;windowsazureofficial</PackageTags>
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>

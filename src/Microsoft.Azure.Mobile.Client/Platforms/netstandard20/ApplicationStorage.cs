@@ -14,6 +14,11 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// </summary>
     internal class ApplicationStorage : IApplicationStorage
     {
+        /// <summary>
+        /// A singleton instance of the <see cref="ApplicationStorage"/>.
+        /// </summary>
+        private static readonly IApplicationStorage instance = new ApplicationStorage();
+
         private ApplicationStorage() : this(string.Empty)
         {
         }
@@ -57,6 +62,9 @@ namespace Microsoft.WindowsAzure.MobileServices
                 value = reader.ReadToEnd();
                 return value != null;
             }
+                    }
+                }
+            }
             catch
             {
                 value = Guid.Empty;
@@ -88,6 +96,9 @@ namespace Microsoft.WindowsAzure.MobileServices
                 using IsolatedStorageFileStream fileStream = isoStore.OpenFile(filename, FileMode.OpenOrCreate, FileAccess.Write);
                 using var writer = new StreamWriter(fileStream);
                 writer.WriteLine(value.ToString());
+            }
+                    }
+                }
             }
             catch (Exception)
             {

@@ -10,7 +10,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 {
     internal class SqlHelpers
     {
-        static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private const string _efCoreDateTimeFormat = @"yyyy\-MM\-dd HH\:mm\:ss.FFFFFFF";
 
         public static object SerializeValue(JValue value, bool allowNull)
         {
@@ -159,8 +159,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         {
             return storeType == SqlColumnType.Integer ||
                     storeType == SqlColumnType.Numeric ||
-                    storeType == SqlColumnType.Boolean ||
-                    storeType == SqlColumnType.DateTime;
+                    storeType == SqlColumnType.Boolean;
         }
 
         private static bool IsRealType(string storeType)
@@ -176,15 +175,12 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                     storeType == SqlColumnType.Guid ||
                     storeType == SqlColumnType.Json ||
                     storeType == SqlColumnType.Uri ||
-                    storeType == SqlColumnType.TimeSpan;
+                    storeType == SqlColumnType.TimeSpan ||
+                    storeType == SqlColumnType.DateTime;
         }
 
         private static object SerializeAsNumber(JToken value, JTokenType columnType)
         {
-            if (columnType == JTokenType.Date)
-            {
-                return SerializeDateTime(value);
-            }
             return value.Value<long>();
         }
 
@@ -198,6 +194,13 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             if (columnType == JTokenType.Bytes && value.Type == JTokenType.Bytes)
             {
                 return Convert.ToBase64String(value.Value<byte[]>());
+            }
+
+            if (columnType == JTokenType.Date)
+            {
+                return value.Value<DateTime>()
+                    .ToUniversalTime()
+                    .ToString(_efCoreDateTimeFormat);
             }
 
             return value.ToString();
@@ -237,22 +240,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
         private static JToken ParseReal(JTokenType type, object value)
         {
-            double dblValue = Convert.ToDouble(value);
-            if (type == JTokenType.Date) // for compatibility reason i.e. in earlier release datetime was serialized as real type
-            {
-                return DeserializeDateTime(dblValue);
-            }
-
-            return dblValue;
+            return Convert.ToDouble(value);
         }
 
         private static JToken ParseNumber(JTokenType type, object value)
         {
-            if (type == JTokenType.Date)
-            {
-                return DeserializeDateTime(Convert.ToDouble(value));
-            }
-
             long longValue = Convert.ToInt64(value);
             if (type == JTokenType.Boolean)
             {
@@ -260,22 +252,6 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 return boolValue;
             }
             return longValue;
-        }
-
-        private static JToken DeserializeDateTime(double value)
-        {
-            return epoch.AddSeconds(value);
-        }
-
-        private static double SerializeDateTime(JToken value)
-        {
-            var date = value.ToObject<DateTime>();
-            if (date.Kind == DateTimeKind.Unspecified)
-            {
-                date = DateTime.SpecifyKind(date, DateTimeKind.Utc);
-            }
-            double unixTimestamp = Math.Round((date.ToUniversalTime() - epoch).TotalSeconds, 3);
-            return unixTimestamp;
         }
 
         private static void ValidateIdentifier(string identifier)

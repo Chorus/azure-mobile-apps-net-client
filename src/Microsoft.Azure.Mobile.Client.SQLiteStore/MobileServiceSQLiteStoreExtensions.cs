@@ -65,9 +65,16 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         {
             foreach (JsonProperty contractProperty in contract.Properties)
             {
-                if (contractProperty.PropertyType.GetTypeInfo().IsEnum)
+                Type actualType = contractProperty.PropertyType;
+                if (actualType.GetTypeInfo().IsGenericType
+                                   && actualType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
-                    object firstValue = Enum.GetValues(contractProperty.PropertyType)
+                    actualType = contractProperty.PropertyType.GenericTypeArguments[0];
+                }
+
+                if (actualType.GetTypeInfo().IsEnum)
+                {
+                    object firstValue = Enum.GetValues(actualType)
                                             .Cast<object>()
                                             .FirstOrDefault();
                     if (firstValue != null)
