@@ -17,9 +17,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     internal class MobileServiceSyncSettingsManager : IDisposable
     {
         private const string DefaultDeltaToken = "1970-01-01T00:00:00.0000000+00:00";
-        private AsyncLockDictionary cacheLock = new AsyncLockDictionary();
-        private Dictionary<string, string> cache = new Dictionary<string, string>();
-        private IMobileServiceLocalStore store;
+        private readonly AsyncLockDictionary cacheLock = new AsyncLockDictionary();
+        private readonly Dictionary<string, string> cache = new Dictionary<string, string>();
+        private readonly IMobileServiceLocalStore store;
 
         protected MobileServiceSyncSettingsManager()
         {
@@ -91,8 +91,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             using (await this.cacheLock.Acquire(key, CancellationToken.None))
             {
-                string value;
-                if (!this.cache.TryGetValue(key, out value))
+                if (!this.cache.TryGetValue(key, out string value))
                 {
                     JObject setting = await this.store.LookupAsync(MobileServiceLocalSystemTables.Config, key);
                     if (setting == null)

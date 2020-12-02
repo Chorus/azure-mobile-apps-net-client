@@ -21,13 +21,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// A singleton instance of the <see cref="ExpressionUtility"/>.
         /// </summary>
-        public static IExpressionUtility Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
+        public static IExpressionUtility Instance => instance;
 
         /// <summary>
         /// Evaluate all subtrees of an expression that aren't dependent on
@@ -42,9 +36,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// a subtree that depends on a one of the expression's parameters.
         /// </returns>
         public Expression PartiallyEvaluate(Expression expression)
-        {
-            return PartialEvaluator.PartiallyEvaluate(expression);
-        }
+            => PartialEvaluator.PartiallyEvaluate(expression);
 
         /// <summary>
         /// Returns the MemberExpressions in the expression hierarchy of the <paramref name="expression"/>.
@@ -59,9 +51,9 @@ namespace Microsoft.WindowsAzure.MobileServices
                         (expr, recur) =>
                         {
                             // Ensure we only process members of the parameter
-                            if (expr is MemberExpression)
+                            if (expr is MemberExpression memberExpression)
                             {
-                                members.Add((MemberExpression)expr);
+                                members.Add(memberExpression);
                             }
 
                             return recur(expr);

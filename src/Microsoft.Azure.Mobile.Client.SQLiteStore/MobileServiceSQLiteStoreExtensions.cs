@@ -19,17 +19,27 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
     /// </summary>
     public static class MobileServiceSQLiteStoreExtensions
     {
+        /// <summary>
+        /// Defines a table to use for offline sync
+        /// </summary>
+        /// <param name="store">The offline store.</param>
+        /// <typeparam name="T">The model type of the table</typeparam>
         public static void DefineTable<T>(this MobileServiceSQLiteStore store)
         {
             var settings = new MobileServiceJsonSerializerSettings();
             DefineTable<T>(store, settings);
         }
 
+        /// <summary>
+        /// Defines a table to use for offline sync
+        /// </summary>
+        /// <param name="store">The offline store.</param>
+        /// <param name="settings">The JSON Serializer settings</param>
+        /// <typeparam name="T">The model type of the table</typeparam>
         public static void DefineTable<T>(this MobileServiceSQLiteStore store, MobileServiceJsonSerializerSettings settings)
         {
             string tableName = settings.ContractResolver.ResolveTableName(typeof(T));
-            var contract = settings.ContractResolver.ResolveContract(typeof(T)) as JsonObjectContract;
-            if (contract == null)
+            if (!(settings.ContractResolver.ResolveContract(typeof(T)) is JsonObjectContract contract))
             {
                 throw new ArgumentException("The generic type T is not an object.");
             }

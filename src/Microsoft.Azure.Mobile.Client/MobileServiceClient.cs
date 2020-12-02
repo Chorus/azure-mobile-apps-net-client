@@ -2,17 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using Microsoft.WindowsAzure.MobileServices.Eventing;
+using Microsoft.WindowsAzure.MobileServices.Internal;
+using Microsoft.WindowsAzure.MobileServices.Sync;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.MobileServices.Eventing;
-using Microsoft.WindowsAzure.MobileServices.Sync;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
@@ -37,7 +38,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         private const string RefreshUserAsyncUriFragment = "/.auth/refresh";
 
-        private static HttpMethod defaultHttpMethod = HttpMethod.Post;
+        private static readonly HttpMethod defaultHttpMethod = HttpMethod.Post;
 
         /// <summary>
         /// Default empty array of HttpMessageHandlers.
@@ -99,9 +100,7 @@ namespace Microsoft.WindowsAzure.MobileServices
                 }
                 else
                 {
-                    throw new ArgumentException(
-                        string.Format(CultureInfo.InvariantCulture, Resources.MobileServiceClient_InvalidAlternateLoginHost, value),
-                        "alternateLoginHost");
+                    throw new ArgumentException("Invalid AlternateLoginHost", nameof(value));
                 }
 
                 this.AlternateAuthHttpClient = new MobileServiceHttpClient(EmptyHttpMessageHandlers, alternateLoginHost, this.InstallationId);
@@ -152,12 +151,7 @@ namespace Microsoft.WindowsAzure.MobileServices
 
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-
-                this.Serializer.SerializerSettings = value;
+                this.Serializer.SerializerSettings = value ?? throw new ArgumentNullException(nameof(value));
             }
         }
 
@@ -196,8 +190,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Chain of <see cref="HttpMessageHandler" /> instances.
         /// All but the last should be <see cref="DelegatingHandler"/>s.
         /// </param>
-        public MobileServiceClient(string mobileAppUri,
-            params HttpMessageHandler[] handlers)
+        public MobileServiceClient(string mobileAppUri, params HttpMessageHandler[] handlers)
             : this(new Uri(mobileAppUri, UriKind.Absolute), handlers)
         {
         }
@@ -212,33 +205,43 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Chain of <see cref="HttpMessageHandler" /> instances.
         /// All but the last should be <see cref="DelegatingHandler"/>s.
         /// </param>
-        public MobileServiceClient(Uri mobileAppUri,
-            params HttpMessageHandler[] handlers)
+        public MobileServiceClient(Uri mobileAppUri, params HttpMessageHandler[] handlers)
         {
-            if (mobileAppUri == null)
-            {
-                throw new ArgumentNullException("mobileAppUri");
-            }
+            Arguments.IsNotNull(mobileAppUri, nameof(mobileAppUri));
 
             if (mobileAppUri.IsAbsoluteUri)
             {
                 // Trailing slash in the MobileAppUri is important. Fix it right here before we pass it on further.
-                this.MobileAppUri = new Uri(MobileServiceUrlBuilder.AddTrailingSlash(mobileAppUri.AbsoluteUri), UriKind.Absolute);
+                MobileAppUri = new Uri(MobileServiceUrlBuilder.AddTrailingSlash(mobileAppUri.AbsoluteUri), UriKind.Absolute);
             }
             else
             {
-                throw new ArgumentException(
-                    string.Format(CultureInfo.InvariantCulture, Resources.MobileServiceClient_NotAnAbsoluteURI, mobileAppUri),
-                    "mobileAppUri");
+                throw new ArgumentException($"'{mobileAppUri}' is not an absolute Uri", nameof(mobileAppUri));
             }
 
             this.InstallationId = GetApplicationInstallationId();
 
-            handlers = handlers ?? EmptyHttpMessageHandlers;
+            handlers ??= EmptyHttpMessageHandlers;
             this.HttpClient = new MobileServiceHttpClient(handlers, this.MobileAppUri, this.InstallationId);
             this.Serializer = new MobileServiceSerializer();
             this.EventManager = new MobileServiceEventManager();
             this.SyncContext = new MobileServiceSyncContext(this);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MobileServiceClient"/> class.
+        /// </summary>
+        /// <param name="options">the connection options.</param>
+        public MobileServiceClient(IMobileServiceClientOptions options) : this(options.MobileAppUri, null)
+        {
+            AlternateLoginHost = options.AlternateLoginHost;
+            LoginUriPrefix = options.LoginUriPrefix;
+
+            var handlers = options.GetDefaultMessageHandlers(this) ?? EmptyHttpMessageHandlers;
+            if (handlers.Any())
+            {
+                HttpClient = new MobileServiceHttpClient(handlers, MobileAppUri, InstallationId);
+            }
         }
 
         /// <summary>
@@ -347,14 +350,12 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// Task that will complete when the user has finished authentication.
         /// </returns>
-        [SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Login", Justification = "Login is more appropriate than LogOn for our usage.")]
         public Task<MobileServiceUser> LoginAsync(MobileServiceAuthenticationProvider provider, JObject token)
         {
             if (!Enum.IsDefined(typeof(MobileServiceAuthenticationProvider), provider))
             {
-                throw new ArgumentOutOfRangeException("provider");
+                throw new ArgumentOutOfRangeException(nameof(provider));
             }
-
             return this.LoginAsync(provider.ToString(), token);
         }
 
@@ -390,10 +391,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public Task<MobileServiceUser> LoginAsync(string provider, JObject token)
         {
-            if (token == null)
-            {
-                throw new ArgumentNullException("token");
-            }
+            Arguments.IsNotNull(token, nameof(token));
 
             MobileServiceTokenAuthentication auth = new MobileServiceTokenAuthentication(this, provider, token, parameters: null);
             return auth.LoginAsync();
@@ -420,36 +418,28 @@ namespace Microsoft.WindowsAzure.MobileServices
             {
                 throw new InvalidOperationException("MobileServiceUser must be set before calling refresh");
             }
-            string response = null;
+
             MobileServiceHttpClient client = this.HttpClient;
             if (this.AlternateLoginHost != null)
             {
                 client = this.AlternateAuthHttpClient;
             }
+            string response;
             try
             {
                 response = await client.RequestWithoutHandlersAsync(HttpMethod.Get, RefreshUserAsyncUriFragment, this.CurrentUser, null, MobileServiceFeatures.RefreshToken);
             }
             catch (MobileServiceInvalidOperationException ex)
             {
-                string message = string.Empty;
                 if (ex.Response != null)
                 {
-                    switch (ex.Response.StatusCode)
+                    string message = ex.Response.StatusCode switch
                     {
-                        case HttpStatusCode.BadRequest:
-                            message = "Refresh failed with a 400 Bad Request error. The identity provider does not support refresh, or the user is not logged in with sufficient permission.";
-                            break;
-                        case HttpStatusCode.Unauthorized:
-                            message = "Refresh failed with a 401 Unauthorized error. Credentials are no longer valid.";
-                            break;
-                        case HttpStatusCode.Forbidden:
-                            message = "Refresh failed with a 403 Forbidden error. The refresh token was revoked or expired.";
-                            break;
-                        default:
-                            message = "Refresh failed due to an unexpected error.";
-                            break;
-                    }
+                        HttpStatusCode.BadRequest => "Refresh failed with a 400 Bad Request error. The identity provider does not support refresh, or the user is not logged in with sufficient permission.",
+                        HttpStatusCode.Unauthorized => "Refresh failed with a 401 Unauthorized error. Credentials are no longer valid.",
+                        HttpStatusCode.Forbidden => "Refresh failed with a 403 Forbidden error. The refresh token was revoked or expired.",
+                        _ => "Refresh failed due to an unexpected error.",
+                    };
                     throw new MobileServiceInvalidOperationException(message, innerException: ex, request: ex.Request, response: ex.Response);
                 }
                 throw;
@@ -472,7 +462,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="apiName">The name of the custom API.</param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
-        public Task<T> InvokeApiAsync<T>(string apiName, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<T> InvokeApiAsync<T>(string apiName, CancellationToken cancellationToken = default)
         {
             return this.InvokeApiAsync<string, T>(apiName, null, null, null, cancellationToken);
         }
@@ -487,7 +477,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="body">The value to be sent as the HTTP body.</param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
-        public Task<U> InvokeApiAsync<T, U>(string apiName, T body, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<U> InvokeApiAsync<T, U>(string apiName, T body, CancellationToken cancellationToken = default)
         {
             return this.InvokeApiAsync<T, U>(apiName, body, null, null, cancellationToken);
         }
@@ -504,7 +494,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
-        public Task<T> InvokeApiAsync<T>(string apiName, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<T> InvokeApiAsync<T>(string apiName, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default)
         {
             return this.InvokeApiAsync<string, T>(apiName, null, method, parameters, cancellationToken);
         }
@@ -523,12 +513,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
-        public async Task<U> InvokeApiAsync<T, U>(string apiName, T body, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<U> InvokeApiAsync<T, U>(string apiName, T body, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(apiName))
-            {
-                throw new ArgumentNullException("apiName");
-            }
+            Arguments.IsNotNullOrWhiteSpace(apiName, nameof(apiName));
 
             MobileServiceSerializer serializer = this.Serializer;
             string content = null;
@@ -540,7 +527,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             string response = await this.InternalInvokeApiAsync(apiName, content, method, parameters, MobileServiceFeatures.TypedApiCall, cancellationToken);
             if (string.IsNullOrEmpty(response))
             {
-                return default(U);
+                return default;
             }
             return serializer.Deserialize<U>(JToken.Parse(response));
         }
@@ -551,7 +538,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="apiName">The name of the custom API.</param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns></returns>
-        public Task<JToken> InvokeApiAsync(string apiName, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<JToken> InvokeApiAsync(string apiName, CancellationToken cancellationToken = default)
         {
             return this.InvokeApiAsync(apiName, null, null, null, cancellationToken);
         }
@@ -564,7 +551,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="body">The value to be sent as the HTTP body.</param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
-        public Task<JToken> InvokeApiAsync(string apiName, JToken body, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<JToken> InvokeApiAsync(string apiName, JToken body, CancellationToken cancellationToken = default)
         {
             return this.InvokeApiAsync(apiName, body, defaultHttpMethod, null, cancellationToken);
         }
@@ -580,7 +567,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
-        public Task<JToken> InvokeApiAsync(string apiName, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<JToken> InvokeApiAsync(string apiName, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default)
         {
             return this.InvokeApiAsync(apiName, null, method, parameters, cancellationToken);
         }
@@ -597,28 +584,19 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
-        public async Task<JToken> InvokeApiAsync(string apiName, JToken body, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<JToken> InvokeApiAsync(string apiName, JToken body, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(apiName))
-            {
-                throw new ArgumentNullException("apiName");
-            }
+            Arguments.IsNotNullOrWhiteSpace(apiName, nameof(apiName));
 
             string content = null;
             if (body != null)
             {
-                switch (body.Type)
+                content = body.Type switch
                 {
-                    case JTokenType.Null:
-                        content = "null";
-                        break;
-                    case JTokenType.Boolean:
-                        content = body.ToString().ToLowerInvariant();
-                        break;
-                    default:
-                        content = body.ToString();
-                        break;
-                }
+                    JTokenType.Null => "null",
+                    JTokenType.Boolean => body.ToString().ToLowerInvariant(),
+                    _ => body.ToString(),
+                };
             }
 
             string response = await this.InternalInvokeApiAsync(apiName, content, method, parameters, MobileServiceFeatures.JsonApiCall, cancellationToken);
@@ -640,9 +618,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The HTTP Response from the custom api invocation.</returns>
-        public async Task<HttpResponseMessage> InvokeApiAsync(string apiName, HttpContent content, HttpMethod method, IDictionary<string, string> requestHeaders, IDictionary<string, string> parameters, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpResponseMessage> InvokeApiAsync(string apiName, HttpContent content, HttpMethod method, IDictionary<string, string> requestHeaders, IDictionary<string, string> parameters, CancellationToken cancellationToken = default)
         {
-            method = method ?? defaultHttpMethod;
+            method ??= defaultHttpMethod;
             HttpResponseMessage response = await this.HttpClient.RequestAsync(method, CreateAPIUriString(apiName, parameters), this.CurrentUser, content, requestHeaders: requestHeaders, features: MobileServiceFeatures.GenericApiCall, cancellationToken: cancellationToken);
             return response;
         }
@@ -661,9 +639,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
-        private async Task<string> InternalInvokeApiAsync(string apiName, string content, HttpMethod method, IDictionary<string, string> parameters, MobileServiceFeatures features, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<string> InternalInvokeApiAsync(string apiName, string content, HttpMethod method, IDictionary<string, string> parameters, MobileServiceFeatures features, CancellationToken cancellationToken = default)
         {
-            method = method ?? defaultHttpMethod;
+            method ??= defaultHttpMethod;
             if (parameters != null && parameters.Count > 0)
             {
                 features |= MobileServiceFeatures.AdditionalQueryParameters;
@@ -681,9 +659,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns></returns>
         private string CreateAPIUriString(string apiName, IDictionary<string, string> parameters = null)
         {
-            string uriFragment = apiName.StartsWith("/") ? apiName : string.Format(CultureInfo.InvariantCulture, "api/{0}", apiName);
+            string uriFragment = apiName.StartsWith("/") ? apiName : $"api/{apiName}";
             string queryString = MobileServiceUrlBuilder.GetQueryString(parameters, useTableAPIRules: false);
-
             return MobileServiceUrlBuilder.CombinePathAndQuery(uriFragment, queryString);
         }
 
@@ -703,7 +680,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>The HTTP Response from the custom api invocation.</returns>
         public async Task<HttpResponseMessage> InvokeApiAsync(string apiName, HttpContent content, HttpMethod method, IDictionary<string, string> requestHeaders, IDictionary<string, string> parameters)
         {
-            method = method ?? defaultHttpMethod;
+            method ??= defaultHttpMethod;
             HttpResponseMessage response = await this.HttpClient.RequestAsync(method, CreateAPIUriString(apiName, parameters), this.CurrentUser, content, requestHeaders: requestHeaders, features: MobileServiceFeatures.GenericApiCall);
             return response;
         }
@@ -737,19 +714,7 @@ namespace Microsoft.WindowsAzure.MobileServices
 
         private static void ValidateTableName(string tableName)
         {
-            if (tableName == null)
-            {
-                throw new ArgumentNullException("tableName");
-            }
-
-            if (string.IsNullOrWhiteSpace(tableName))
-            {
-                throw new ArgumentException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "{0} cannot be null, empty or only whitespace.",
-                        "tableName"));
-            }
+            Arguments.IsNotNullOrWhiteSpace(tableName, nameof(tableName));
         }
 
         /// <summary>
@@ -764,16 +729,13 @@ namespace Microsoft.WindowsAzure.MobileServices
         {
             // Try to get the AppInstallationId from settings
             string installationId = null;
-            object setting = null;
-
             IApplicationStorage applicationStorage = Platform.Instance.ApplicationStorage;
 
-            if (applicationStorage.TryReadSetting(ConfigureAsyncInstallationConfigPath, out setting))
+            if (applicationStorage.TryReadSetting(ConfigureAsyncInstallationConfigPath, out object setting))
             {
-                JToken config = null;
                 try
                 {
-                    config = JToken.Parse(setting as string);
+                    JToken config = JToken.Parse(setting as string);
                     installationId = (string)config[ConfigureAsyncApplicationIdKey];
                 }
                 catch (Exception)
@@ -785,8 +747,10 @@ namespace Microsoft.WindowsAzure.MobileServices
             if (installationId == null)
             {
                 installationId = Guid.NewGuid().ToString();
-                JObject jobject = new JObject();
-                jobject[ConfigureAsyncApplicationIdKey] = installationId;
+                JObject jobject = new JObject
+                {
+                    [ConfigureAsyncApplicationIdKey] = installationId
+                };
                 string configText = jobject.ToString();
                 applicationStorage.WriteSetting(ConfigureAsyncInstallationConfigPath, configText);
             }

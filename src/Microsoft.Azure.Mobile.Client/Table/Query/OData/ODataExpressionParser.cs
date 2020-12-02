@@ -10,8 +10,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
 {
     internal class ODataExpressionParser
     {
-        private ODataExpressionLexer lexer;
-        private static Dictionary<string, QueryNode> keywords;
+        private readonly ODataExpressionLexer lexer;
+        private static readonly Dictionary<string, QueryNode> keywords;
 
         static ODataExpressionParser()
         {
@@ -35,9 +35,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         public QueryNode ParseFilter()
         {
             QueryNode expr = this.ParseExpression();
-
             this.ValidateToken(QueryTokenKind.End, () => "The specified odata query has syntax errors.");
-
             return expr;
         }
 
@@ -68,10 +66,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             return orderings;
         }
 
-        private QueryNode ParseExpression()
-        {
-            return this.ParseLogicalOr();
-        }
+        private QueryNode ParseExpression() => ParseLogicalOr();
 
         private QueryNode ParseLogicalOr()
         {
@@ -376,8 +371,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             this.ValidateToken(QueryTokenKind.IntegerLiteral, () => "Expected integer literal.");
             var text = this.lexer.Token.Text;
 
-            long value;
-            if (!Int64.TryParse(text, out value))
+            if (!Int64.TryParse(text, out long value))
             {
                 this.ParseError("The specified odata query has invalid real literal '{0}'.".FormatInvariant(text), this.lexer.Token.Position);
             }
@@ -396,7 +390,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             this.ValidateToken(QueryTokenKind.RealLiteral, () => "Expected real literal.");
             string text = this.lexer.Token.Text;
 
-            char last = Char.ToUpper(text[text.Length - 1]);
+            char last = char.ToUpper(text[text.Length - 1]);
             if (last == 'F' || last == 'M' || last == 'D')
             {
                 // so terminating F/f, M/m, D/d have no effect.
@@ -452,8 +446,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         {
             this.ValidateToken(QueryTokenKind.Identifier, () => "Expected identifier.");
 
-            QueryNode value;
-            if (keywords.TryGetValue(this.lexer.Token.Text, out value))
+            if (keywords.TryGetValue(this.lexer.Token.Text, out QueryNode value))
             {
                 // type construction has the format of type'value' e.g. datetime'2001-04-01T00:00:00Z'
                 // therefore if the next character is a single quote then we try to 

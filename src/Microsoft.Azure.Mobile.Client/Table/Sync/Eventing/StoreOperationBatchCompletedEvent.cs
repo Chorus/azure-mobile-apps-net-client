@@ -2,12 +2,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     /// <summary>
@@ -20,12 +14,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         public const string EventName = "MobileServices.StoreOperationBatchCompleted";
 
+        /// <summary>
+        /// Create a new Batch completed event.
+        /// </summary>
+        /// <param name="batch">The batch that was completed.</param>
         public StoreOperationsBatchCompletedEvent(StoreOperationsBatch batch)
         {
-            if (batch == null)
-            {
-                throw new ArgumentNullException("batch");
-            }
+            Arguments.IsNotNull(batch, nameof(batch));
             
             Batch = batch;
         }
@@ -33,10 +28,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// Gets the event name.
         /// </summary>
-        public override string Name
-        {
-            get { return EventName; }
-        }
+        public override string Name => EventName;
 
         /// <summary>
         /// The operations batch instance.

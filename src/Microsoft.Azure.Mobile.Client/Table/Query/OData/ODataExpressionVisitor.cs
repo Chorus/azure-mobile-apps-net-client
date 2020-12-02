@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
@@ -24,7 +23,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         {
             if (filter == null)
             {
-                return String.Empty;
+                return string.Empty;
             }
             var visitor = new ODataExpressionVisitor();
             filter.Accept(visitor);
@@ -36,61 +35,26 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             this.Expression.Append("(");
 
             nodeIn.LeftOperand.Accept(this);
-
-            string odataOperator;
-            switch (nodeIn.OperatorKind)
+            string odataOperator = nodeIn.OperatorKind switch
             {
-                case BinaryOperatorKind.Or:
-                    odataOperator = " or ";
-                    break;
-                case BinaryOperatorKind.And:
-                    odataOperator = " and ";
-                    break;
-                case BinaryOperatorKind.Equal:
-                    odataOperator = " eq ";
-                    break;
-                case BinaryOperatorKind.NotEqual:
-                    odataOperator = " ne ";
-                    break;
-                case BinaryOperatorKind.GreaterThan:
-                    odataOperator = " gt ";
-                    break;
-                case BinaryOperatorKind.GreaterThanOrEqual:
-                    odataOperator = " ge ";
-                    break;
-                case BinaryOperatorKind.LessThan:
-                    odataOperator = " lt ";
-                    break;
-                case BinaryOperatorKind.LessThanOrEqual:
-                    odataOperator = " le ";
-                    break;
-                case BinaryOperatorKind.Add:
-                    odataOperator = " add ";
-                    break;
-                case BinaryOperatorKind.Subtract:
-                    odataOperator = " sub ";
-                    break;
-                case BinaryOperatorKind.Multiply:
-                    odataOperator = " mul ";
-                    break;
-                case BinaryOperatorKind.Divide:
-                    odataOperator = " div ";
-                    break;
-                case BinaryOperatorKind.Modulo:
-                    odataOperator = " mod ";
-                    break;
-                default:
-                    throw new NotSupportedException(string.Format(CultureInfo.InvariantCulture,
-                                                                  "'{0}' is not supported in a 'Where' Mobile Services query expression.",
-                                                                  nodeIn.OperatorKind));
-            }
-
+                BinaryOperatorKind.Or => " or ",
+                BinaryOperatorKind.And => " and ",
+                BinaryOperatorKind.Equal => " eq ",
+                BinaryOperatorKind.NotEqual => " ne ",
+                BinaryOperatorKind.GreaterThan => " gt ",
+                BinaryOperatorKind.GreaterThanOrEqual => " ge ",
+                BinaryOperatorKind.LessThan => " lt ",
+                BinaryOperatorKind.LessThanOrEqual => " le ",
+                BinaryOperatorKind.Add => " add ",
+                BinaryOperatorKind.Subtract => " sub ",
+                BinaryOperatorKind.Multiply => " mul ",
+                BinaryOperatorKind.Divide => " div ",
+                BinaryOperatorKind.Modulo => " mod ",
+                _ => throw new NotSupportedException($"'{nodeIn.OperatorKind}' is not supported in a 'Where' Mobile Services query expression.")
+            };
             this.Expression.Append(odataOperator);
-
             nodeIn.RightOperand.Accept(this);
-
             this.Expression.Append(")");
-
             return nodeIn;
         }
 
@@ -100,36 +64,32 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             this.Expression.Append("(");
 
             string separator = null;
-
             foreach (QueryNode arg in nodeIn.Arguments)
             {
                 this.Expression.Append(separator);
                 arg.Accept(this);
                 separator = ",";
             }
-
             this.Expression.Append(")");
-
             return nodeIn;
         }
 
         public override QueryNode Visit(MemberAccessNode nodeIn)
         {
             this.Expression.Append(nodeIn.MemberName);
-
             return nodeIn;
         }
 
         public override QueryNode Visit(UnaryOperatorNode nodeIn)
         {
-            Debug.Assert(nodeIn.OperatorKind == UnaryOperatorKind.Not);
+            if (nodeIn.OperatorKind != UnaryOperatorKind.Not)
+            {
+                throw new ArgumentException("Expected node to be not", nameof(nodeIn));
+            }
 
             this.Expression.Append("not(");
-
             nodeIn.Operand.Accept(this);
-
             this.Expression.Append(")");
-
             return nodeIn;
         }
 

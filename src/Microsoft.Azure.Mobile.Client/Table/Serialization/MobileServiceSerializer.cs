@@ -2,16 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
@@ -44,17 +43,17 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <summary>
         /// A regex for validating string ids
         /// </summary>
-        private static Regex stringIdValidationRegex = new Regex(@"([\u0000-\u001F]|[\u007F-\u009F]|[""\+\?\\\/\`]|^\.{1,2}$)");
+        private static readonly Regex stringIdValidationRegex = new Regex(@"([\u0000-\u001F]|[\u007F-\u009F]|[""\+\?\\\/\`]|^\.{1,2}$)");
 
         /// <summary>
         /// The long type.
         /// </summary>
-        private static Type longType = typeof(long);
+        private static readonly Type longType = typeof(long);
 
         /// <summary>
         /// The int type.
         /// </summary>
-        private static Type intType = typeof(int);
+        private static readonly Type intType = typeof(int);
 
         /// <summary>
         /// The max length of valid string ids.
@@ -73,7 +72,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         public MobileServiceSerializer()
         {
-            this.SerializerSettings = new MobileServiceJsonSerializerSettings();
+            SerializerSettings = new MobileServiceJsonSerializerSettings();
         }
 
         /// <summary>
@@ -85,7 +84,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public MobileServiceSystemProperties GetSystemProperties(Type type)
         {
-            return this.SerializerSettings.ContractResolver.ResolveSystemProperties(type);
+            return SerializerSettings.ContractResolver.ResolveSystemProperties(type);
         }
 
         /// <summary>
@@ -106,11 +105,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public static bool TryGetId(JObject instance, bool ignoreCase, out object id)
         {
-            bool gotId = false;
-            JToken idToken = null;
-
             id = null;
-
+            JToken idToken;
+            bool gotId;
             if (ignoreCase)
             {
                 gotId = instance.TryGetValue(MobileServiceSystemColumns.Id, StringComparison.OrdinalIgnoreCase, out idToken);
@@ -122,8 +119,7 @@ namespace Microsoft.WindowsAzure.MobileServices
 
             if (gotId)
             {
-                JValue idValue = idToken as JValue;
-                if (idValue == null)
+                if (!(idToken is JValue idValue))
                 {
                     gotId = false;
                 }
@@ -154,10 +150,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public static object GetId(JObject instance, bool ignoreCase = false, bool allowDefault = false)
         {
-            Debug.Assert(instance != null);
+            Arguments.IsNotNull(instance, nameof(instance));
 
-            object id = null;
-            bool gotID = TryGetId(instance, ignoreCase, out id);
+            bool gotID = TryGetId(instance, ignoreCase, out object id);
 
             // Check that the id is present but incorrectly cased
             if (!gotID && !ignoreCase && TryGetId(instance, true, out id))
@@ -200,7 +195,12 @@ namespace Microsoft.WindowsAzure.MobileServices
         public static JObject RemoveSystemProperties(JObject instance, out string version, MobileServiceSystemProperties propertiesToKeep = MobileServiceSystemProperties.None)
         {
             version = null;
-            var systemProperties = new String[]{MobileServiceSerializer.CreatedAtSystemPropertyString, MobileServiceSerializer.DeletedSystemPropertyString, MobileServiceSerializer.VersionSystemPropertyString, MobileServiceSerializer.UpdatedAtSystemPropertyString}.AsEnumerable<String>();
+            var systemProperties = new string[] {
+                CreatedAtSystemPropertyString, 
+                DeletedSystemPropertyString, 
+                VersionSystemPropertyString, 
+                UpdatedAtSystemPropertyString
+            }.AsEnumerable();
 
             bool haveCloned = false;
             foreach (JProperty property in instance.Properties())
@@ -215,7 +215,7 @@ namespace Microsoft.WindowsAzure.MobileServices
                         haveCloned = true;
                     }
 
-                    if (String.Equals(property.Name, MobileServiceSystemColumns.Version, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(property.Name, MobileServiceSystemColumns.Version, StringComparison.OrdinalIgnoreCase))
                     {
                         version = (string)instance[property.Name];
                         if ((propertiesToKeep & MobileServiceSystemProperties.Version) == MobileServiceSystemProperties.Version)
@@ -255,7 +255,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         private static bool IsKeptSystemProperty(string propertyName, MobileServiceSystemProperties propertiesToKeep, MobileServiceSystemProperties property, string systemPropertyName)
         {
             if ((propertiesToKeep & property) == property &&
-                    String.Equals(propertyName, systemPropertyName, StringComparison.OrdinalIgnoreCase))
+                    string.Equals(propertyName, systemPropertyName, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -303,19 +303,16 @@ namespace Microsoft.WindowsAzure.MobileServices
 
         public static bool IsIntegerId(Type idType)
         {
-            bool isIntegerIdType = idType == longType ||
-                                   idType == intType;
+            bool isIntegerIdType = idType == longType || idType == intType;
             return isIntegerIdType;
         }
 
         private static void EnsureValidIntId(object id, bool allowDefault)
         {
             long longId = Convert.ToInt64(id);
-            if (longId < 0 ||
-                (!allowDefault && longId == 0))
+            if (longId < 0 || (!allowDefault && longId == 0))
             {
-                throw new InvalidOperationException(
-                    string.Format("The integer id '{0}' is not a positive integer value.", longId));
+                throw new InvalidOperationException($"The integer id '{longId}' is not a positive integer value.");
             }
         }
 
@@ -419,12 +416,10 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public object GetId(object instance, bool ignoreCase = false, bool allowDefault = false)
         {
-            Debug.Assert(instance != null);
+            Arguments.IsNotNull(instance, nameof(instance));
 
-            object id = null;
-
-            JObject jobject = instance as JObject;
-            if (jobject != null)
+            object id;
+            if (instance is JObject jobject)
             {
                 id = GetId(jobject, ignoreCase, allowDefault);
             }
@@ -474,7 +469,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             return id == null ||
                    object.Equals(id, 0L) ||
                    object.Equals(id, 0) ||
-                   (id is string && string.IsNullOrEmpty((string)id)) ||
+                   (id is string str && string.IsNullOrEmpty(str)) ||
                    object.Equals(id, 0.0) ||
                    object.Equals(id, 0.0F) ||
                    object.Equals(id, 0.0M);
@@ -488,10 +483,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         public void SetIdToDefault(object instance)
         {
-            Debug.Assert(instance != null);
+            Arguments.IsNotNull(instance, nameof(instance));
 
-            JObject jobject = instance as JObject;
-            if (jobject != null)
+            if (instance is JObject jobject)
             {
                 SetIdToDefault(jobject);
             }
@@ -516,8 +510,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public IEnumerable<object> Deserialize(JArray json, Type type)
         {
-            Debug.Assert(json != null);
-            Debug.Assert(type != null);
+            Arguments.IsNotNull(json, nameof(json));
+            Arguments.IsNotNull(type, nameof(type));
 
             JsonSerializer jsonSerializer = this.SerializerSettings.GetSerializerFromSettings();
             return json.Select(jtoken => jtoken.ToObject(type, jsonSerializer));
@@ -537,7 +531,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public IEnumerable<T> Deserialize<T>(JArray json)
         {
-            Debug.Assert(json != null);
+            Arguments.IsNotNull(json, nameof(json));
 
             JsonSerializer jsonSerializer = this.SerializerSettings.GetSerializerFromSettings();
             return json.Select(jtoken => Deserialize<T>(jtoken, jsonSerializer));
@@ -557,7 +551,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public T Deserialize<T>(JToken json)
         {
-            Debug.Assert(json != null);
+            Arguments.IsNotNull(json, nameof(json));
 
             JsonSerializer jsonSerializer = this.SerializerSettings.GetSerializerFromSettings();
             return Deserialize<T>(json, jsonSerializer);
@@ -582,8 +576,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </param>
         public void Deserialize<T>(JToken json, T instance)
         {
-            Debug.Assert(json != null);
-            Debug.Assert(instance != null);
+            Arguments.IsNotNull(json, nameof(json));
+            Arguments.IsNotNull(instance, nameof(instance));
 
             TransformSerializationException<T>(() =>
             {
@@ -602,7 +596,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </returns>
         public JToken Serialize(object instance)
         {
-            Debug.Assert(instance != null);
+            Arguments.IsNotNull(instance, nameof(instance));
 
             JsonSerializer jsonSerializer = this.SerializerSettings.GetSerializerFromSettings();
             return JToken.FromObject(instance, jsonSerializer);
@@ -610,7 +604,7 @@ namespace Microsoft.WindowsAzure.MobileServices
 
         private T Deserialize<T>(JToken json, JsonSerializer jsonSerializer)
         {
-            T result = default(T);
+            T result = default;
             TransformSerializationException<T>(() =>
             {
                 result = json.ToObject<T>(jsonSerializer);
@@ -626,14 +620,12 @@ namespace Microsoft.WindowsAzure.MobileServices
             }
             catch (JsonSerializationException ex)
             {
-                var obj = token as JObject;
-                if (obj == null)
+                if (!(token is JObject obj))
                 {
                     throw;
                 }
-              
-                object id;
-                bool idTokenIsString = TryGetId(obj, true, out id) && id.GetType() == typeof(string);
+
+                bool idTokenIsString = TryGetId(obj, true, out object id) && id.GetType() == typeof(string);
 
                 JsonProperty idProperty = this.SerializerSettings.ContractResolver.ResolveIdProperty(typeof(T), throwIfNotFound: false);
                 bool idPropertyIsInteger = idProperty != null && IsIntegerId(idProperty);

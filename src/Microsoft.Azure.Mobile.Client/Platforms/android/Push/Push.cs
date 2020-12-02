@@ -2,15 +2,12 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------
 
+using Newtonsoft.Json.Linq;
+using System;
+using System.Threading.Tasks;
+
 namespace Microsoft.WindowsAzure.MobileServices
 {
-    using System;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Newtonsoft.Json.Linq;
-
     /// <summary>
     /// Define a class help to create/delete notification registrations
     /// </summary>
@@ -21,41 +18,28 @@ namespace Microsoft.WindowsAzure.MobileServices
 
         internal Push(IMobileServiceClient client)
         {
-            if (client == null)
+            Arguments.IsNotNull(client, nameof(client));
+
+            if (!(client is MobileServiceClient internalClient))
             {
-                throw new ArgumentNullException("client");
+                throw new ArgumentException("Client must be a MobileServiceClient object", nameof(client));
             }
 
-            MobileServiceClient internalClient = client as MobileServiceClient;
-            if (internalClient == null)
-            {
-                throw new ArgumentException("Client must be a MobileServiceClient object");
-            }
-
-            this.PushHttpClient = new PushHttpClient(internalClient);
-            this.Client = client;
+            PushHttpClient = new PushHttpClient(internalClient);
+            Client = client;
         }
 
         /// <summary>
         /// Installation Id used to register the device with Notification Hubs
         /// </summary>
-        public string InstallationId
-        {
-            get
-            {
-                return this.Client.InstallationId;
-            }
-        }
+        public string InstallationId => this.Client.InstallationId;
 
         /// <summary>
         /// Register an Installation with particular registrationId
         /// </summary>
         /// <param name="registrationId">The registrationId to register</param>
         /// <returns>Task that completes when registration is complete</returns>
-        public Task RegisterAsync(string registrationId)
-        {
-            return this.RegisterAsync(registrationId, null);
-        }
+        public Task RegisterAsync(string registrationId) => RegisterAsync(registrationId, null);
 
         /// <summary>
         /// Register an Installation with particular registrationId and templates
@@ -65,14 +49,13 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>Task that completes when registration is complete</returns>
         public Task RegisterAsync(string registrationId, JObject templates)
         {
-            if (string.IsNullOrWhiteSpace(registrationId))
-            {
-                throw new ArgumentNullException("registrationId");
-            }
+            Arguments.IsNotNullOrWhiteSpace(registrationId, nameof(registrationId));
 
-            JObject installation = new JObject();
-            installation[PushInstallationProperties.PUSHCHANNEL] = registrationId;
-            installation[PushInstallationProperties.PLATFORM] = Platform.Instance.PushUtility.GetPlatform();
+            JObject installation = new JObject
+            {
+                [PushInstallationProperties.PUSHCHANNEL] = registrationId,
+                [PushInstallationProperties.PLATFORM] = Platform.Instance.PushUtility.GetPlatform()
+            };
             if (templates != null)
             {
                 JObject templatesWithStringBody = templates;
@@ -87,7 +70,7 @@ namespace Microsoft.WindowsAzure.MobileServices
                 }
                 installation[PushInstallationProperties.TEMPLATES] = templatesWithStringBody;
             }
-            return this.PushHttpClient.CreateOrUpdateInstallationAsync(installation);
+            return PushHttpClient.CreateOrUpdateInstallationAsync(installation);
         }
 
         /// <summary>
@@ -96,7 +79,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>Task that completes when unregister is complete</returns>
         public Task UnregisterAsync()
         {
-            return this.PushHttpClient.DeleteInstallationAsync();
+            return PushHttpClient.DeleteInstallationAsync();
         }
     }
 }
