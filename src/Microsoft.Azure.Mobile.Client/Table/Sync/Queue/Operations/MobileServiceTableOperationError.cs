@@ -5,8 +5,6 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -48,12 +46,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// The item associated with the operation.
         /// </summary>
-        public JObject Item { get; private set; }
+        public ITable Item { get; private set; }
 
         /// <summary>
         /// Response of the table operation.
         /// </summary>
-        public JObject Result { get; private set; }
+        public ITable Result { get; private set; }
 
         /// <summary>
         /// Raw response of the table operation.
@@ -83,9 +81,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                                                 MobileServiceTableOperationKind operationKind,
                                                 HttpStatusCode? status,
                                                 string tableName,
-                                                JObject item,
+                                                ITable item,
                                                 string rawResult,
-                                                JObject result)
+                                                ITable result)
         {
             this.Id = id;
             this.OperationVersion = operationVersion;
@@ -102,7 +100,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="item">The item to update in local store.</param>
         /// <returns>Task that completes when operation is cancelled.</returns>
-        public async Task CancelAndUpdateItemAsync(JObject item)
+        public async Task CancelAndUpdateItemAsync(ITable item)
         {
             Arguments.IsNotNull(item, nameof(item));
 
@@ -116,7 +114,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="item">The item to update in local store.</param>
         /// <returns>Task that completes when operation is updated.</returns>
-        public async Task UpdateOperationAsync(JObject item)
+        public async Task UpdateOperationAsync(ITable item)
         {
             Arguments.IsNotNull(item, nameof(item));
 

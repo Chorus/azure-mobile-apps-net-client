@@ -25,7 +25,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="query">Instance of <see cref="MobileServiceTableQueryDescription"/> that defines the query to be executed on local table.</param>
         /// <returns>A task that returns instance of JObject or JArray with items matching the query.</returns>
-        Task<ITable> ReadAsync(MobileServiceTableQueryDescription query);
+        Task<object> ReadAsync(MobileServiceTableQueryDescription query);
 
         /// <summary>
         /// Updates or inserts data in local table.

@@ -8,11 +8,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Query;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class PullAction<T> : TableAction
+    internal class PullAction<T> : TableAction<T>
+        where T : ITable
     {
         private static readonly DateTimeOffset Epoch = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
@@ -23,7 +23,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private Task pendingAction;
         private PullStrategy strategy;
 
-        public PullAction(MobileServiceTable table,
+        public PullAction(MobileServiceTable<T> table,
                           MobileServiceTableKind tableKind,
                           MobileServiceSyncContext context,
                           string queryId,

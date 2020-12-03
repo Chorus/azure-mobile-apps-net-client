@@ -2,9 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Microsoft.WindowsAzure.MobileServices.Internal
@@ -136,12 +136,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Internal
             string response = await this.LoginAsyncOverride();
             if (!string.IsNullOrEmpty(response))
             {
-                JToken authToken = JToken.Parse(response);
-
+                var authToken = JsonDocument.Parse(response);
+                var user = authToken.RootElement.GetProperty("user");
+                var userId = user.GetProperty("userId");
                 // Get the Mobile Services auth token and user data
-                this.Client.CurrentUser = new MobileServiceUser((string)authToken["user"]["userId"])
+                Client.CurrentUser = new MobileServiceUser(userId.GetString())
                 {
-                    MobileServiceAuthenticationToken = (string)authToken[LoginAsyncAuthenticationTokenKey]
+                    MobileServiceAuthenticationToken = authToken.RootElement.GetProperty(LoginAsyncAuthenticationTokenKey).GetString()
                 };
             }
 

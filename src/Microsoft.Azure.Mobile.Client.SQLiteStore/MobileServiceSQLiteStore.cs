@@ -82,9 +82,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                                    let storeType = SqlHelpers.GetStoreType(property.PropertyType, allowNull: false)
                                    select new ColumnDefinition(property.Name, property.PropertyType, storeType))
                                   .ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-
-            var sysProperties = GetSystemProperties(item);
-
+            var sysProperties = GetSystemProperties();
             tableMap.Add(tableName, new TableDefinition(tableDefinition, sysProperties));
         }
 
@@ -126,7 +124,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                         {
                             sql = formatter.FormatSelectCount();
                             var countRows = ExecuteQueryInternal(query.TableName, sql, formatter.Parameters);
-                            long count = countRows[0].Value<long>("count");
+                            long count = (long)countRows.Count;//countRows[0].Value<long>("count");
                             result = new
                             {
                                 results = result,
@@ -665,26 +663,13 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         //    return ReadRow(table, statement).ToObject<T>();
         //}
 
-        private static MobileServiceSystemProperties GetSystemProperties(ITable item)
+        private static MobileServiceSystemProperties GetSystemProperties()
         {
             var sysProperties = MobileServiceSystemProperties.None;
-
-            if (item[MobileServiceSystemColumns.Version] != null)
-            {
-                sysProperties |= MobileServiceSystemProperties.Version;
-            }
-            if (item[MobileServiceSystemColumns.CreatedAt] != null)
-            {
-                sysProperties |= MobileServiceSystemProperties.CreatedAt;
-            }
-            if (item[MobileServiceSystemColumns.UpdatedAt] != null)
-            {
-                sysProperties |= MobileServiceSystemProperties.UpdatedAt;
-            }
-            if (item[MobileServiceSystemColumns.Deleted] != null)
-            {
-                sysProperties |= MobileServiceSystemProperties.Deleted;
-            }
+            sysProperties |= MobileServiceSystemProperties.Version;
+            sysProperties |= MobileServiceSystemProperties.CreatedAt;
+            sysProperties |= MobileServiceSystemProperties.UpdatedAt;
+            sysProperties |= MobileServiceSystemProperties.Deleted;
             return sysProperties;
         }
 

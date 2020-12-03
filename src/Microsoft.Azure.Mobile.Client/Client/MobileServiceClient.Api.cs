@@ -81,7 +81,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             string content = null;
             if (body != null)
             {
-                content = serializer.Serialize(body).ToString();
+                content = JsonSerializer.Serialize(body);
             }
 
             string response = await InternalInvokeApiAsync(apiName, content, method, parameters, MobileServiceFeatures.TypedApiCall, cancellationToken);
@@ -89,51 +89,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             {
                 return default;
             }
-            return serializer.Deserialize<U>(JToken.Parse(response));
-        }
-
-        /// <summary>
-        /// Invokes a user-defined custom API of a Microsoft Azure Mobile Service using an HTTP POST.
-        /// </summary>
-        /// <param name="apiName">The name of the custom API.</param>
-        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
-        /// <returns></returns>
-        public Task<JToken> InvokeApiAsync(string apiName, CancellationToken cancellationToken = default)
-        {
-            return this.InvokeApiAsync(apiName, null, null, null, cancellationToken);
-        }
-
-        /// <summary>
-        /// Invokes a user-defined custom API of a Microsoft Azure Mobile Service using an HTTP POST, with
-        /// support for sending HTTP content.
-        /// </summary>
-        /// <param name="apiName">The name of the custom API.</param>
-        /// <param name="body">The value to be sent as the HTTP body.</param>
-        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
-        /// <returns>The response content from the custom api invocation.</returns>
-        public Task<JToken> InvokeApiAsync(string apiName, JToken body, CancellationToken cancellationToken = default)
-        {
-            return this.InvokeApiAsync(apiName, body, defaultHttpMethod, null, cancellationToken);
-        }
-
-        /// <summary>
-        /// Invokes a user-defined custom API of a Microsoft Azure Mobile Service using the specified HTTP Method.
-        /// Additional data will sent to through the query string.
-        /// </summary>
-        /// <param name="apiName">The name of the custom API.</param>
-        /// <param name="method">The HTTP method.</param>
-        /// <param name="parameters">
-        /// A dictionary of user-defined parameters and values to include in the request URI query string.
-        /// </param>
-        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
-        /// <returns>The response content from the custom api invocation.</returns>
-        public Task<JToken> InvokeApiAsync(
-            string apiName, 
-            HttpMethod method, 
-            IDictionary<string, string> parameters, 
-            CancellationToken cancellationToken = default)
-        {
-            return this.InvokeApiAsync(apiName, null, method, parameters, cancellationToken);
+            return JsonSerializer.Deserialize<U>(response);
         }
 
         /// <summary>

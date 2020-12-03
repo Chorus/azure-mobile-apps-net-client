@@ -22,7 +22,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         protected override Task<ITable> OnExecuteAsync()
         {
-            return this.Table.UpdateAsync(this.Item);
+            return Table.UpdateAsync(this.Item);
         }
 
         public override void Validate(MobileServiceTableOperation newOperation)

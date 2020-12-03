@@ -55,7 +55,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             // nothing to collapse we don't allow any operation after delete
         }
 
-        public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, JObject item)
+        public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, ITable item)
         {
             return store.DeleteAsync(TableName, ItemId);
         }

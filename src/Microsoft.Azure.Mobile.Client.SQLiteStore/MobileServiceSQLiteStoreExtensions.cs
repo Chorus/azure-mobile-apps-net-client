@@ -3,14 +3,8 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 {
@@ -25,6 +19,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <param name="store">The offline store.</param>
         /// <typeparam name="T">The model type of the table</typeparam>
         public static void DefineTable<T>(this MobileServiceSQLiteStore store)
+             where T : ITable, new()
         {
             var settings = new MobileServiceJsonSerializerSettings();
             DefineTable<T>(store, settings);
@@ -37,39 +32,31 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <param name="settings">The JSON Serializer settings</param>
         /// <typeparam name="T">The model type of the table</typeparam>
         public static void DefineTable<T>(this MobileServiceSQLiteStore store, MobileServiceJsonSerializerSettings settings)
+            where T : ITable, new()
         {
-            string tableName = settings.ContractResolver.ResolveTableName(typeof(T));
-            if (!(settings.ContractResolver.ResolveContract(typeof(T)) is JsonObjectContract contract))
-            {
-                throw new ArgumentException("The generic type T is not an object.");
-            }
-            if (contract.DefaultCreator == null)
-            {
-                throw new ArgumentException("The generic type T does not have parameterless constructor.");
-            }
+            string tableName = string.Empty; //settings.ContractResolver.ResolveTableName(typeof(T));
 
             // create an empty object
-            object theObject = contract.DefaultCreator();
-            SetEnumDefault(contract, theObject);
+            var item = new T();
 
-            JObject item = ConvertToJObject(settings, theObject);
-
-            //// set default values so serialized version can be used to infer types
-            SetIdDefault<T>(settings, item);
-            SetNullDefault(contract, item);
+            //set default values so serialized version can be used to infer types
+            SetIdDefault(item);
+            SetNullDefault(item);
+            SetEnumDefault(item);
 
             store.DefineTable(tableName, item);
         }
 
-        private static void SetEnumDefault(JsonObjectContract contract, object theObject)
+        private static void SetEnumDefault<T>(T theObject)
+            where T : ITable
         {
-            foreach (JsonProperty contractProperty in contract.Properties)
+            foreach (var property in theObject.GetType().GetProperties())
             {
-                Type actualType = contractProperty.PropertyType;
+                Type actualType = property.PropertyType;
                 if (actualType.GetTypeInfo().IsGenericType
                                    && actualType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
-                    actualType = contractProperty.PropertyType.GenericTypeArguments[0];
+                    actualType = actualType.GenericTypeArguments[0];
                 }
 
                 if (actualType.GetTypeInfo().IsEnum)
@@ -79,54 +66,21 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                                             .FirstOrDefault();
                     if (firstValue != null)
                     {
-                        contractProperty.ValueProvider.SetValue(theObject, firstValue);
+                        property.SetValue(theObject, firstValue);
                     }
                 }
             }
         }
 
-        private static JObject ConvertToJObject(MobileServiceJsonSerializerSettings settings, object theObject)
+        private static void SetIdDefault<T>(T item) 
+            where T : ITable
         {
-            string json = JsonConvert.SerializeObject(theObject, settings);
-            JObject item = JsonConvert.DeserializeObject<JObject>(json, settings);
-            return item;
+            item.Id = string.Empty;
         }
 
-        private static void SetIdDefault<T>(MobileServiceJsonSerializerSettings settings, JObject item)
+        private static void SetNullDefault<T>(T item)
         {
-            JsonProperty idProperty = settings.ContractResolver.ResolveIdProperty(typeof(T));
-            if (idProperty.PropertyType == typeof(long) || idProperty.PropertyType == typeof(int))
-            {
-                item[MobileServiceSystemColumns.Id] = 0;
-            }
-            else
-            {
-                item[MobileServiceSystemColumns.Id] = String.Empty;
-            }
-        }
 
-        private static void SetNullDefault(JsonObjectContract contract, JObject item)
-        {
-            foreach (JProperty itemProperty in item.Properties().Where(i => i.Value.Type == JTokenType.Null))
-            {
-                JsonProperty contractProperty = contract.Properties[itemProperty.Name];
-                if (contractProperty.PropertyType == typeof(string) || contractProperty.PropertyType == typeof(Uri))
-                {
-                    item[itemProperty.Name] = String.Empty;
-                }
-                else if (contractProperty.PropertyType == typeof(byte[]))
-                {
-                    item[itemProperty.Name] = new byte[0];
-                }
-                else if (contractProperty.PropertyType.GetTypeInfo().IsGenericType && contractProperty.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                {
-                    item[itemProperty.Name] = new JValue(Activator.CreateInstance(contractProperty.PropertyType.GenericTypeArguments[0]));
-                }
-                else
-                {
-                    item[itemProperty.Name] = new JObject();
-                }
-            }
         }
     }
 }

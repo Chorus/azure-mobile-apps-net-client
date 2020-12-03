@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
@@ -24,41 +24,36 @@ namespace Microsoft.WindowsAzure.MobileServices
             CreatedAtPropertyName = MobileServiceSystemColumns.CreatedAt;
         }
 
-        public string GetVersion(JObject item)
+        public string GetVersion(JsonElement item)
         {
-            return (string)item[VersionPropertyName];
+            return item.GetProperty(VersionPropertyName).GetString();
         }
 
-        public string GetId(JObject item)
+        public string GetId(JsonElement item)
         {
-            return (string)item[IdPropertyName];
+            return item.GetProperty(IdPropertyName).GetString();
         }
 
-        public bool IsDeleted(JObject item)
+        public bool IsDeleted(JsonElement item)
         {
-            JToken deletedToken = item[DeletedPropertyName];
-            bool isDeleted = deletedToken != null && deletedToken.Value<bool>();
+            var deletedElement = item.GetProperty(DeletedPropertyName);
+            bool isDeleted = deletedElement.GetBoolean();
             return isDeleted;
         }
 
-        public DateTimeOffset? GetUpdatedAt(JObject item)
+        public DateTimeOffset? GetUpdatedAt(JsonElement item)
         {
             return GetDateTimeOffset(item, UpdatedAtPropertyName);
         }
 
-        public DateTimeOffset? GetCreatedAt(JObject item)
+        public DateTimeOffset? GetCreatedAt(JsonElement item)
         {
             return GetDateTimeOffset(item, CreatedAtPropertyName);
         }
 
-        private static DateTimeOffset? GetDateTimeOffset(JObject item, string name)
+        private static DateTimeOffset? GetDateTimeOffset(JsonElement item, string name)
         {
-            JToken updatedAtToken = item[name];
-            if (updatedAtToken != null)
-            {
-                return updatedAtToken.ToObject<DateTimeOffset?>();
-            }
-            return null;
+            return item.GetProperty(name).GetDateTimeOffset();
         }
     }
 }

@@ -2,20 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
-using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
-    //internal class MobileServiceHttpResponse : MobileServiceHttpResponse<string>
-    //{
-    //    public MobileServiceHttpResponse(string content, string etag, LinkHeaderValue link)
-    //        : base(content, etag, link)
-    //    {
-
-    //    }
-    //}
-
     internal class MobileServiceHttpResponse<T>
     {
         public T Content { get; private set; }
