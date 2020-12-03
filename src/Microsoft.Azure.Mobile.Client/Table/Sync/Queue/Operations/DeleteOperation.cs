@@ -6,11 +6,10 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class DeleteOperation<T> : MobileServiceTableOperation<T>
+    internal class DeleteOperation : MobileServiceTableOperation
     {
         public override MobileServiceTableOperationKind Kind => MobileServiceTableOperationKind.Delete;
 
@@ -23,11 +22,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
         }
 
-        protected override async Task<JToken> OnExecuteAsync()
+        protected override async Task<ITable> OnExecuteAsync()
         {
             try
             {
-                return await this.Table.DeleteAsync(this.Item);
+                return await this.Table.DeleteAsync(Item);
             }
             catch (MobileServiceInvalidOperationException ex)
             {
@@ -40,7 +39,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
         }
 
-        public override void Validate(MobileServiceTableOperation<T> newOperation)
+        public override void Validate(MobileServiceTableOperation newOperation)
         {
             if (newOperation.ItemId != ItemId)
             {
@@ -51,14 +50,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             throw new InvalidOperationException("A delete operation on the item is already in the queue.");
         }
 
-        public override void Collapse(MobileServiceTableOperation<T> other)
+        public override void Collapse(MobileServiceTableOperation other)
         {
             // nothing to collapse we don't allow any operation after delete
         }
 
         public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, JObject item)
         {
-            return store.DeleteAsync(this.TableName, this.ItemId);
+            return store.DeleteAsync(TableName, ItemId);
         }
     }
 }

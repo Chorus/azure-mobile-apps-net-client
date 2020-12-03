@@ -4,11 +4,10 @@
 
 using System;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class InsertOperation<T> : MobileServiceTableOperation<T>
+    internal class InsertOperation : MobileServiceTableOperation
     {
         public override MobileServiceTableOperationKind Kind
         {
@@ -20,21 +19,21 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
         }
 
-        protected override Task<JToken> OnExecuteAsync()
+        protected override Task<ITable> OnExecuteAsync()
         {
             // for insert operations version should not be sent so strip it out
-            JObject item = MobileServiceSerializer.RemoveSystemProperties(this.Item, out _);
+            var item = MobileServiceSerializer.RemoveSystemProperties(this.Item, out _);
             return this.Table.InsertAsync(item);
         }
 
-        public override void Validate(MobileServiceTableOperation<T> newOperation)
+        public override void Validate(MobileServiceTableOperation newOperation)
         {
             if (newOperation.ItemId != ItemId)
             {
                 throw new ArgumentException("ItemId does not match", nameof(newOperation));
             }
 
-            if (newOperation is InsertOperation<T>)
+            if (newOperation is InsertOperation)
             {
                 throw new InvalidOperationException("An insert operation on the item is already in the queue.");
             }

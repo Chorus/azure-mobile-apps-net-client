@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
@@ -33,10 +34,10 @@ namespace Microsoft.WindowsAzure.MobileServices
 
     public class ODataResponse<T> 
     {
-        [JsonProperty("@odata.context")]
+        [JsonPropertyName("@odata.context")]
         public string Context { get; set; }
 
-        [JsonProperty("value")]
+        [JsonPropertyName("value")]
         public T[] Value { get; set; }
 
 

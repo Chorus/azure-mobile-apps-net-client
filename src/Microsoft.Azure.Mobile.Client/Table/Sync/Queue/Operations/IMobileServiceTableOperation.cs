@@ -9,7 +9,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     /// <summary>
     /// An object representing table operation against remote table
     /// </summary>
-    public interface IMobileServiceTableOperation<T> where T : ITable
+    public interface IMobileServiceTableOperation
     {
         /// <summary>
         /// The kind of operation
@@ -24,17 +24,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// The table that the operation will be executed against.
         /// </summary>
-        IMobileServiceTable<T> Table { get; }
+        IMobileServiceTable<ITable> Table { get; }
 
         /// <summary>
         /// The item associated with the operation.
         /// </summary>
-        T Item { get; set; }
+        ITable Item { get; set; }
 
         /// <summary>
         /// Executes the operation against remote table.
         /// </summary>
-        Task<T> ExecuteAsync();
+        Task<ITable> ExecuteAsync();
 
         /// <summary>
         /// Abort the parent push operation.

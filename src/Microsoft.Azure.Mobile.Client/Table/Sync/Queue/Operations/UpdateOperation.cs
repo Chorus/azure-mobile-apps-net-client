@@ -5,11 +5,10 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class UpdateOperation<T> : MobileServiceTableOperation<T>
+    internal class UpdateOperation : MobileServiceTableOperation
     {
         public override MobileServiceTableOperationKind Kind
         {
@@ -21,22 +20,22 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
         }
 
-        protected override Task<JToken> OnExecuteAsync()
+        protected override Task<ITable> OnExecuteAsync()
         {
             return this.Table.UpdateAsync(this.Item);
         }
 
-        public override void Validate(MobileServiceTableOperation<T> newOperation)
+        public override void Validate(MobileServiceTableOperation newOperation)
         {
             Debug.Assert(newOperation.ItemId == this.ItemId);
 
-            if (newOperation is InsertOperation<T>)
+            if (newOperation is InsertOperation)
             {
                 throw new InvalidOperationException("An update operation on the item is already in the queue.");
             }
         }
 
-        public override void Collapse(MobileServiceTableOperation<T> newOperation)
+        public override void Collapse(MobileServiceTableOperation newOperation)
         {
             Debug.Assert(newOperation.ItemId == this.ItemId);
 
@@ -45,14 +44,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 this.Cancel();
                 newOperation.Update();
             }
-            else if (newOperation is UpdateOperation<T>)
+            else if (newOperation is UpdateOperation)
             {
                 this.Update();
                 newOperation.Cancel();
             }
         }
 
-        public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, JObject item)
+        public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, ITable item)
         {
             return store.UpsertAsync(this.TableName, item, fromServer: false);
         }

@@ -3,12 +3,12 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal abstract class MobileServiceTableOperation<T> : IMobileServiceTableOperation<T>, ITable
-        where T : ITable
+    internal abstract class MobileServiceTableOperation : IMobileServiceTableOperation
     {
         // --- Persisted properties -- //
         public string Id { get; private set; }
@@ -21,7 +21,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public string ItemId { get; private set; }
 
-        public T Item { get; set; }
+        public ITable Item { get; set; }
 
         public MobileServiceTableOperationState State { get; internal set; }
 
@@ -30,9 +30,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public long Version { get; set; }
 
         // --- Non persisted properties -- //
-        IMobileServiceTable<T> IMobileServiceTableOperation<T>.Table => Table;
+        IMobileServiceTable<ITable> IMobileServiceTableOperation.Table => Table;
 
-        public MobileServiceTable<T> Table { get; set; }
+        public MobileServiceTable<ITable> Table { get; set; }
 
         public bool IsCancelled { get; private set; }
 
@@ -54,7 +54,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public void AbortPush() => throw new MobileServicePushAbortException();
 
-        public async Task<T> ExecuteAsync()
+        public async Task<ITable> ExecuteAsync()
         {
             if (IsCancelled)
             {
@@ -75,7 +75,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return response;
         }
 
-        protected abstract Task<T> OnExecuteAsync();
+        protected abstract Task<ITable> OnExecuteAsync();
 
         internal void Cancel()
         {
@@ -93,18 +93,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="store">Sync store</param>
         /// <param name="item">The item to use for store operation</param>
-        public abstract Task ExecuteLocalAsync(IMobileServiceLocalStore store, T item);
+        public abstract Task ExecuteLocalAsync(IMobileServiceLocalStore store, ITable item);
 
         /// <summary>
         /// Validates that the operation can collapse with the late operation
         /// </summary>
         /// <exception cref="InvalidOperationException">This method throws when the operation cannot collapse with new operation.</exception>
-        public abstract void Validate(MobileServiceTableOperation<T> newOperation);
+        public abstract void Validate(MobileServiceTableOperation newOperation);
 
         /// <summary>
         /// Collapse this operation with the late operation by cancellation of either operation.
         /// </summary>
-        public abstract void Collapse(MobileServiceTableOperation<T> newOperation);
+        public abstract void Collapse(MobileServiceTableOperation newOperation);
 
         /// <summary>
         /// Defines the the table for storing operations
@@ -127,9 +127,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             });
         }
 
-        internal JObject Serialize()
+        internal ITable Serialize()
         {
-            var obj = new JObject()
+            var obj = new Dictionary<string, object>
             {
                 { MobileServiceSystemColumns.Id, Id },
                 { "kind", (int)Kind },
@@ -145,7 +145,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return obj;
         }
 
-        internal static MobileServiceTableOperation<T> Deserialize(JObject obj)
+        internal static MobileServiceTableOperation Deserialize(ITable obj)
         {
             if (obj == null)
             {
@@ -158,17 +158,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             string itemId = obj.Value<string>("itemId");
 
 
-            MobileServiceTableOperation<T> operation = null;
+            MobileServiceTableOperation operation = null;
             switch (kind)
             {
                 case MobileServiceTableOperationKind.Insert:
-                    operation = new InsertOperation<T>(tableName, tableKind, itemId);
+                    operation = new InsertOperation(tableName, tableKind, itemId);
                     break;
                 case MobileServiceTableOperationKind.Update:
-                    operation = new UpdateOperation<T>(tableName, tableKind, itemId);
+                    operation = new UpdateOperation(tableName, tableKind, itemId);
                     break;
                 case MobileServiceTableOperationKind.Delete:
-                    operation = new DeleteOperation<T>(tableName, tableKind, itemId);
+                    operation = new DeleteOperation(tableName, tableKind, itemId);
                     break;
             }
 
