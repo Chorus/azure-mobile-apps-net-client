@@ -162,7 +162,12 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The content of the response as a string.
         /// </returns>
-        public async Task<ODataResponse<T>> RequestWithoutHandlersAsync<T>(HttpMethod method, string uriPathAndQuery, MobileServiceUser user, string content = null, MobileServiceFeatures features = MobileServiceFeatures.None)
+        public async Task<T> RequestWithoutHandlersAsync<T>(
+            HttpMethod method, 
+            string uriPathAndQuery, 
+            MobileServiceUser user, 
+            string content = null,
+            MobileServiceFeatures features = MobileServiceFeatures.None)
         {
             IDictionary<string, string> requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders: null, features: features);
             var response = await RequestAsync<T>(false, method, uriPathAndQuery, user, content, false, requestHeaders);
@@ -407,13 +412,13 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The response content as a string.
         /// </returns>
-        private static async Task<ODataResponse<T>> GetResponseContent<T>(HttpResponseMessage response)
+        private static async Task<T> GetResponseContent<T>(HttpResponseMessage response)
         {
             if (response.Content == null)
             {
-                return null;
+                return default;
             }
-            return await JsonSerializer.DeserializeAsync<ODataResponse<T>>(await response.Content.ReadAsStreamAsync());
+            return await JsonSerializer.DeserializeAsync<T>(await response.Content.ReadAsStreamAsync());
         }
 
         /// <summary>
@@ -433,75 +438,68 @@ namespace Microsoft.WindowsAzure.MobileServices
             {
                 throw new ArgumentException("'response' should not be successful", nameof(response));
             }
-            string responseContent = response.Content == null ? null : await response.Content.ReadAsStringAsync();
+            string responseContent = response.Content == null
+                ? null 
+                : await response.Content.ReadAsStringAsync();
 
             // Create either an invalid response or connection failed message
             // (check the status code first because some status codes will
             // set a protocol ErrorStatus).
-            string message = null;
-            if (!response.IsSuccessStatusCode)
-            {
-                if (responseContent != null)
-                {
-                    JToken body = null;
-                    try
-                    {
-                        body = JToken.Parse(responseContent);
-                    }
-                    catch
-                    {
-                    }
+            string message = responseContent;
+            //if (!response.IsSuccessStatusCode)
+            //{
+            //    if (responseContent != null)
+            //    {
+            //        if (body != null)
+            //        {
+            //            if (body.Type == JTokenType.String)
+            //            {
+            //                // User scripts might return errors with just a plain string message as the
+            //                // body content, so use it as the exception message
+            //                message = body.ToString();
+            //            }
+            //            else if (body.Type == JTokenType.Object)
+            //            {
+            //                // Get the error message, but default to the status description
+            //                // below if there's no error message present.
+            //                JToken error = body["error"];
+            //                if (error != null && error.Type == JTokenType.String)
+            //                {
+            //                    message = (string)error;
+            //                }
+            //                else
+            //                {
+            //                    JToken description = body["description"];
+            //                    if (description != null && description.Type == JTokenType.String)
+            //                    {
+            //                        message = (string)description;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        else if (response.Content.Headers.ContentType != null &&
+            //                    response.Content.Headers.ContentType.MediaType != null &&
+            //                    response.Content.Headers.ContentType.MediaType.Contains("text"))
+            //        {
+            //            message = responseContent;
+            //        }
+            //    }
 
-                    if (body != null)
-                    {
-                        if (body.Type == JTokenType.String)
-                        {
-                            // User scripts might return errors with just a plain string message as the
-                            // body content, so use it as the exception message
-                            message = body.ToString();
-                        }
-                        else if (body.Type == JTokenType.Object)
-                        {
-                            // Get the error message, but default to the status description
-                            // below if there's no error message present.
-                            JToken error = body["error"];
-                            if (error != null && error.Type == JTokenType.String)
-                            {
-                                message = (string)error;
-                            }
-                            else
-                            {
-                                JToken description = body["description"];
-                                if (description != null && description.Type == JTokenType.String)
-                                {
-                                    message = (string)description;
-                                }
-                            }
-                        }
-                    }
-                    else if (response.Content.Headers.ContentType != null &&
-                                response.Content.Headers.ContentType.MediaType != null &&
-                                response.Content.Headers.ContentType.MediaType.Contains("text"))
-                    {
-                        message = responseContent;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(message))
-                {
-                    message = string.Format(
-                        CultureInfo.InvariantCulture,
-                        "The request could not be completed.  ({0})",
-                        response.ReasonPhrase);
-                }
-            }
-            else
-            {
-                message = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "The request could not be completed.  ({0})",
-                    response.ReasonPhrase);
-            }
+            //    if (string.IsNullOrWhiteSpace(message))
+            //    {
+            //        message = string.Format(
+            //            CultureInfo.InvariantCulture,
+            //            "The request could not be completed.  ({0})",
+            //            response.ReasonPhrase);
+            //    }
+            //}
+            //else
+            //{
+            //    message = string.Format(
+            //        CultureInfo.InvariantCulture,
+            //        "The request could not be completed.  ({0})",
+            //        response.ReasonPhrase);
+            //}
 
             // Combine the pieces and throw the exception
             throw new MobileServiceInvalidOperationException(message, request, response);

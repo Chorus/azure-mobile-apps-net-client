@@ -8,8 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System.Threading;
 
 namespace Microsoft.WindowsAzure.MobileServices

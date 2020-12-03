@@ -3,14 +3,13 @@
 // ----------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     /// <summary>
     /// An object representing table operation against remote table
     /// </summary>
-    public interface IMobileServiceTableOperation<T>
+    public interface IMobileServiceTableOperation<T> where T : ITable
     {
         /// <summary>
         /// The kind of operation
@@ -35,7 +34,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// Executes the operation against remote table.
         /// </summary>
-        Task<JObject> ExecuteAsync();
+        Task<T> ExecuteAsync();
 
         /// <summary>
         /// Abort the parent push operation.

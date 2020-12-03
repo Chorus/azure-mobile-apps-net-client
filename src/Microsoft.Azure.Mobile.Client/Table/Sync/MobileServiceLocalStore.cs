@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using Microsoft.WindowsAzure.MobileServices.Query;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -52,7 +51,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="tableName">Name of the local table.</param>
         /// <param name="item">An object that represents the structure of the table.</param>
-        public virtual void DefineTable(string tableName, JObject item)
+        public virtual void DefineTable(string tableName, ITable item)
         {
         }
 
@@ -61,7 +60,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="query">Instance of <see cref="MobileServiceTableQueryDescription"/> that defines the query to be executed on local table.</param>
         /// <returns>A task that returns instance of JObject or JArray with items matching the query.</returns>
-        public abstract Task<JToken> ReadAsync(MobileServiceTableQueryDescription query);
+        public abstract Task<ITable> ReadAsync(MobileServiceTableQueryDescription query);
 
         /// <summary>
         /// Updates or inserts data in local table.
@@ -70,7 +69,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="items">A list of items to be inserted.</param>
         /// <param name="ignoreMissingColumns"><code>true</code> if the extra properties on item can be ignored; <code>false</code> otherwise.</param>        
         /// <returns>A task that completes when item has been upserted in local table.</returns>
-        public abstract Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns);
+        public abstract Task UpsertAsync(string tableName, IEnumerable<ITable> items, bool ignoreMissingColumns);
 
         /// <summary>
         /// Deletes all the items from local table that match the query.
@@ -93,7 +92,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="tableName">Name of the local table.</param>
         /// <param name="id">Id for the object to be read.</param>
         /// <returns>A task that returns the item read from local table.</returns>
-        public abstract Task<JObject> LookupAsync(string tableName, string id);
+        public abstract Task<ITable> LookupAsync(string tableName, string id);
 
         /// <summary>
         /// Throws an exception if store is not initialized.

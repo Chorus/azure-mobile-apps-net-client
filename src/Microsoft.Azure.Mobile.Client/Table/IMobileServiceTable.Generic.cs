@@ -16,7 +16,7 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// <typeparam name="T">
     /// The type of instances in the table (which implies the table).
     /// </typeparam>
-    public interface IMobileServiceTable<T> //: IMobileServiceTable
+    public interface IMobileServiceTable<T> where T : ITable
     {
         /// <summary>
         /// Executes a query against the table.
@@ -63,7 +63,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The desired instance.
         /// </returns>
-        new Task<T> LookupAsync(object id);
+        Task<T> LookupAsync(object id);
 
         /// <summary>
         /// Lookup an instance from a table by its id.
@@ -78,7 +78,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The desired instance.
         /// </returns>
-        new Task<T> LookupAsync(object id, IDictionary<string, string> parameters);
+        Task<T> LookupAsync(object id, IDictionary<string, string> parameters);
 
         /// <summary>
         /// Refresh the current instance with the latest values from the

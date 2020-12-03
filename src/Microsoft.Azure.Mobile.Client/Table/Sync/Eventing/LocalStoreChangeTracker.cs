@@ -4,7 +4,6 @@
 
 using Microsoft.WindowsAzure.MobileServices.Eventing;
 using Microsoft.WindowsAzure.MobileServices.Query;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,62 +15,66 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     internal sealed class LocalStoreChangeTracker : IMobileServiceLocalStore
     {
-        private readonly IMobileServiceLocalStore store;
-        private readonly StoreTrackingContext trackingContext;
-        private readonly MobileServiceObjectReader objectReader;
-        private StoreOperationsBatch operationsBatch;
-        private readonly IMobileServiceEventManager eventManager;
-        private int isBatchCompleted = 0;
-        private readonly MobileServiceSyncSettingsManager settings;
-        private bool trackRecordOperations;
-        private bool trackBatches;
+        private readonly IMobileServiceLocalStore _store;
+        private readonly StoreTrackingContext _trackingContext;
+        private readonly MobileServiceObjectReader _objectReader;
+        private StoreOperationsBatch _operationsBatch;
+        private readonly IMobileServiceEventManager _eventManager;
+        private int _isBatchCompleted = 0;
+        private readonly MobileServiceSyncSettingsManager _settings;
+        private bool _trackRecordOperations;
+        private bool _trackBatches;
 
-        public LocalStoreChangeTracker(IMobileServiceLocalStore store, StoreTrackingContext trackingContext, IMobileServiceEventManager eventManager, MobileServiceSyncSettingsManager settings)
+        public LocalStoreChangeTracker(
+            IMobileServiceLocalStore store,
+            StoreTrackingContext trackingContext,
+            IMobileServiceEventManager eventManager, 
+            MobileServiceSyncSettingsManager settings)
         {
             Arguments.IsNotNull(store, nameof(store));
             Arguments.IsNotNull(trackingContext, nameof(trackingContext));
             Arguments.IsNotNull(eventManager, nameof(eventManager));
             Arguments.IsNotNull(settings, nameof(settings));
 
-            this.objectReader = new MobileServiceObjectReader();
-            this.store = store;
-            this.trackingContext = trackingContext;
-            this.eventManager = eventManager;
-            this.settings = settings;
+            _objectReader = new MobileServiceObjectReader();
+            _store = store;
+            _trackingContext = trackingContext;
+            _eventManager = eventManager;
+            _settings = settings;
 
             InitializeTracking();
         }
 
         private void InitializeTracking()
         {
-            this.trackRecordOperations = IsRecordTrackingEnabled();
-            this.trackBatches = IsBatchTrackingEnabled();
+            _trackRecordOperations = IsRecordTrackingEnabled();
+            _trackBatches = IsBatchTrackingEnabled();
 
-            if (!this.trackRecordOperations & !this.trackBatches)
+            if (!_trackRecordOperations & !_trackBatches)
             {
                 throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
                     "Tracking notifications are not enabled for the source {0}. To use a change tracker, you must enable record operation notifications, batch notifications or both.",
-                    this.trackingContext.Source));
+                    _trackingContext.Source));
             }
 
-            if (this.trackBatches)
+            if (_trackBatches)
             {
-                this.operationsBatch = new StoreOperationsBatch(this.trackingContext.BatchId, this.trackingContext.Source);
+                _operationsBatch = new StoreOperationsBatch(_trackingContext.BatchId, _trackingContext.Source);
             }
         }
 
         private bool IsBatchTrackingEnabled()
         {
-            switch (trackingContext.Source)
+            switch (_trackingContext.Source)
             {
                 case StoreOperationSource.Local:
                 case StoreOperationSource.LocalPurge:
                 case StoreOperationSource.LocalConflictResolution:
                     return false;
                 case StoreOperationSource.ServerPull:
-                    return trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyServerPullBatch);
+                    return _trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyServerPullBatch);
                 case StoreOperationSource.ServerPush:
-                    return trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyServerPushBatch);
+                    return _trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyServerPushBatch);
                 default:
                     throw new InvalidOperationException("Unknown tracking source");
             }
@@ -79,17 +82,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         private bool IsRecordTrackingEnabled()
         {
-            switch (trackingContext.Source)
+            switch (_trackingContext.Source)
             {
                 case StoreOperationSource.Local:
                 case StoreOperationSource.LocalPurge:
-                    return trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyLocalOperations);
+                    return _trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyLocalOperations);
                 case StoreOperationSource.LocalConflictResolution:
-                    return trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyLocalConflictResolutionOperations);
+                    return _trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyLocalConflictResolutionOperations);
                 case StoreOperationSource.ServerPull:
-                    return trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyServerPullOperations);
+                    return _trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyServerPullOperations);
                 case StoreOperationSource.ServerPush:
-                    return trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyServerPushOperations);
+                    return _trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.NotifyServerPushOperations);
                 default:
                     throw new InvalidOperationException("Unknown tracking source");
             }
@@ -101,13 +104,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
             string[] recordIds = null;
 
-            if (!query.TableName.StartsWith(MobileServiceLocalSystemTables.Prefix) && this.trackingContext.Source != StoreOperationSource.LocalPurge)
+            if (!query.TableName.StartsWith(MobileServiceLocalSystemTables.Prefix) && _trackingContext.Source != StoreOperationSource.LocalPurge)
             {
-                QueryResult result = await this.store.QueryAsync(query);
-                recordIds = result.Values.Select(j => this.objectReader.GetId((JObject)j)).ToArray();
+                var result = await _store.QueryAsync(query);
+                recordIds = result.Values.Select(j => objectReader.GetId((JObject)j)).ToArray();
             }
 
-            await this.store.DeleteAsync(query);
+            await _store.DeleteAsync(query);
 
             if (recordIds != null)
             {
@@ -127,13 +130,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             {
                 IEnumerable<string> notificationIds = ids;
 
-                if (this.trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.DetectRecordChanges))
+                if (_trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.DetectRecordChanges))
                 {
                     IDictionary<string, string> existingRecords = await GetItemsAsync(tableName, ids, false);
                     notificationIds = existingRecords.Select(kvp => kvp.Key);
                 }
 
-                await this.store.DeleteAsync(tableName, ids);
+                await _store.DeleteAsync(tableName, ids);
 
                 foreach (var id in notificationIds)
                 {
@@ -142,25 +145,25 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
             else
             {
-                await this.store.DeleteAsync(tableName, ids);
+                await _store.DeleteAsync(tableName, ids);
             }
         }
 
-        public Task<JObject> LookupAsync(string tableName, string id)
+        public Task<ITable> LookupAsync(string tableName, string id)
         {
             Arguments.IsNotNull(tableName, nameof(tableName));
             Arguments.IsNotNull(id, nameof(id));
-            return this.store.LookupAsync(tableName, id);
+            return _store.LookupAsync(tableName, id);
         }
 
-        public Task<JToken> ReadAsync(MobileServiceTableQueryDescription query)
+        public Task<ITable> ReadAsync(MobileServiceTableQueryDescription query)
         {
             Arguments.IsNotNull(query, nameof(query));
 
-            return this.store.ReadAsync(query);
+            return _store.ReadAsync(query);
         }
 
-        public async Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns)
+        public async Task UpsertAsync(string tableName, IEnumerable<ITable> items, bool ignoreMissingColumns)
         {
             Arguments.IsNotNull(tableName, nameof(tableName));
             Arguments.IsNotNull(items, nameof(items));
@@ -168,22 +171,22 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             if (!tableName.StartsWith(MobileServiceLocalSystemTables.Prefix))
             {
                 IDictionary<string, string> existingRecords = null;
-                bool analyzeUpserts = this.trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.DetectInsertsAndUpdates);
+                bool analyzeUpserts = _trackingContext.TrackingOptions.HasFlag(StoreTrackingOptions.DetectInsertsAndUpdates);
                 bool supportsVersion = false;
 
                 if (analyzeUpserts)
                 {
-                    MobileServiceSystemProperties systemProperties = await this.settings.GetSystemPropertiesAsync(tableName);
+                    MobileServiceSystemProperties systemProperties = await _settings.GetSystemPropertiesAsync(tableName);
                     supportsVersion = systemProperties.HasFlag(MobileServiceSystemProperties.Version);
 
-                    existingRecords = await GetItemsAsync(tableName, items.Select(i => this.objectReader.GetId(i)), supportsVersion);
+                    existingRecords = await GetItemsAsync(tableName, items.Select(i => i.Id), supportsVersion);
                 }
 
-                await this.store.UpsertAsync(tableName, items, ignoreMissingColumns);
+                await _store.UpsertAsync(tableName, items, ignoreMissingColumns);
 
                 foreach (var item in items)
                 {
-                    string itemId = this.objectReader.GetId(item);
+                    string itemId = item.Id;
                     LocalStoreOperationKind operationKind = LocalStoreOperationKind.Upsert;
 
                     if (analyzeUpserts)
@@ -196,8 +199,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                             // and if we truly have a new version (an actual change) before tracking the change. 
                             // This avoids update notifications for records that haven't changed, which would usually happen as a result of a pull
                             // operation, because of the logic used to pull changes.
-                            if (this.trackingContext.Source != StoreOperationSource.Local && supportsVersion
-                                && string.Compare(existingRecords[itemId], item[MobileServiceSystemColumns.Version].ToString()) == 0)
+                            if (_trackingContext.Source != StoreOperationSource.Local && supportsVersion
+                                && string.Compare(existingRecords[itemId], item.Version) == 0)
                             {
                                 continue;
                             }
@@ -213,13 +216,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
             else
             {
-                await this.store.UpsertAsync(tableName, items, ignoreMissingColumns);
+                await _store.UpsertAsync(tableName, items, ignoreMissingColumns);
             }
         }
 
         public Task InitializeAsync()
         {
-            return this.store.InitializeAsync();
+            return _store.InitializeAsync();
         }
 
         private async Task<IDictionary<string, string>> GetItemsAsync(string tableName, IEnumerable<string> ids, bool includeVersion)
@@ -236,24 +239,28 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 query.Selection.Add(MobileServiceSystemColumns.Version);
             }
 
-            QueryResult result = await this.store.QueryAsync(query);
+            var result = await _store.QueryAsync(query);
 
-            return result.Values.ToDictionary(t => this.objectReader.GetId((JObject)t), rec => includeVersion ? rec[MobileServiceSystemColumns.Version].ToString() : null);
+            return result.Values.ToDictionary(
+                t => _objectReader.GetId((JObject)t),
+                rec => includeVersion 
+                ? rec[MobileServiceSystemColumns.Version].ToString() 
+                : null);
         }
 
         private void TrackStoreOperation(string tableName, string itemId, LocalStoreOperationKind operationKind)
         {
-            var operation = new StoreOperation(tableName, itemId, operationKind, this.trackingContext.Source, this.trackingContext.BatchId);
+            var operation = new StoreOperation(tableName, itemId, operationKind, _trackingContext.Source, _trackingContext.BatchId);
 
-            if (this.trackBatches)
+            if (_trackBatches)
             {
-               this.operationsBatch.IncrementOperationCount(operationKind)
+               _operationsBatch.IncrementOperationCount(operationKind)
                    .ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted);
             }
 
-            if (this.trackRecordOperations)
+            if (_trackRecordOperations)
             {
-                this.eventManager.BackgroundPublish(new StoreOperationCompletedEvent(operation));
+                _eventManager.BackgroundPublish(new StoreOperationCompletedEvent(operation));
             }
         }
 
@@ -272,11 +279,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         private void CompleteBatch()
         {
-            if (Interlocked.Exchange(ref this.isBatchCompleted, 1) == 0)
+            if (Interlocked.Exchange(ref _isBatchCompleted, 1) == 0)
             {
-                if (this.trackBatches)
+                if (_trackBatches)
                 {
-                    this.eventManager.PublishAsync(new StoreOperationsBatchCompletedEvent(this.operationsBatch));
+                    _eventManager.PublishAsync(new StoreOperationsBatchCompletedEvent(_operationsBatch));
                 }
             }
         }

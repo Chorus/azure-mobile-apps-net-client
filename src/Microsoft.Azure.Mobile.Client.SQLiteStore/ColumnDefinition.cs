@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 {
@@ -20,7 +19,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <summary>
         /// The type of the column
         /// </summary>
-        public JTokenType JsonType { get; private set; }
+        public Type Type { get; private set; }
 
         /// <summary>
         /// The stored type.
@@ -33,10 +32,10 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <param name="name">The name of the column</param>
         /// <param name="jsonType">The JSON type</param>
         /// <param name="storeType">The stored type</param>
-        public ColumnDefinition(string name, JTokenType jsonType, string storeType)
+        public ColumnDefinition(string name, Type type, string storeType)
         {
             this.Name = name;
-            this.JsonType = jsonType;
+            this.Type = type;
             this.StoreType = storeType;
         }
 
@@ -46,7 +45,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <returns>The hash code</returns>
         public override int GetHashCode()
         {
-            return Tuple.Create(this.Name, this.JsonType, this.StoreType).GetHashCode();
+            return Tuple.Create(this.Name, this.Type, this.StoreType).GetHashCode();
         }
 
         /// <summary>
@@ -62,7 +61,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             }
 
             return this.Name.Equals(other.Name) &&
-                   this.JsonType.Equals(other.JsonType) &&
+                   this.Type.Equals(other.Type) &&
                    this.StoreType.Equals(other.StoreType);
         }
 
@@ -72,7 +71,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <returns>The string representation</returns>
         public override string ToString()
         {
-            return String.Format("{0}, {1}, {1}", this.Name, this.JsonType, this.StoreType);
+            return $"{Name}, {Type}, {Type}";
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Eventing;
 using Microsoft.WindowsAzure.MobileServices.Sync;
-using Newtonsoft.Json.Linq;
 using System.Threading;
 
 namespace Microsoft.WindowsAzure.MobileServices
@@ -73,7 +72,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The table.
         /// </returns>
-        IMobileServiceTable<T> GetTable<T>();
+        IMobileServiceTable<T> GetTable<T>() where T : ITable;
 
         /// <summary>
         /// Returns a <see cref="IMobileServiceTable{T}"/> instance, which provides 
@@ -117,7 +116,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// Task that will complete when the user has finished authentication.
         /// </returns>
-        Task<MobileServiceUser> LoginAsync(MobileServiceAuthenticationProvider provider, JObject token);
+        Task<MobileServiceUser> LoginAsync(MobileServiceAuthenticationProvider provider, MobileServiceToken token);
 
         /// <summary>
         /// Logs a user into a Microsoft Azure Mobile Service with the provider and a token object.
@@ -149,7 +148,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// Task that will complete when the user has finished authentication.
         /// </returns>
-        Task<MobileServiceUser> LoginAsync(string provider, JObject token);
+        Task<MobileServiceUser> LoginAsync(string provider, MobileServiceToken token);
 
         /// <summary>
         /// Log a user out.

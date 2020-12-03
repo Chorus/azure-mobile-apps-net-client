@@ -17,13 +17,13 @@ namespace Microsoft.WindowsAzure.MobileServices
 
     internal class MobileServiceHttpResponse<T>
     {
-        public ODataResponse<T> Content { get; private set; }
+        public T Content { get; private set; }
 
         public string Etag { get; private set; }
 
         public LinkHeaderValue Link { get; private set; }
 
-        public MobileServiceHttpResponse(ODataResponse<T> content, string etag, LinkHeaderValue link)
+        public MobileServiceHttpResponse(T content, string etag, LinkHeaderValue link)
         {
             Content = content;
             Etag = etag;
