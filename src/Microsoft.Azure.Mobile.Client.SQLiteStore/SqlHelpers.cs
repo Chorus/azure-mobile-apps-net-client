@@ -56,7 +56,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             }
             if (IsNumberType(storeType))
             {
-                return SqlHelpers.ParseNumber(columnType, value);
+                return ParseNumber(columnType, value);
             }
 
             return null;

@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using Microsoft.WindowsAzure.MobileServices.Query;
+using Microsoft.WindowsAzure.MobileServices.Table.SystemTables;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     /// <summary>
     /// Base implementation for <see cref="IMobileServiceLocalStore"/>
     /// </summary>
-    public abstract class MobileServiceLocalStore: IMobileServiceLocalStore
+    public abstract class MobileServiceLocalStore : IMobileServiceLocalStore
     {
         /// <summary>
         /// Indicates whether store has been initialized or not.
@@ -25,14 +26,15 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <returns>A task that completes when store has initialized.</returns>
         public virtual async Task InitializeAsync()
         {
-            if (this.Initialized)
+            if (Initialized)
             {
                 throw new InvalidOperationException("The store is already initialized.");
             }
 
-            MobileServiceLocalSystemTables.DefineAll(this);
-
-            await this.OnInitialize();
+            DefineTable<Errors>(MobileServiceLocalSystemTables.SyncErrors);
+            DefineTable<Operations>(MobileServiceLocalSystemTables.OperationQueue);
+            DefineTable<Config>(MobileServiceLocalSystemTables.Config);
+            await OnInitialize();
 
             this.Initialized = true;
         }
@@ -50,8 +52,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// Defines the local table on the store.
         /// </summary>
         /// <param name="tableName">Name of the local table.</param>
-        /// <param name="item">An object that represents the structure of the table.</param>
-        public virtual void DefineTable(string tableName, ITable item)
+        public virtual void DefineTable<T>(string tableName)
+            where T : ITable
         {
         }
 
@@ -60,7 +62,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="query">Instance of <see cref="MobileServiceTableQueryDescription"/> that defines the query to be executed on local table.</param>
         /// <returns>A task that returns instance of JObject or JArray with items matching the query.</returns>
-        public abstract Task<ITable> ReadAsync(MobileServiceTableQueryDescription query);
+        public abstract Task<IEnumerable<T>> ReadAsync<T>(MobileServiceTableQueryDescription query)
+            where T : new();
 
         /// <summary>
         /// Updates or inserts data in local table.
@@ -92,7 +95,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="tableName">Name of the local table.</param>
         /// <param name="id">Id for the object to be read.</param>
         /// <returns>A task that returns the item read from local table.</returns>
-        public abstract Task<ITable> LookupAsync(string tableName, string id);
+        public abstract Task<T> LookupAsync<T>(string tableName, string id)
+            where T : new();
 
         /// <summary>
         /// Throws an exception if store is not initialized.

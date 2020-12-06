@@ -438,7 +438,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         {
             Arguments.IsNotNull(instance, nameof(instance));
 
-            object id = MobileServiceSerializer.GetId(instance);
+            var id = instance.Id;
             features = AddRequestFeatures(features, parameters);
             Dictionary<string, string> headers = StripSystemPropertiesAndAddVersionHeader(ref instance, ref parameters, id);
             string uriString = GetUri(TableName, id, parameters);

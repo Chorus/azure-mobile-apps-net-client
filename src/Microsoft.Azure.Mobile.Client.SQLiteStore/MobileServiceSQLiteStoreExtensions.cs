@@ -44,7 +44,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             SetNullDefault(item);
             SetEnumDefault(item);
 
-            store.DefineTable(tableName, item);
+            store.DefineTable<T>(tableName);
         }
 
         private static void SetEnumDefault<T>(T theObject)

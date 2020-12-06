@@ -18,6 +18,10 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// </typeparam>
     public interface IMobileServiceTable<T> where T : ITable
     {
+        MobileServiceClient MobileServiceClient { get; }
+
+        string TableName { get; }
+
         /// <summary>
         /// Executes a query against the table.
         /// </summary>
@@ -41,7 +45,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// Instances from the table.
         /// </returns>
-        Task<IEnumerable<U>> ReadAsync<U>(IMobileServiceTableQuery<U> query);
+        Task<IEnumerable<U>> ReadAsync<U>(IMobileServiceTableQuery<U> query)
+            where U : ITable;
 
         /// <summary>
         /// Returns instances from a table.
@@ -265,7 +270,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// A query against the table.
         /// </returns>
-        IMobileServiceTableQuery<U> Select<U>(Expression<Func<T, U>> selector);
+        IMobileServiceTableQuery<U> Select<U>(Expression<Func<T, U>> selector)
+            where U : ITable;
 
         /// <summary>
         /// Creates a query by applying the specified ascending order clause.
