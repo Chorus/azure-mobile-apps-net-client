@@ -5,8 +5,6 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -48,12 +46,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// The item associated with the operation.
         /// </summary>
-        public JObject Item { get; private set; }
+        public ITable Item { get; private set; }
 
         /// <summary>
         /// Response of the table operation.
         /// </summary>
-        public JObject Result { get; private set; }
+        public ITable Result { get; private set; }
 
         /// <summary>
         /// Raw response of the table operation.
@@ -83,9 +81,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                                                 MobileServiceTableOperationKind operationKind,
                                                 HttpStatusCode? status,
                                                 string tableName,
-                                                JObject item,
+                                                ITable item,
                                                 string rawResult,
-                                                JObject result)
+                                                ITable result)
         {
             this.Id = id;
             this.OperationVersion = operationVersion;
@@ -102,7 +100,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="item">The item to update in local store.</param>
         /// <returns>Task that completes when operation is cancelled.</returns>
-        public async Task CancelAndUpdateItemAsync(JObject item)
+        public async Task CancelAndUpdateItemAsync(ITable item)
         {
             Arguments.IsNotNull(item, nameof(item));
 
@@ -116,7 +114,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="item">The item to update in local store.</param>
         /// <returns>Task that completes when operation is updated.</returns>
-        public async Task UpdateOperationAsync(JObject item)
+        public async Task UpdateOperationAsync(ITable item)
         {
             Arguments.IsNotNull(item, nameof(item));
 
@@ -132,80 +130,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             await this.Context.CancelAndDiscardItemAsync(this);
             this.Handled = true;
-        }
-
-        /// <summary>
-        /// Defines the the table for storing errors
-        /// </summary>
-        /// <param name="store">An instance of <see cref="IMobileServiceLocalStore"/></param>
-        internal static void DefineTable(MobileServiceLocalStore store)
-        {
-            store.DefineTable(MobileServiceLocalSystemTables.SyncErrors, new JObject()
-            {
-                { MobileServiceSystemColumns.Id, String.Empty },
-                { "httpStatus", 0 },
-                { "operationVersion", 0 },
-                { "operationKind", 0 },
-                { "tableName", String.Empty },
-                { "tableKind", 0 },
-                { "item", String.Empty },
-                { "rawResult", String.Empty }
-            });
-        }
-
-        internal JObject Serialize()
-        {
-            return new JObject()
-            {
-                { MobileServiceSystemColumns.Id, this.Id },
-                { "httpStatus", this.Status.HasValue ? (int?)this.Status.Value: null },
-                { "operationVersion", this.OperationVersion },
-                { "operationKind", (int)this.OperationKind },
-                { "tableName", this.TableName },
-                { "tableKind", (int)this.TableKind },
-                { "item", this.Item?.ToString(Formatting.None) },
-                { "rawResult", this.RawResult }
-            };
-        }
-
-        internal static MobileServiceTableOperationError Deserialize(JObject obj, MobileServiceJsonSerializerSettings settings)
-        {
-            HttpStatusCode? status = null;
-            if (obj["httpStatus"] != null)
-            {
-                status = (HttpStatusCode?)obj.Value<int?>("httpStatus");
-            }
-            string id = obj.Value<string>(MobileServiceSystemColumns.Id);
-            long operationVersion = obj.Value<long?>("operationVersion").GetValueOrDefault();
-            MobileServiceTableOperationKind operationKind = (MobileServiceTableOperationKind)obj.Value<int>("operationKind");
-            var tableName = obj.Value<string>("tableName");
-            var tableKind = (MobileServiceTableKind)obj.Value<int?>("tableKind").GetValueOrDefault();
-
-            string itemStr = obj.Value<string>("item");
-            JObject item = itemStr == null ? null : JObject.Parse(itemStr);
-            string rawResult = obj.Value<string>("rawResult");
-            JObject result = null;
-            try
-            {
-                result = rawResult.ParseToJToken(settings) as JObject;
-            }
-            catch (JsonReaderException)
-            {
-                // Ignore JsonReaderException, because 'rawResult' might not be JSON.
-            }
-
-            return new MobileServiceTableOperationError(id,
-                                                        operationVersion,
-                                                        operationKind,
-                                                        status,
-                                                        tableName,
-                                                        item,
-                                                        rawResult,
-                                                        result)
-            {
-                Id = id,
-                TableKind = tableKind
-            };
         }
     }
 }

@@ -3,8 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using Microsoft.WindowsAzure.MobileServices.Sync;
-using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,6 +53,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
                                                         IQueryable<T> query,
                                                         IDictionary<string, string> parameters,
                                                         bool includeTotalCount)
+            where T : ITable
         {
             Arguments.IsNotNull(table, nameof(table));
             Arguments.IsNotNull(query, nameof(query));
@@ -79,6 +78,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// Results of the query.
         /// </returns>
         internal async Task<IEnumerable<T>> Execute<T>(IMobileServiceTableQuery<T> query)
+            where T : ITable
         {
             // Compile the query from the underlying IQueryable's expression
             // tree
@@ -86,34 +86,20 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
 
             // Send the query
             string odata = compiledQuery.ToODataString();
-            QueryResult result = await this.Execute<T>(query, odata);
-
-            return new QueryResultEnumerable<T>(
-                result.TotalCount,
-                result.NextLink,
-                query.Table.MobileServiceClient.Serializer.Deserialize(result.Values, compiledQuery.ProjectionArgumentType).Select(
-                    value =>
-                    {
-                        // Apply the projection to the instance transforming it
-                        // as desired
-                        foreach (Delegate projection in compiledQuery.Projections)
-                        {
-                            value = projection.DynamicInvoke(value);
-                        }
-
-                        return (T)value;
-                    }));
+            var result = await Execute(query, odata);
+            return result;
         }
 
-        protected virtual async Task<QueryResult> Execute<T>(IMobileServiceTableQuery<T> query, string odata)
+        protected virtual async Task<IEnumerable<T>> Execute<T>(IMobileServiceTableQuery<T> query, string odata)
+            where T : ITable
         {
-            JToken result;
-            if (this.syncTable == null)
+            IEnumerable<T> result = null;
+            if (syncTable == null)
             {
-                if (query.Table is MobileServiceTable table)
+                if (query.Table is MobileServiceTable<T> table)
                 {
                     // Add telemetry information if possible.
-                    return await table.ReadAsync(odata, query.Parameters, this.Features | MobileServiceFeatures.TypedTable);
+                    return await table.ReadAsync<T>(odata, query.Parameters, this.Features | MobileServiceFeatures.TypedTable);
                 }
                 else
                 {
@@ -124,7 +110,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             {
                 result = await this.syncTable.ReadAsync(odata);
             }
-            return QueryResult.Parse(result, null, validate: true);
+            return result;
         }
 
         /// <summary>
@@ -134,6 +120,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// The compiled OData query.
         /// </returns>
         internal MobileServiceTableQueryDescription Compile<T>(IMobileServiceTableQuery<T> query)
+            where T : ITable
         {
             // Compile the query from the underlying IQueryable's expression
             // tree
@@ -144,6 +131,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         }
 
         internal string ToODataString<T>(IMobileServiceTableQuery<T> query)
+            where T : ITable
         {
             MobileServiceTableQueryDescription description = this.Compile(query);
             return description.ToODataString();

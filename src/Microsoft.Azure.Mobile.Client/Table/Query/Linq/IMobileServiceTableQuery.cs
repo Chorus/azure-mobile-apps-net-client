@@ -21,7 +21,8 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// objects.  MobileServiceTableQuery instances are used to build up
     /// IQueryables from LINQ query operations.
     /// </remarks>
-    public interface IMobileServiceTableQuery<T>
+    public interface IMobileServiceTableQuery<T> 
+        where T : ITable
     {
         /// <summary>
         /// Gets a value indicating whether the query will request the total
@@ -98,7 +99,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The composed query.
         /// </returns>
-        IMobileServiceTableQuery<U> Select<U>(Expression<Func<T, U>> selector);
+        IMobileServiceTableQuery<U> Select<U>(Expression<Func<T, U>> selector)
+            where U : ITable;
 
         /// <summary>
         /// Applies the specified skip clause to the source query.

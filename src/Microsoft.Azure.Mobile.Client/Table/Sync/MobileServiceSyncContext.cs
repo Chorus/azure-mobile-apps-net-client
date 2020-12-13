@@ -4,7 +4,6 @@
 
 using Microsoft.WindowsAzure.MobileServices.Query;
 using Microsoft.WindowsAzure.MobileServices.Threading;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,14 +14,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     internal class MobileServiceSyncContext : IMobileServiceSyncContext, IDisposable
     {
-        private MobileServiceSyncSettingsManager settings;
-        private TaskCompletionSource<object> initializeTask;
-        private readonly MobileServiceClient client;
+        private MobileServiceSyncSettingsManager _settings;
+        private TaskCompletionSource<object> _initializeTask;
+        private readonly MobileServiceClient _client;
 
         /// <summary>
         /// Lock to ensure that multiple insert,update,delete operations don't interleave as they are added to queue and storage
         /// </summary>
-        private readonly AsyncReaderWriterLock storeQueueLock = new AsyncReaderWriterLock();
+        private readonly AsyncReaderWriterLock _storeQueueLock = new AsyncReaderWriterLock();
 
         /// <summary>
         /// Variable for Store property. Not meant to be accessed directly.
@@ -32,23 +31,23 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// Queue for executing sync calls (push,pull) one after the other
         /// </summary>
-        private ActionBlock syncQueue;
+        private ActionBlock _syncQueue;
 
         /// <summary>
         /// Queue for pending operations (insert,delete,update) against remote table 
         /// </summary>
-        private OperationQueue opQueue;
-        private IMobileServiceLocalStore localOperationsStore;
+        private OperationQueue _opQueue;
+        private IMobileServiceLocalStore _localOperationsStore;
         
         public IMobileServiceSyncHandler Handler { get; private set; }
 
         public IMobileServiceLocalStore Store
         {
-            get { return this._store; }
+            get { return _store; }
             private set
             {
-                IMobileServiceLocalStore oldStore = this._store;
-                this._store = value;
+                IMobileServiceLocalStore oldStore = _store;
+                _store = value;
                 if (oldStore != null)
                 {
                     oldStore.Dispose();
@@ -58,16 +57,16 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public bool IsInitialized
         {
-            get { return this.initializeTask != null && this.initializeTask.Task.Status == TaskStatus.RanToCompletion; }
+            get { return _initializeTask != null && _initializeTask.Task.Status == TaskStatus.RanToCompletion; }
         }
 
         public MobileServiceSyncContext(MobileServiceClient client)
         {
             Arguments.IsNotNull(client, nameof(client));
-            this.client = client;
+            this._client = client;
         }
 
-        public long PendingOperations { get => IsInitialized ? opQueue.PendingOperations : 0; }
+        public long PendingOperations { get => IsInitialized ? _opQueue.PendingOperations : 0; }
 
         public StoreTrackingOptions StoreTrackingOptions { get; private set; }
 
@@ -79,18 +78,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             Arguments.IsNotNull(store, nameof(store));
 
             handler ??= new MobileServiceSyncHandler();
-            this.initializeTask = new TaskCompletionSource<object>();
-            using (await this.storeQueueLock.WriterLockAsync())
+            this._initializeTask = new TaskCompletionSource<object>();
+            using (await this._storeQueueLock.WriterLockAsync())
             {
                 this.Handler = handler;
                 this.Store = store;
                 this.StoreTrackingOptions = trackingOptions;
-                this.syncQueue = new ActionBlock();
+                this._syncQueue = new ActionBlock();
                 await this.Store.InitializeAsync();
-                this.opQueue = await OperationQueue.LoadAsync(store);
-                this.settings = new MobileServiceSyncSettingsManager(store);
-                this.localOperationsStore = CreateTrackedStore(StoreOperationSource.Local);
-                this.initializeTask.SetResult(null);
+                this._opQueue = await OperationQueue.LoadAsync(store);
+                this._settings = new MobileServiceSyncSettingsManager(store);
+                this._localOperationsStore = CreateTrackedStore(StoreOperationSource.Local);
+                this._initializeTask.SetResult(null);
             }
         }
 
@@ -99,37 +98,38 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             await this.EnsureInitializedAsync();
 
             var queryDescription = MobileServiceTableQueryDescription.Parse(tableName, query);
-            using (await this.storeQueueLock.ReaderLockAsync())
+            using (await this._storeQueueLock.ReaderLockAsync())
             {
                 return await this.Store.ReadAsync(queryDescription);
             }
         }
 
-        public async Task InsertAsync(string tableName, MobileServiceTableKind tableKind, string id, JObject item)
+        public async Task InsertAsync<T>(string tableName, MobileServiceTableKind tableKind, string id, T item)
+            where T : ITable
         {
             var operation = new InsertOperation(tableName, tableKind, id)
             {
-                Table = await this.GetTable(tableName)
+                Table = await this.GetTable<T>()
             };
 
             await this.ExecuteOperationAsync(operation, item);
         }
 
-        public async Task UpdateAsync(string tableName, MobileServiceTableKind tableKind, string id, JObject item)
+        public async Task UpdateAsync<T>(string tableName, MobileServiceTableKind tableKind, string id, JObject item)
         {
             var operation = new UpdateOperation(tableName, tableKind, id)
             {
-                Table = await this.GetTable(tableName)
+                Table = await this.GetTable<T>()
             };
 
             await this.ExecuteOperationAsync(operation, item);
         }
 
-        public async Task DeleteAsync(string tableName, MobileServiceTableKind tableKind, string id, JObject item)
+        public async Task DeleteAsync<T>(string tableName, MobileServiceTableKind tableKind, string id, JObject item)
         {
             var operation = new DeleteOperation(tableName, tableKind, id)
             {
-                Table = await this.GetTable(tableName),
+                Table = await this.GetTable<T>(),
                 Item = item // item will be deleted from store, so we need to put it in the operation queue
             };
 
@@ -167,20 +167,31 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <returns>
         /// A task that completes when pull operation has finished.
         /// </returns>
-        public async Task PullAsync(string tableName, MobileServiceTableKind tableKind, string queryId, string query, MobileServiceRemoteTableOptions options, IDictionary<string, string> parameters, IEnumerable<string> relatedTables, MobileServiceObjectReader reader, CancellationToken cancellationToken, PullOptions pullOptions)
+        public async Task PullAsync<T>(
+            string tableName, 
+            MobileServiceTableKind tableKind,
+            string queryId, 
+            string query, 
+            MobileServiceRemoteTableOptions options, 
+            IDictionary<string, string> parameters, 
+            IEnumerable<string> relatedTables,
+            MobileServiceObjectReader reader,
+            CancellationToken cancellationToken,
+            PullOptions pullOptions)
+            where T : ITable
         {
             await this.EnsureInitializedAsync();
 
             if (parameters != null)
             {
-                if (parameters.Keys.Any(k => k.Equals(MobileServiceTable.IncludeDeletedParameterName, StringComparison.OrdinalIgnoreCase)))
+                if (parameters.Keys.Any(k => k.Equals(MobileServiceTable<T>.IncludeDeletedParameterName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    throw new ArgumentException("The key '{0}' is reserved and cannot be specified as a query parameter.".FormatInvariant(MobileServiceTable.IncludeDeletedParameterName));
+                    throw new ArgumentException("The key '{0}' is reserved and cannot be specified as a query parameter.".FormatInvariant(MobileServiceTable<T>.IncludeDeletedParameterName));
                 }
             }
 
-            var table = await this.GetTable(tableName);
-            var queryDescription = MobileServiceTableQueryDescription.Parse(this.client.MobileAppUri, tableName, query);
+            var table = await GetTable<T>();
+            var queryDescription = MobileServiceTableQueryDescription.Parse(this._client.MobileAppUri, tableName, query);
 
             // local schema should be same as remote schema otherwise push can't function
             if (queryDescription.Selection.Any() || queryDescription.Projections.Any())
@@ -220,21 +231,28 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             queryDescription.IncludeTotalCount = false;
 
             using var trackedStore = CreateTrackedStore(StoreOperationSource.ServerPull);
-            var action = new PullAction(table, tableKind, this, queryId, queryDescription, parameters, relatedTables,
-                opQueue, settings, trackedStore, options, pullOptions, reader, cancellationToken);
+            var action = new PullAction<T>(table, tableKind, this, queryId, queryDescription, parameters, relatedTables,
+                _opQueue, _settings, trackedStore, options, pullOptions, reader, cancellationToken);
             await ExecuteSyncAction(action);
         }
 
-        public async Task PurgeAsync(string tableName, MobileServiceTableKind tableKind, string queryId, string query, bool force, CancellationToken cancellationToken)
+        public async Task PurgeAsync<T>(
+            string tableName, 
+            MobileServiceTableKind tableKind, 
+            string queryId, 
+            string query,
+            bool force, 
+            CancellationToken cancellationToken)
+            where T : ITable
         {
             await this.EnsureInitializedAsync();
 
-            var table = await this.GetTable(tableName);
+            var table = await GetTable<T>();
             var queryDescription = MobileServiceTableQueryDescription.Parse(tableName, query);
 
             using var trackedStore = CreateTrackedStore(StoreOperationSource.LocalPurge);
-            var action = new PurgeAction(table, tableKind, queryId, queryDescription, force, this, opQueue, 
-                client.EventManager, settings, Store, cancellationToken);
+            var action = new PurgeAction<T>(table, tableKind, queryId, queryDescription, force, this, _opQueue, 
+                _client.EventManager, _settings, Store, cancellationToken);
             await ExecuteSyncAction(action);
         }
 
@@ -249,29 +267,28 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             var handler = tableKind == MobileServiceTableKind.Table ? this.Handler : new MobileServiceSyncHandler();
 
             using var trackedStore = CreateTrackedStore(StoreOperationSource.ServerPush);
-            var action = new PushAction(opQueue, trackedStore, tableKind, tableNames, handler, client, this, cancellationToken);
+            var action = new PushAction(_opQueue, trackedStore, tableKind, tableNames, handler, _client, this, cancellationToken);
             await ExecuteSyncAction(action);
         }
 
         public async Task ExecuteSyncAction(SyncAction action)
         {
-            Task discard = this.syncQueue.Post(action.ExecuteAsync, action.CancellationToken);
+            Task discard = this._syncQueue.Post(action.ExecuteAsync, action.CancellationToken);
             await action.CompletionTask;
         }
 
-        public virtual async Task<MobileServiceTable> GetTable(string tableName)
+        public virtual async Task<MobileServiceTable<T>> GetTable<T>()
+            where T : ITable
         {
-            await this.EnsureInitializedAsync();
-
-            var table = this.client.GetTable(tableName) as MobileServiceTable;
+            await EnsureInitializedAsync();
+            var table = _client.GetTable<T>() as MobileServiceTable<T>;
             table.Features = MobileServiceFeatures.Offline;
-
             return table;
         }
 
-        public Task CancelAndUpdateItemAsync(MobileServiceTableOperationError error, JObject item)
+        public Task CancelAndUpdateItemAsync(MobileServiceTableOperationError error, ITable item)
         {
-            string itemId = error.Item.Value<string>(MobileServiceSystemColumns.Id);
+            string itemId = error.Item.Id;
             return this.ExecuteOperationSafeAsync(itemId, error.TableName, async () =>
             {
                 await this.TryCancelOperation(error);
@@ -280,9 +297,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             });
         }
 
-        public Task UpdateOperationAsync(MobileServiceTableOperationError error, JObject item)
+        public Task UpdateOperationAsync(MobileServiceTableOperationError error, ITable item)
         {
-            string itemId = error.Item.Value<string>(MobileServiceSystemColumns.Id);
+            string itemId = error.Item.Id;
             return this.ExecuteOperationSafeAsync(itemId, error.TableName, async () =>
             {
                 await this.TryUpdateOperation(error, item);
@@ -294,9 +311,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             });
         }
 
-        private async Task TryUpdateOperation(MobileServiceTableOperationError error, JObject item)
+        private async Task TryUpdateOperation(MobileServiceTableOperationError error, ITable item)
         {
-            if (!await this.opQueue.UpdateAsync(error.Id, error.OperationVersion, item))
+            if (!await this._opQueue.UpdateAsync(error.Id, error.OperationVersion, item))
             {
                 throw new InvalidOperationException("The operation has been updated and cannot be updated again");
             }
@@ -307,7 +324,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public Task CancelAndDiscardItemAsync(MobileServiceTableOperationError error)
         {
-            string itemId = error.Item.Value<string>(MobileServiceSystemColumns.Id);
+            string itemId = error.Item.Id;
             return this.ExecuteOperationSafeAsync(itemId, error.TableName, async () =>
             {
                 await this.TryCancelOperation(error);
@@ -316,7 +333,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             });
         }
 
-        public async Task DeferTableActionAsync(TableAction action)
+        public async Task DeferTableActionAsync<T>(TableAction<T> action)
+            where T : ITable
         {
             IEnumerable<string> tableNames;
             if (action.RelatedTables == null) // no related table
@@ -338,16 +356,16 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
             finally
             {
-                Task discard = this.syncQueue.Post(action.ExecuteAsync, action.CancellationToken);
+                Task discard = this._syncQueue.Post(action.ExecuteAsync, action.CancellationToken);
             }
         }
 
         private IMobileServiceLocalStore CreateTrackedStore(StoreOperationSource operationSource)
-            => StoreChangeTrackerFactory.CreateTrackedStore(Store, operationSource, StoreTrackingOptions, client.EventManager, settings);
+            => StoreChangeTrackerFactory.CreateTrackedStore(Store, operationSource, StoreTrackingOptions, _client.EventManager, _settings);
 
         private async Task TryCancelOperation(MobileServiceTableOperationError error)
         {
-            if (!await this.opQueue.DeleteAsync(error.Id, error.OperationVersion))
+            if (!await this._opQueue.DeleteAsync(error.Id, error.OperationVersion))
             {
                 throw new InvalidOperationException("The operation has been updated and cannot be cancelled.");
             }
@@ -357,22 +375,22 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         private async Task EnsureInitializedAsync()
         {
-            if (this.initializeTask == null)
+            if (this._initializeTask == null)
             {
                 throw new InvalidOperationException("SyncContext is not yet initialized.");
             }
             else
             {
                 // when the initialization has started we wait for it to complete
-                await this.initializeTask.Task;
+                await this._initializeTask.Task;
             }
         }
 
-        private Task ExecuteOperationAsync(MobileServiceTableOperation operation, JObject item)
+        private Task ExecuteOperationAsync<T>(MobileServiceTableOperation operation, ITable item)
         {
             return this.ExecuteOperationSafeAsync(operation.ItemId, operation.TableName, async () =>
             {
-                MobileServiceTableOperation existing = await this.opQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId);
+                var existing = await this._opQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId);
                 if (existing != null)
                 {
                     existing.Validate(operation); // make sure this operation is legal and collapses after any previous operation on same item already in the queue
@@ -380,7 +398,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
                 try
                 {
-                    await operation.ExecuteLocalAsync(this.localOperationsStore, item); // first execute operation on local store
+                    await operation.ExecuteLocalAsync(this._localOperationsStore, item); // first execute operation on local store
                 }
                 catch (Exception ex)
                 {
@@ -398,18 +416,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     await this.Store.DeleteAsync(MobileServiceLocalSystemTables.SyncErrors, existing.Id);
                     if (existing.IsCancelled) // if cancelled we delete it
                     {
-                        await this.opQueue.DeleteAsync(existing.Id, existing.Version);
+                        await this._opQueue.DeleteAsync(existing.Id, existing.Version);
                     }
                     else if (existing.IsUpdated)
                     {
-                        await this.opQueue.UpdateAsync(existing);
+                        await this._opQueue.UpdateAsync(existing);
                     }
                 }
 
                 // if validate didn't cancel the operation then queue it
                 if (!operation.IsCancelled)
                 {
-                    await this.opQueue.EnqueueAsync(operation);
+                    await this._opQueue.EnqueueAsync(operation);
                 }
             });
         }
@@ -419,9 +437,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             await this.EnsureInitializedAsync();
 
             // take slowest lock first and quickest last in order to avoid blocking quick operations for long time            
-            using (await this.opQueue.LockItemAsync(itemId, CancellationToken.None))  // prevent any inflight operation on the same item
-            using (await this.opQueue.LockTableAsync(tableName, CancellationToken.None)) // prevent interferance with any in-progress pull/purge action
-            using (await this.storeQueueLock.WriterLockAsync()) // prevent any other operation from interleaving between store and queue insert
+            using (await this._opQueue.LockItemAsync(itemId, CancellationToken.None))  // prevent any inflight operation on the same item
+            using (await this._opQueue.LockTableAsync(tableName, CancellationToken.None)) // prevent interferance with any in-progress pull/purge action
+            using (await this._storeQueueLock.WriterLockAsync()) // prevent any other operation from interleaving between store and queue insert
             {
                 await action();
             }
@@ -437,7 +455,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             if (disposing && this._store != null)
             {
-                this.settings.Dispose();
+                this._settings.Dispose();
                 this._store.Dispose();
             }
         }

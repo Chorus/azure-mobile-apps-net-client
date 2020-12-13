@@ -6,7 +6,6 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -23,11 +22,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
         }
 
-        protected override async Task<JToken> OnExecuteAsync()
+        protected override async Task<ITable> OnExecuteAsync()
         {
             try
             {
-                return await this.Table.DeleteAsync(this.Item);
+                return await this.Table.DeleteAsync(Item);
             }
             catch (MobileServiceInvalidOperationException ex)
             {
@@ -56,9 +55,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             // nothing to collapse we don't allow any operation after delete
         }
 
-        public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, JObject item)
+        public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, ITable item)
         {
-            return store.DeleteAsync(this.TableName, this.ItemId);
+            return store.DeleteAsync(TableName, ItemId);
         }
     }
 }

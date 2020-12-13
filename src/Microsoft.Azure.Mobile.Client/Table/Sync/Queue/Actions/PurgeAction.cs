@@ -10,12 +10,13 @@ using Microsoft.WindowsAzure.MobileServices.Query;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class PurgeAction : TableAction
+    internal class PurgeAction<T> : TableAction<T>
+        where T : ITable
     {
         private readonly bool force;
         private readonly IMobileServiceEventManager eventManager;
 
-        public PurgeAction(MobileServiceTable table,
+        public PurgeAction(MobileServiceTable<T> table,
                            MobileServiceTableKind tableKind,
                            string queryId,
                            MobileServiceTableQueryDescription query,
@@ -45,7 +46,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 IncludeTotalCount = true,
                 Top = 0
             };
-            long toRemove = QueryResult.Parse(await this.Store.ReadAsync(delOperationsQuery), null, validate: false).TotalCount;
+            long toRemove = await Store.ReadAsync(delOperationsQuery);
 
             // delete operations
             delOperationsQuery.Top = null;

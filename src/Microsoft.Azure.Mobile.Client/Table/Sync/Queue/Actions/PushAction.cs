@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -160,7 +159,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 return false;
             }
 
-            operation.Table = await this.context.GetTable(operation.TableName);
+            operation.Table = await context.GetTable(operation.TableName);
             await this.LoadOperationItem(operation, batch);
 
             if (operation.Item == null || this.CancellationToken.IsCancellationRequested)
@@ -244,7 +243,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             {
                 await TryStoreOperation(async () =>
                 {
-                    operation.Item = await this.Store.LookupAsync(operation.TableName, operation.ItemId) as JObject;
+                    operation.Item = await Store.LookupAsync(operation.TableName, operation.ItemId);
                 }, batch, "Failed to read the item from local store.");
 
                 // Add sync error if item is not found.

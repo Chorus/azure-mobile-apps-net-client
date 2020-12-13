@@ -16,8 +16,12 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// <typeparam name="T">
     /// The type of instances in the table (which implies the table).
     /// </typeparam>
-    public interface IMobileServiceTable<T> : IMobileServiceTable
+    public interface IMobileServiceTable<T> where T : ITable
     {
+        MobileServiceClient MobileServiceClient { get; }
+
+        string TableName { get; }
+
         /// <summary>
         /// Executes a query against the table.
         /// </summary>
@@ -41,7 +45,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// Instances from the table.
         /// </returns>
-        Task<IEnumerable<U>> ReadAsync<U>(IMobileServiceTableQuery<U> query);
+        Task<IEnumerable<U>> ReadAsync<U>(IMobileServiceTableQuery<U> query)
+            where U : ITable;
 
         /// <summary>
         /// Returns instances from a table.
@@ -63,7 +68,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The desired instance.
         /// </returns>
-        new Task<T> LookupAsync(object id);
+        Task<T> LookupAsync(object id);
 
         /// <summary>
         /// Lookup an instance from a table by its id.
@@ -78,7 +83,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The desired instance.
         /// </returns>
-        new Task<T> LookupAsync(object id, IDictionary<string, string> parameters);
+        Task<T> LookupAsync(object id, IDictionary<string, string> parameters);
 
         /// <summary>
         /// Refresh the current instance with the latest values from the
@@ -265,7 +270,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// A query against the table.
         /// </returns>
-        IMobileServiceTableQuery<U> Select<U>(Expression<Func<T, U>> selector);
+        IMobileServiceTableQuery<U> Select<U>(Expression<Func<T, U>> selector)
+            where U : ITable;
 
         /// <summary>
         /// Creates a query by applying the specified ascending order clause.

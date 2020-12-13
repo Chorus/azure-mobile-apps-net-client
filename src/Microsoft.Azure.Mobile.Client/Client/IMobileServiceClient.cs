@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Eventing;
 using Microsoft.WindowsAzure.MobileServices.Sync;
-using Newtonsoft.Json.Linq;
 using System.Threading;
 
 namespace Microsoft.WindowsAzure.MobileServices
@@ -56,18 +55,6 @@ namespace Microsoft.WindowsAzure.MobileServices
         IMobileServiceEventManager EventManager { get; }
 
         /// <summary>
-        /// Returns a <see cref="IMobileServiceTable"/> instance, which provides 
-        /// untyped data operations for that table.
-        /// </summary>
-        /// <param name="tableName">
-        /// The name of the table.
-        /// </param>
-        /// <returns>
-        /// The table.
-        /// </returns>
-        IMobileServiceTable GetTable(string tableName);
-
-        /// <summary>
         /// Returns a <see cref="IMobileServiceSyncTable"/> instance, which provides
         /// untyped data operations for a local table.
         /// </summary>
@@ -85,7 +72,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// The table.
         /// </returns>
-        IMobileServiceTable<T> GetTable<T>();
+        IMobileServiceTable<T> GetTable<T>() where T : ITable;
 
         /// <summary>
         /// Returns a <see cref="IMobileServiceTable{T}"/> instance, which provides 
@@ -129,7 +116,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// Task that will complete when the user has finished authentication.
         /// </returns>
-        Task<MobileServiceUser> LoginAsync(MobileServiceAuthenticationProvider provider, JObject token);
+        Task<MobileServiceUser> LoginAsync(MobileServiceAuthenticationProvider provider, MobileServiceToken token);
 
         /// <summary>
         /// Logs a user into a Microsoft Azure Mobile Service with the provider and a token object.
@@ -161,7 +148,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// Task that will complete when the user has finished authentication.
         /// </returns>
-        Task<MobileServiceUser> LoginAsync(string provider, JObject token);
+        Task<MobileServiceUser> LoginAsync(string provider, MobileServiceToken token);
 
         /// <summary>
         /// Log a user out.
@@ -226,51 +213,6 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
         /// <returns>The response content from the custom api invocation.</returns>
         Task<U> InvokeApiAsync<T, U>(string apiName, T body, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Invokes a user-defined custom API of a Microsoft Azure Mobile Service using an HTTP POST.
-        /// </summary>
-        /// <param name="apiName">The name of the custom API.</param>
-        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
-        /// <returns></returns>
-        Task<JToken> InvokeApiAsync(string apiName, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Invokes a user-defined custom API of a Microsoft Azure Mobile Service using an HTTP POST, with
-        /// support for sending HTTP content.
-        /// </summary>
-        /// <param name="apiName">The name of the custom API.</param>
-        /// <param name="body">The value to be sent as the HTTP body.</param>
-        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
-        /// <returns></returns>
-        Task<JToken> InvokeApiAsync(string apiName, JToken body, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Invokes a user-defined custom API of a Microsoft Azure Mobile Service using the specified HTTP Method.
-        /// Additional data will sent to through the query string.
-        /// </summary>
-        /// <param name="apiName">The name of the custom API.</param>
-        /// <param name="method">The HTTP method.</param>
-        /// <param name="parameters">
-        /// A dictionary of user-defined parameters and values to include in the request URI query string.
-        /// </param>
-        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
-        /// <returns>The response content from the custom api invocation.</returns>
-        Task<JToken> InvokeApiAsync(string apiName, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Invokes a user-defined custom API of a Microsoft Azure Mobile Service using the specified HTTP method.
-        /// Additional data can be sent though the HTTP content or the query string.
-        /// </summary>
-        /// <param name="apiName">The name of the custom API.</param>
-        /// <param name="body">The value to be sent as the HTTP body.</param>
-        /// <param name="method">The HTTP method.</param>
-        /// <param name="parameters">
-        /// A dictionary of user-defined parameters and values to include in the request URI query string.
-        /// </param>
-        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
-        /// <returns>The response content from the custom api invocation.</returns>
-        Task<JToken> InvokeApiAsync(string apiName, JToken body, HttpMethod method, IDictionary<string, string> parameters, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Invokes a user-defined custom API of a Microsoft Azure Mobile Service using the specified HttpMethod.

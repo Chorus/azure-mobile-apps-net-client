@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -25,17 +24,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <summary>
         /// The table that the operation will be executed against.
         /// </summary>
-        IMobileServiceTable Table { get; }
+        IMobileServiceTable<ITable> Table { get; }
 
         /// <summary>
         /// The item associated with the operation.
         /// </summary>
-        JObject Item { get; set; }
+        ITable Item { get; set; }
 
         /// <summary>
         /// Executes the operation against remote table.
         /// </summary>
-        Task<JObject> ExecuteAsync();
+        Task<ITable> ExecuteAsync();
 
         /// <summary>
         /// Abort the parent push operation.

@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using Microsoft.WindowsAzure.MobileServices.Query;
-using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="item">Item to be inserted.</param>
         /// <param name="fromServer"><code>true</code> if the call is made based on data coming from the server e.g. in a pull operation; <code>false</code> if the call is made by the client, such as insert or update calls on an <see cref="IMobileServiceSyncTable"/>.</param>
         /// <returns>A task that completes when item has been upserted in local table.</returns>
-        public static Task UpsertAsync(this IMobileServiceLocalStore store, string tableName, JObject item, bool fromServer)
+        public static Task UpsertAsync(this IMobileServiceLocalStore store, string tableName, ITable item, bool fromServer)
             => store.UpsertAsync(tableName, new[] { item }, fromServer);
 
         /// <summary>
@@ -57,8 +56,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             query.Top = 0;
             query.IncludeTotalCount = true;
-            QueryResult result = await store.QueryAsync(query);
-            return result.TotalCount;
+            var result = await store.QueryAsync(query);
+            //TODO ADD result
+            //return result.TotalCount;
+            return 0;
         }
 
         /// <summary>
@@ -67,8 +68,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="store">An instance of <see cref="IMobileServiceLocalStore"/></param>
         /// <param name="query">An instance of <see cref="MobileServiceTableQueryDescription"/></param>
         /// <returns>Task that will complete with the parsed result of the query.</returns>
-        public static async Task<QueryResult> QueryAsync(this IMobileServiceLocalStore store, MobileServiceTableQueryDescription query)
-            => QueryResult.Parse(await store.ReadAsync(query), null, validate: true);
+        public static async Task<ITable> QueryAsync(this IMobileServiceLocalStore store, MobileServiceTableQueryDescription query)
+            => await store.ReadAsync(query);
 
         /// <summary>
         /// Executes the query on local store and returns the first or default item from parsed result
@@ -76,10 +77,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="store">An instance of <see cref="IMobileServiceLocalStore"/></param>
         /// <param name="query">An instance of <see cref="MobileServiceTableQueryDescription"/></param>
         /// <returns>Task that will complete with the first or default item from parsed result of the query.</returns>
-        public static async Task<JObject> FirstOrDefault(this IMobileServiceLocalStore store, MobileServiceTableQueryDescription query)
+        public static async Task<ITable> FirstOrDefault(this IMobileServiceLocalStore store, MobileServiceTableQueryDescription query)
         {
-            QueryResult result = await store.QueryAsync(query);
-            return result.Values.FirstOrDefault() as JObject;
+            var result = await store.QueryAsync(query);
+            return result;
         }
     }
 }

@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -21,9 +20,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
         }
 
-        protected override Task<JToken> OnExecuteAsync()
+        protected override Task<ITable> OnExecuteAsync()
         {
-            return this.Table.UpdateAsync(this.Item);
+            return Table.UpdateAsync(this.Item);
         }
 
         public override void Validate(MobileServiceTableOperation newOperation)
@@ -52,7 +51,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
         }
 
-        public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, JObject item)
+        public override Task ExecuteLocalAsync(IMobileServiceLocalStore store, ITable item)
         {
             return store.UpsertAsync(this.TableName, item, fromServer: false);
         }

@@ -22,6 +22,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
     /// IQueryables from LINQ query operations.
     /// </remarks>
     internal class MobileServiceTableQuery<T> : IMobileServiceTableQuery<T>
+        where T : ITable
     {
         /// <summary>
         /// Initializes a new instance of the MobileServiceTableQuery class.
@@ -115,6 +116,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// The composed query.
         /// </returns>
         public IMobileServiceTableQuery<U> Select<U>(Expression<Func<T, U>> selector)
+            where U : ITable
         {
             Arguments.IsNotNull(selector, nameof(selector));
 
@@ -273,7 +275,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         /// </returns>
         public IMobileServiceTableQuery<T> IncludeDeleted()
         {
-            return QueryProvider.Create(Table, Query, MobileServiceTable.IncludeDeleted(Parameters), includeTotalCount: true);
+            return QueryProvider.Create(Table, Query, MobileServiceTable<T>.IncludeDeleted(Parameters), includeTotalCount: true);
         }
 
         /// <summary>

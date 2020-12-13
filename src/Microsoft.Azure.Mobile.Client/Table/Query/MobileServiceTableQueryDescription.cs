@@ -131,9 +131,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             }
 
             // Add the ordering
-            if (this.Ordering.Count > 0)
+            if (Ordering.Count > 0)
             {
-                IEnumerable<string> orderings = this.Ordering
+                IEnumerable<string> orderings = Ordering
                                                     .Select(o =>
                                                     {
                                                         string result = ODataExpressionVisitor.ToODataString(o.Expression);
@@ -163,7 +163,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
             }
 
             // Add the selection
-            if (this.Selection.Count > 0)
+            if (Selection.Count > 0)
             {
                 text.AppendFormat($"{separator}{ODataOptions.Select}={string.Join(",", this.Selection.Select(Uri.EscapeDataString))}");
                 separator = '&';
@@ -194,7 +194,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
 
         internal static MobileServiceTableQueryDescription Parse(Uri applicationUri, string tableName, string query)
         {
-            query ??= String.Empty;
+            query ??= string.Empty;
             string uriPath = null;
             if (HttpUtility.TryParseQueryUri(applicationUri, query, out Uri uri, out _))
             {

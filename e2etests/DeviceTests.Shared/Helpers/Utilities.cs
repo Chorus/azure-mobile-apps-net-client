@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 using Microsoft.WindowsAzure.MobileServices;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -29,7 +28,7 @@ namespace DeviceTests.Shared.Helpers
                 if (char.IsUpper(key[0]))
                 {
                     StringBuilder camel = new StringBuilder(key);
-                    camel[0] = Char.ToLowerInvariant(key[0]);
+                    camel[0] = char.ToLowerInvariant(key[0]);
                     itemToUpdate[camel.ToString()] = itemToUpdate[key];
                     itemToUpdate.Remove(key);
                 }
@@ -254,11 +253,11 @@ namespace DeviceTests.Shared.Helpers
 
         public static async Task<MobileServiceUser> GetDummyUser(MobileServiceClient mobileServiceClient)
         {
-            var dummyUser = await mobileServiceClient.InvokeApiAsync("JwtTokenGenerator", HttpMethod.Get, null);
+            var dummyToken = await mobileServiceClient.InvokeApiAsync<MobileServiceToken>("JwtTokenGenerator", HttpMethod.Get, null);
 
-            MobileServiceUser user = new MobileServiceUser((string)dummyUser["userId"])
+            MobileServiceUser user = new MobileServiceUser(dummyToken.UserId)
             {
-                MobileServiceAuthenticationToken = (string)dummyUser["authenticationToken"]
+                MobileServiceAuthenticationToken = dummyToken.AuthenticationToken
             };
             return user;
         }

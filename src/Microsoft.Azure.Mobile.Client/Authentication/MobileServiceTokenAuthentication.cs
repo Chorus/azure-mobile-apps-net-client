@@ -2,7 +2,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Internal
         /// <summary>
         /// The token to send.
         /// </summary>
-        private readonly JObject token;
+        private readonly MobileServiceToken token;
 
         /// <summary>
         /// The <see cref="MobileServiceClient"/> used by this authentication session.
@@ -39,7 +38,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Internal
         /// <param name="parameters">
         /// Provider specific extra parameters that are sent as query string parameters to login endpoint.
         /// </param>
-        public MobileServiceTokenAuthentication(MobileServiceClient client, string provider, JObject token, IDictionary<string, string> parameters)
+        public MobileServiceTokenAuthentication(MobileServiceClient client, string provider, MobileServiceToken token, IDictionary<string, string> parameters)
             : base(client, provider, parameters)
         {
             Arguments.IsNotNull(client, nameof(client));

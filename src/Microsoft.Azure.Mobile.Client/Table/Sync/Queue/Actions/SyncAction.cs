@@ -21,10 +21,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public SyncAction(OperationQueue operationQueue, IMobileServiceLocalStore store, CancellationToken cancellationToken)
         {
-            this.OperationQueue = operationQueue;
-            this.Store = store;
-            this.TaskSource = new TaskCompletionSource<object>();
-            this.CancellationToken = cancellationToken;
+            OperationQueue = operationQueue;
+            Store = store;
+            TaskSource = new TaskCompletionSource<object>();
+            CancellationToken = cancellationToken;
 
             cancellationToken.Register(() => TaskSource.TrySetCanceled());
         }

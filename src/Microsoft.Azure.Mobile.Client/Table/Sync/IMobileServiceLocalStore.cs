@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Query;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -26,7 +25,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="query">Instance of <see cref="MobileServiceTableQueryDescription"/> that defines the query to be executed on local table.</param>
         /// <returns>A task that returns instance of JObject or JArray with items matching the query.</returns>
-        Task<JToken> ReadAsync(MobileServiceTableQueryDescription query);
+        Task<IEnumerable<T>> ReadAsync<T>(MobileServiceTableQueryDescription query)
+            where T : new();
 
         /// <summary>
         /// Updates or inserts data in local table.
@@ -35,7 +35,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="items">A list of items to be inserted.</param>
         /// <param name="ignoreMissingColumns"><code>true</code> if the extra properties on item can be ignored; <code>false</code> otherwise.</param>
         /// <returns>A task that completes when item has been upserted in local table.</returns>
-        Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns);
+        Task UpsertAsync(string tableName, IEnumerable<ITable> items, bool ignoreMissingColumns);
 
         /// <summary>
         /// Deletes all the items from local table that match the query.
@@ -58,6 +58,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="tableName">Name of the local table.</param>
         /// <param name="id">Id for the object to be read.</param>
         /// <returns>A task that returns the item read from local table.</returns>
-        Task<JObject> LookupAsync(string tableName, string id);
+        Task<ITable> LookupAsync(string tableName, string id);
     }
 }

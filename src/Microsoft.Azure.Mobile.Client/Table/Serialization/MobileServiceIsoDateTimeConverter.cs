@@ -1,11 +1,10 @@
 ﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// ----------------------------------------------------------------------------
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System;
 using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
@@ -13,63 +12,47 @@ namespace Microsoft.WindowsAzure.MobileServices
     /// Converts DateTime and DateTimeOffset object into UTC DateTime and creates a ISO string representation
     /// by calling ToUniversalTime on serialization and ToLocalTime on deserialization.
     /// </summary>
-    public class MobileServiceIsoDateTimeConverter : IsoDateTimeConverter
+    public class MobileServiceIsoDateTimeConverter : JsonConverter<DateTime>
     {
-        /// <summary>
-        /// Creates a new instance of <see cref="MobileServiceIsoDateTimeConverter"/>.
-        /// </summary>
-        public MobileServiceIsoDateTimeConverter()
-        {
-            this.Culture = CultureInfo.InvariantCulture;
-            this.DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK";
-        }
+        public static string DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK";
 
-        /// <summary>
-        /// Reads the JSON representation of the object.
-        /// </summary>
-        /// <param name="reader">The <see cref="JsonReader"/> to read from.</param>
-        /// <param name="objectType">Type of the object.</param>
-        /// <param name="existingValue">The existing value of object being read.</param>
-        /// <param name="serializer">The calling serializer.</param>
-        /// <returns>The object value.</returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            object datetimeObject = base.ReadJson(reader, objectType, existingValue, serializer);
+        public override DateTime Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options) =>
+            DateTime.ParseExact(reader.GetString(),
+                DateTimeFormat, CultureInfo.InvariantCulture)
+            .ToLocalTime();
 
-            if(datetimeObject != null)
-            {
-                if(datetimeObject is DateTime time)
-                {
-                    return time.ToLocalTime();
-                }
-                else if(datetimeObject is DateTimeOffset)
-                {
-                    return new DateTimeOffset((DateTime)reader.Value).ToLocalTime();
-                }
-            }
+        public override void Write(
+            Utf8JsonWriter writer,
+            DateTime value,
+            JsonSerializerOptions options) =>
+            writer.WriteStringValue(value.ToUniversalTime()
+                .ToString(DateTimeFormat, CultureInfo.InvariantCulture));
+    }
 
-            return datetimeObject;
-        }
+    /// <summary>
+    /// Converts DateTime and DateTimeOffset object into UTC DateTime and creates a ISO string representation
+    /// by calling ToUniversalTime on serialization and ToLocalTime on deserialization.
+    /// </summary>
+    public class MobileServiceIsoDateTimeOffsetConverter : JsonConverter<DateTimeOffset>
+    {
+        public static string DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK";
 
-        /// <summary>
-        /// Writes the JSON representation of the object.
-        /// </summary>
-        /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="serializer">The calling serializer.</param>
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            DateTime dateTime;
-            if (value is DateTime time)
-            {
-                dateTime = time.ToUniversalTime();
-            }
-            else
-            {
-                dateTime = ((DateTimeOffset)value).UtcDateTime;
-            }
+        public override DateTimeOffset Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options) =>
+            DateTimeOffset.ParseExact(reader.GetString(),
+                DateTimeFormat, CultureInfo.InvariantCulture)
+            .ToLocalTime();
 
-            base.WriteJson(writer, dateTime, serializer);
-        }
+        public override void Write(
+            Utf8JsonWriter writer,
+            DateTimeOffset value,
+            JsonSerializerOptions options) =>
+            writer.WriteStringValue(value.UtcDateTime
+                .ToString(DateTimeFormat, CultureInfo.InvariantCulture));
     }
 }

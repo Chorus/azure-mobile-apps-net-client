@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Query;
 using Microsoft.WindowsAzure.MobileServices.Sync;
-using Newtonsoft.Json.Linq;
+using Microsoft.WindowsAzure.MobileServices.Table.SystemTables;
 using SQLitePCL;
 
 namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
@@ -63,36 +63,23 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// </summary>
         /// <param name="tableName">Name of the local table.</param>
         /// <param name="item">An object that represents the structure of the table.</param>
-        public override void DefineTable(string tableName, JObject item)
+        public override void DefineTable<T>(string tableName)
         {
             if (tableName == null)
             {
-                throw new ArgumentNullException("tableName");
+                throw new ArgumentNullException(nameof(tableName));
             }
-            if (item == null)
-            {
-                throw new ArgumentNullException("item");
-            }
-
-            if (this.Initialized)
+            if (Initialized)
             {
                 throw new InvalidOperationException("Cannot define a table after the store has been initialized.");
             }
 
-            // add id if it is not defined
-            if (!item.TryGetValue(MobileServiceSystemColumns.Id, StringComparison.OrdinalIgnoreCase, out JToken ignored))
-            {
-                item[MobileServiceSystemColumns.Id] = String.Empty;
-            }
-
-            var tableDefinition = (from property in item.Properties()
-                                   let storeType = SqlHelpers.GetStoreType(property.Value.Type, allowNull: false)
-                                   select new ColumnDefinition(property.Name, property.Value.Type, storeType))
+            var tableDefinition = (from property in typeof(T).GetProperties()
+                                   let storeType = SqlHelpers.GetStoreType(property.PropertyType, allowNull: false)
+                                   select new ColumnDefinition(property.Name, property.PropertyType, storeType))
                                   .ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-
-            var sysProperties = GetSystemProperties(item);
-
-            this.tableMap.Add(tableName, new TableDefinition(tableDefinition, sysProperties));
+            var sysProperties = GetSystemProperties();
+            tableMap.Add(tableName, new TableDefinition(tableDefinition, sysProperties));
         }
 
         /// <summary>
@@ -110,47 +97,41 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// </summary>
         /// <param name="query">The query to execute on local store.</param>
         /// <returns>A task that will return with results when the query finishes.</returns>
-        public override Task<JToken> ReadAsync(MobileServiceTableQueryDescription query)
+        public override Task<IEnumerable<T>> ReadAsync<T>(MobileServiceTableQueryDescription query)
         {
             if (query == null)
             {
                 throw new ArgumentNullException("query");
             }
 
-            this.EnsureInitialized();
+            EnsureInitialized();
 
             var formatter = new SqlQueryFormatter(query);
             string sql = formatter.FormatSelect();
 
-            return this.operationSemaphore.WaitAsync()
+            return operationSemaphore.WaitAsync()
                 .ContinueWith(t =>
                 {
                     try
                     {
-                        IList<JObject> rows = this.ExecuteQueryInternal(query.TableName, sql, formatter.Parameters);
-                        JToken result = new JArray(rows.ToArray());
-
+                        var rows = ExecuteQueryInternal<T>(query.TableName, sql, formatter.Parameters);
+                        var result = rows.ToArray();
                         if (query.IncludeTotalCount)
                         {
                             sql = formatter.FormatSelectCount();
-                            IList<JObject> countRows = null;
-
-                            countRows = this.ExecuteQueryInternal(query.TableName, sql, formatter.Parameters);
-
-
-                            long count = countRows[0].Value<long>("count");
-                            result = new JObject()
-                            {
-                                { "results", result },
-                                { "count", count }
-                            };
+                            var countRows = ExecuteQueryInternal<TableCount>(query.TableName, sql, formatter.Parameters);
+                            //result = new
+                            //{
+                            //    results = result,
+                            //    count = countRows.Count
+                            //};
                         }
 
-                        return result;
+                        return result.AsEnumerable();
                     }
                     finally
                     {
-                        this.operationSemaphore.Release();
+                        operationSemaphore.Release();
                     }
                 });
         }
@@ -162,7 +143,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <param name="items">A list of items to be inserted.</param>
         /// <param name="ignoreMissingColumns"><code>true</code> if the extra properties on item can be ignored; <code>false</code> otherwise.</param>
         /// <returns>A task that completes when item has been upserted in local table.</returns>
-        public override Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns)
+        public override Task UpsertAsync(string tableName, IEnumerable<ITable> items, bool ignoreMissingColumns)
         {
             if (tableName == null)
             {
@@ -179,7 +160,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         }
 
 
-        private Task UpsertAsyncInternal(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns)
+        private Task UpsertAsyncInternal(string tableName, IEnumerable<ITable> items, bool ignoreMissingColumns)
         {
             TableDefinition table = GetTable(tableName);
 
@@ -191,7 +172,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
             // Get the columns which we want to map into the database.
             var columns = new List<ColumnDefinition>();
-            foreach (var prop in first.Properties())
+            foreach (var prop in first.GetType().GetProperties())
             {
 
                 // If the column is coming from the server we can just ignore it,
@@ -318,7 +299,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <param name="tableName">Name of the local table.</param>
         /// <param name="id">The id of the item to lookup.</param>
         /// <returns>A task that will return with a result when the lookup finishes.</returns>
-        public override Task<JObject> LookupAsync(string tableName, string id)
+        public override Task<T> LookupAsync<T>(string tableName, string id)
         {
             if (tableName == null)
             {
@@ -342,7 +323,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 {
                     try
                     {
-                        IList<JObject> results = this.ExecuteQueryInternal(tableName, sql, parameters);
+                        var results = this.ExecuteQueryInternal<T>(tableName, sql, parameters);
                         return results.FirstOrDefault();
                     }
                     finally
@@ -354,21 +335,17 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
         private TableDefinition GetTable(string tableName)
         {
-            if (!this.tableMap.TryGetValue(tableName, out TableDefinition table))
+            if (!tableMap.TryGetValue(tableName, out TableDefinition table))
             {
-                throw new InvalidOperationException(string.Format("Table with name '{0}' is not defined.", tableName));
+                throw new InvalidOperationException($"Table with name '{tableName}' is not defined.");
             }
             return table;
         }
 
         internal virtual async Task SaveSetting(string name, string value)
         {
-            var setting = new JObject()
-            {
-                { "id", name },
-                { "value", value }
-            };
-            await this.UpsertAsyncInternal(MobileServiceLocalSystemTables.Config, new[] { setting }, ignoreMissingColumns: false);
+            var settings = new Config(name, value);
+            await this.UpsertAsyncInternal(MobileServiceLocalSystemTables.Config, new[] { settings }, ignoreMissingColumns: false);
         }
 
         private async Task InitializeConfig()
@@ -393,7 +370,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             }
         }
 
-        private void BatchUpdate(string tableName, IEnumerable<JObject> items, List<ColumnDefinition> columns)
+        private void BatchUpdate(string tableName, IEnumerable<ITable> items, List<ColumnDefinition> columns)
         {
             if (columns.Count <= 1)
             {
@@ -402,9 +379,9 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
             ValidateParameterCount(columns.Count);
 
-            string sqlBase = String.Format("UPDATE {0} SET ", SqlHelpers.FormatTableName(tableName));
+            string sqlBase = $"UPDATE {SqlHelpers.FormatTableName(tableName)} SET ";
 
-            foreach (JObject item in items)
+            foreach (var item in items)
             {
                 var sql = new StringBuilder(sqlBase);
                 var parameters = new Dictionary<string, object>();
@@ -415,9 +392,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                     continue;
                 }
 
+                var itemType = item.GetType();
                 foreach (var column in columns.Where(c => c != idColumn))
                 {
-                    string paramName = AddParameter(item, parameters, column);
+                    var value = itemType.GetProperty(column.Name).GetValue(item);
+                    string paramName = AddParameter(value, parameters, column);
 
                     sql.AppendFormat("{0} = {1}", SqlHelpers.FormatMember(column.Name), paramName);
                     sql.Append(",");
@@ -435,7 +414,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             }
         }
 
-        private void BatchInsert(string tableName, IEnumerable<JObject> items, List<ColumnDefinition> columns)
+        private void BatchInsert(string tableName, IEnumerable<ITable> items, List<ColumnDefinition> columns)
         {
             if (columns.Count == 0) // we need to have some columns to insert the item
             {
@@ -457,7 +436,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 var sql = new StringBuilder(sqlBase);
                 var parameters = new Dictionary<string, object>();
 
-                foreach (JObject item in batch)
+                foreach (var item in batch)
                 {
                     AppendInsertValuesSql(sql, parameters, columns, item);
                     sql.Append(",");
@@ -481,7 +460,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             return batchSize;
         }
 
-        private static void AppendInsertValuesSql(StringBuilder sql, Dictionary<string, object> parameters, List<ColumnDefinition> columns, JObject item)
+        private static void AppendInsertValuesSql(StringBuilder sql, Dictionary<string, object> parameters, List<ColumnDefinition> columns, ITable item)
         {
             sql.Append("(");
             int colCount = 0;
@@ -502,18 +481,20 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         internal virtual void CreateTableFromObject(string tableName, IEnumerable<ColumnDefinition> columns)
         {
             ColumnDefinition idColumn = columns.FirstOrDefault(c => c.Name.Equals(MobileServiceSystemColumns.Id));
-            var colDefinitions = columns.Where(c => c != idColumn).Select(c => String.Format("{0} {1}", SqlHelpers.FormatMember(c.Name), c.StoreType)).ToList();
+            var colDefinitions = columns.Where(c => c != idColumn)
+                .Select(c => $"{SqlHelpers.FormatMember(c.Name)} {c.StoreType}")
+                .ToList();
+
             if (idColumn != null)
             {
-                colDefinitions.Insert(0, String.Format("{0} {1} PRIMARY KEY", SqlHelpers.FormatMember(idColumn.Name), idColumn.StoreType));
+                colDefinitions.Insert(0, $"{SqlHelpers.FormatMember(idColumn.Name)} {idColumn.StoreType} PRIMARY KEY");
             }
 
-            String tblSql = string.Format("CREATE TABLE IF NOT EXISTS {0} ({1})", SqlHelpers.FormatTableName(tableName), String.Join(", ", colDefinitions));
-            this.ExecuteNonQueryInternal(tblSql, parameters: null);
-
-            string infoSql = string.Format("PRAGMA table_info({0});", SqlHelpers.FormatTableName(tableName));
-            IDictionary<string, JObject> existingColumns = this.ExecuteQueryInternal((TableDefinition)null, infoSql, parameters: null)
-                                                               .ToDictionary(c => c.Value<string>("name"), StringComparer.OrdinalIgnoreCase);
+            var tblSql = $"CREATE TABLE IF NOT EXISTS {SqlHelpers.FormatTableName(tableName)} ({String.Join(", ", colDefinitions)})";
+            ExecuteNonQueryInternal(tblSql, parameters: null);
+            var infoSql = $"PRAGMA table_info({SqlHelpers.FormatTableName(tableName)});";
+            var existingColumns = ExecuteQueryInternal<TableInfo>((TableDefinition)null, infoSql, parameters: null)
+                                                               .ToDictionary(c => c.ColumnName, StringComparer.OrdinalIgnoreCase);
 
             // new columns that do not exist in existing columns
             var columnsToCreate = columns.Where(c => !existingColumns.ContainsKey(c.Name));
@@ -530,12 +511,10 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             // NOTE: In SQLite you cannot drop columns, only add them.
         }
 
-        private static string AddParameter(JObject item, Dictionary<string, object> parameters, ColumnDefinition column)
+        private static string AddParameter(object value, Dictionary<string, object> parameters, ColumnDefinition column)
         {
-            JToken rawValue = item.GetValue(column.Name, StringComparison.OrdinalIgnoreCase);
-            object value = SqlHelpers.SerializeValue(rawValue, column.StoreType, column.JsonType);
-            string paramName = CreateParameter(parameters, value);
-            return paramName;
+            object sqlValue = SqlHelpers.SerializeValue(value, column.StoreType, column.Type);
+            return CreateParameter(parameters, sqlValue);
         }
 
         private static string CreateParameter(Dictionary<string, object> parameters, object value)
@@ -578,7 +557,8 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <param name="parameters">The list of parameters</param>
         /// <returns>The result of the query (untyped objects)</returns>
         /// <exception cref="ArgumentNullException">tableName and sql must be provided</exception>
-        public Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sql, IDictionary<string, object> parameters)
+        public Task<IList<T>> ExecuteQueryAsync<T>(string tableName, string sql, IDictionary<string, object> parameters)
+             where T : new()
         {
             if (tableName == null)
             {
@@ -595,7 +575,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 {
                     try
                     {
-                        return this.ExecuteQueryInternal(tableName, sql, parameters);
+                        return this.ExecuteQueryInternal<T>(tableName, sql, parameters);
                     }
                     finally
                     {
@@ -611,10 +591,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <param name="sql">The SQL query to execute.</param>
         /// <param name="parameters">The query parameters.</param>
         /// <returns>The result of query.</returns>
-        protected virtual IList<JObject> ExecuteQueryInternal(string tableName, string sql, IDictionary<string, object> parameters)
+        protected virtual IList<T> ExecuteQueryInternal<T>(string tableName, string sql, IDictionary<string, object> parameters)
+             where T : new()
         {
             TableDefinition table = GetTable(tableName);
-            return this.ExecuteQueryInternal(table, sql, parameters);
+            return ExecuteQueryInternal<T>(table, sql, parameters);
         }
 
         /// <summary>
@@ -624,11 +605,12 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         /// <param name="sql">The SQL query to execute.</param>
         /// <param name="parameters">The query parameters.</param>
         /// <returns>The result of query.</returns>
-        protected virtual IList<JObject> ExecuteQueryInternal(TableDefinition table, string sql, IDictionary<string, object> parameters)
+        protected virtual IList<T> ExecuteQueryInternal<T>(TableDefinition table, string sql, IDictionary<string, object> parameters)
+             where T : new()
         {
             table = table ?? new TableDefinition();
             parameters = parameters ?? new Dictionary<string, object>();
-            var rows = new List<JObject>();
+            var rows = new List<T>();
 
             sqlite3_stmt statement = SQLitePCLRawHelpers.GetSqliteStatement(sql, connection);
             using (statement)
@@ -641,7 +623,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 int rc;
                 while ((rc = raw.sqlite3_step(statement)) == raw.SQLITE_ROW)
                 {
-                    var row = ReadRow(table, statement);
+                    var row = ReadRow<T>(table, statement);
                     rows.Add(row);
                 }
 
@@ -651,9 +633,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             return rows;
         }
 
-        private JObject ReadRow(TableDefinition table, sqlite3_stmt statement)
+        private T ReadRow<T>(TableDefinition table, sqlite3_stmt statement)
+            where T : new()
         {
-            var row = new JObject();
+            var obj = new T();
+            var type = obj.GetType();
             for (int i = 0; i < raw.sqlite3_column_count(statement); i++)
             {
                 string name = raw.sqlite3_column_name(statement, i).utf8_to_string();
@@ -661,37 +645,26 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
                 if (table.TryGetValue(name, out ColumnDefinition column))
                 {
-                    JToken jVal = SqlHelpers.DeserializeValue(value, column.StoreType, column.JsonType);
-                    row[name] = jVal;
+                    var objectValue = SqlHelpers.DeserializeValue(value, column.StoreType, column.Type);
+                    type.GetProperty(column.Name)
+                        .SetValue(obj, objectValue);
                 }
                 else
                 {
-                    row[name] = value == null ? null : JToken.FromObject(value);
+                    type.GetProperty(name)
+                       .SetValue(obj, value == null ? null : value.ToString());
                 }
             }
-            return row;
+            return obj;
         }
 
-        private static MobileServiceSystemProperties GetSystemProperties(JObject item)
+        private static MobileServiceSystemProperties GetSystemProperties()
         {
             var sysProperties = MobileServiceSystemProperties.None;
-
-            if (item[MobileServiceSystemColumns.Version] != null)
-            {
-                sysProperties |= MobileServiceSystemProperties.Version;
-            }
-            if (item[MobileServiceSystemColumns.CreatedAt] != null)
-            {
-                sysProperties |= MobileServiceSystemProperties.CreatedAt;
-            }
-            if (item[MobileServiceSystemColumns.UpdatedAt] != null)
-            {
-                sysProperties |= MobileServiceSystemProperties.UpdatedAt;
-            }
-            if (item[MobileServiceSystemColumns.Deleted] != null)
-            {
-                sysProperties |= MobileServiceSystemProperties.Deleted;
-            }
+            sysProperties |= MobileServiceSystemProperties.Version;
+            sysProperties |= MobileServiceSystemProperties.CreatedAt;
+            sysProperties |= MobileServiceSystemProperties.UpdatedAt;
+            sysProperties |= MobileServiceSystemProperties.Deleted;
             return sysProperties;
         }
 

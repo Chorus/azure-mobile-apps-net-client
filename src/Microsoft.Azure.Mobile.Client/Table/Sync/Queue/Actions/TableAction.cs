@@ -13,20 +13,21 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     /// <summary>
     /// Base class for table specific sync actions that push all the pending changes on that table before executing i.e. Purge and Pull
     /// </summary>
-    internal abstract class TableAction : SyncAction
+    internal abstract class TableAction<T> : SyncAction 
+        where T : ITable
     {
         protected MobileServiceSyncContext Context { get; private set; }
 
         protected string QueryId { get; private set; }
         protected MobileServiceTableQueryDescription Query { get; private set; }
-        public MobileServiceTable Table { get; private set; }
+        public MobileServiceTable<T> Table { get; private set; }
         public MobileServiceTableKind TableKind { get; private set; }
 
         protected MobileServiceSyncSettingsManager Settings { get; private set; }
 
         public IEnumerable<string> RelatedTables { get; set; }
 
-        public TableAction(MobileServiceTable table,
+        public TableAction(MobileServiceTable<T> table,
                            MobileServiceTableKind tableKind,
                            string queryId,
                            MobileServiceTableQueryDescription query,

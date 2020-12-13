@@ -4,7 +4,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -20,11 +19,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
         }
 
-        protected override Task<JToken> OnExecuteAsync()
+        protected override Task<ITable> OnExecuteAsync()
         {
             // for insert operations version should not be sent so strip it out
-            JObject item = MobileServiceSerializer.RemoveSystemProperties(this.Item, out _);
-            return this.Table.InsertAsync(item);
+            //todo fix
+            //var item = MobileServiceSerializer.RemoveSystemProperties(this.Item, out _);
+            return this.Table.InsertAsync(Item);
         }
 
         public override void Validate(MobileServiceTableOperation newOperation)
@@ -46,7 +46,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
         }
 
-        public override void Collapse(MobileServiceTableOperation newOperation)
+        public override void Collapse(MobileServiceTableOperation<T> newOperation)
         {
             if (newOperation.ItemId != ItemId)
             {
@@ -65,7 +65,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
         }
 
-        public override async Task ExecuteLocalAsync(IMobileServiceLocalStore store, JObject item)
+        public override async Task ExecuteLocalAsync(IMobileServiceLocalStore store, ITable item)
         {
             if (await store.LookupAsync(this.TableName, this.ItemId) != null)
             {

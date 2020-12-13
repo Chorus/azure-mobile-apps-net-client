@@ -52,7 +52,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         bool IApplicationStorage.TryReadSetting(string name, out object value)
         {
             Arguments.IsNotNullOrWhiteSpace(name, nameof(name));
-            
+
             var filename = string.Concat(StoragePrefix, name);
             try
             {
@@ -61,9 +61,6 @@ namespace Microsoft.WindowsAzure.MobileServices
                 using var reader = new StreamReader(fileStream);
                 value = reader.ReadToEnd();
                 return value != null;
-            }
-                    }
-                }
             }
             catch
             {
@@ -96,9 +93,6 @@ namespace Microsoft.WindowsAzure.MobileServices
                 using IsolatedStorageFileStream fileStream = isoStore.OpenFile(filename, FileMode.OpenOrCreate, FileAccess.Write);
                 using var writer = new StreamWriter(fileStream);
                 writer.WriteLine(value.ToString());
-            }
-                    }
-                }
             }
             catch (Exception)
             {

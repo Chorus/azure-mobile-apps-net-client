@@ -3,9 +3,8 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
@@ -13,22 +12,30 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
     {
         // --- Persisted properties -- //
         public string Id { get; private set; }
+
         public abstract MobileServiceTableOperationKind Kind { get; }
+
         public MobileServiceTableKind TableKind { get; private set; }
+
         public string TableName { get; private set; }
+
         public string ItemId { get; private set; }
-        public JObject Item { get; set; }
+
+        public ITable Item { get; set; }
 
         public MobileServiceTableOperationState State { get; internal set; }
+
         public long Sequence { get; set; }
+
         public long Version { get; set; }
 
         // --- Non persisted properties -- //
-        IMobileServiceTable IMobileServiceTableOperation.Table => this.Table;
+        IMobileServiceTable<ITable> IMobileServiceTableOperation.Table => Table;
 
-        public MobileServiceTable Table { get; set; }
+        public MobileServiceTable<ITable> Table { get; set; }
 
         public bool IsCancelled { get; private set; }
+
         public bool IsUpdated { get; private set; }
 
         public virtual bool CanWriteResultToStore => true;
@@ -37,49 +44,48 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         protected MobileServiceTableOperation(string tableName, MobileServiceTableKind tableKind, string itemId)
         {
-            this.Id = Guid.NewGuid().ToString();
-            this.State = MobileServiceTableOperationState.Pending;
-            this.TableKind = tableKind;
-            this.TableName = tableName;
-            this.ItemId = itemId;
-            this.Version = 1;
+            Id = Guid.NewGuid().ToString();
+            State = MobileServiceTableOperationState.Pending;
+            TableKind = tableKind;
+            TableName = tableName;
+            ItemId = itemId;
+            Version = 1;
         }
 
         public void AbortPush() => throw new MobileServicePushAbortException();
 
-        public async Task<JObject> ExecuteAsync()
+        public async Task<ITable> ExecuteAsync()
         {
-            if (this.IsCancelled)
+            if (IsCancelled)
             {
-                return null;
+                return default;
             }
 
-            if (this.Item == null)
+            if (Item == null)
             {
                 throw new MobileServiceInvalidOperationException("Operation must have an item associated with it.", request: null, response: null);
             }
 
-            JToken response = await OnExecuteAsync();
-            var result = response as JObject;
-            if (response != null && result == null)
+            var response = await OnExecuteAsync();
+            if (response == null)
             {
                 throw new MobileServiceInvalidOperationException("Mobile Service table operation returned an unexpected response.", request: null, response: null);
             }
 
-            return result;
+            return response;
         }
 
-        protected abstract Task<JToken> OnExecuteAsync();
+        protected abstract Task<ITable> OnExecuteAsync();
 
         internal void Cancel()
         {
-            this.IsCancelled = true;
+            IsCancelled = true;
         }
 
         internal void Update()
         {
-            this.Version++;
-            this.IsUpdated = true;
+            Version++;
+            IsUpdated = true;
         }
 
         /// <summary>
@@ -87,7 +93,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         /// <param name="store">Sync store</param>
         /// <param name="item">The item to use for store operation</param>
-        public abstract Task ExecuteLocalAsync(IMobileServiceLocalStore store, JObject item);
+        public abstract Task ExecuteLocalAsync(IMobileServiceLocalStore store, ITable item);
 
         /// <summary>
         /// Validates that the operation can collapse with the late operation
@@ -108,38 +114,38 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             store.DefineTable(MobileServiceLocalSystemTables.OperationQueue, new JObject()
             {
-                { MobileServiceSystemColumns.Id, String.Empty },
+                { MobileServiceSystemColumns.Id, string.Empty },
                 { "kind", 0 },
                 { "state", 0 },
-                { "tableName", String.Empty },
+                { "tableName", string.Empty },
                 { "tableKind", 0 },
-                { "itemId", String.Empty },
-                { "item", String.Empty },
+                { "itemId", string.Empty },
+                { "item", string.Empty },
                 { MobileServiceSystemColumns.CreatedAt, DateTime.Now },
                 { "sequence", 0 },
                 { "version", 0 }
             });
         }
 
-        internal JObject Serialize()
+        internal ITable Serialize()
         {
-            var obj = new JObject()
+            var obj = new Dictionary<string, object>
             {
-                { MobileServiceSystemColumns.Id, this.Id },
-                { "kind", (int)this.Kind },
-                { "state", (int)this.State },
-                { "tableName", this.TableName },
-                { "tableKind", (int)this.TableKind },
-                { "itemId", this.ItemId },
-                { "item", this.Item != null && this.SerializeItemToQueue ? this.Item.ToString(Formatting.None) : null },
-                { "sequence", this.Sequence },
-                { "version", this.Version }
+                { MobileServiceSystemColumns.Id, Id },
+                { "kind", (int)Kind },
+                { "state", (int)State },
+                { "tableName", TableName },
+                { "tableKind", (int)TableKind },
+                { "itemId", ItemId },
+                { "item", Item != null && SerializeItemToQueue ? Item.ToString(Formatting.None) : null },
+                { "sequence", Sequence },
+                { "version", Version }
             };
 
             return obj;
         }
 
-        internal static MobileServiceTableOperation Deserialize(JObject obj)
+        internal static MobileServiceTableOperation Deserialize(ITable obj)
         {
             if (obj == null)
             {
@@ -156,11 +162,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             switch (kind)
             {
                 case MobileServiceTableOperationKind.Insert:
-                    operation = new InsertOperation(tableName, tableKind, itemId); break;
+                    operation = new InsertOperation(tableName, tableKind, itemId);
+                    break;
                 case MobileServiceTableOperationKind.Update:
-                    operation = new UpdateOperation(tableName, tableKind, itemId); break;
+                    operation = new UpdateOperation(tableName, tableKind, itemId);
+                    break;
                 case MobileServiceTableOperationKind.Delete:
-                    operation = new DeleteOperation(tableName, tableKind, itemId); break;
+                    operation = new DeleteOperation(tableName, tableKind, itemId);
+                    break;
             }
 
             if (operation != null)

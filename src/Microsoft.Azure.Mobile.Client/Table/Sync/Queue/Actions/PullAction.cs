@@ -8,11 +8,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Query;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    internal class PullAction : TableAction
+    internal class PullAction<T> : TableAction<T>
+        where T : ITable
     {
         private static readonly DateTimeOffset Epoch = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
@@ -23,7 +23,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private Task pendingAction;
         private PullStrategy strategy;
 
-        public PullAction(MobileServiceTable table,
+        public PullAction(MobileServiceTable<T> table,
                           MobileServiceTableKind tableKind,
                           MobileServiceSyncContext context,
                           string queryId,
@@ -66,7 +66,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             await CreatePullStrategy();
 
-            QueryResult result;
+            QueryResult<T> result;
             do
             {
                 this.CancellationToken.ThrowIfCancellationRequested();
@@ -76,8 +76,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 {
                     query = MobileServiceUrlBuilder.CombinePathAndQuery(this.Query.UriPath, query);
                 }
-                result = await this.Table.ReadAsync(query, MobileServiceTable.IncludeDeleted(parameters), this.Table.Features);
-                await this.ProcessAll(result.Values); // process the first batch
+                result = await Table.ReadAsync(query, MobileServiceTable.IncludeDeleted(parameters), Table.Features);
+                await ProcessAll(result.Values); // process the first batch
 
                 result = await FollowNextLinks(result);
             }
@@ -87,7 +87,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             await this.strategy.PullCompleteAsync();
         }
 
-        private async Task ProcessAll(JArray items)
+        private async Task ProcessAll(T[] items)
         {
             this.CancellationToken.ThrowIfCancellationRequested();
 
@@ -145,15 +145,15 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         }
 
         // follows next links in the query result and returns final result
-        private async Task<QueryResult> FollowNextLinks(QueryResult result)
+        private async Task<QueryResult<T>> FollowNextLinks(QueryResult<T> result)
         {
-            while (!this.EndOfResult(result) && // if we are not at the end of result
-                    IsNextLinkValid(result.NextLink, this.options)) // and there is a valid link to get more results
+            while (!EndOfResult(result) && // if we are not at the end of result
+                    IsNextLinkValid(result.NextLink, options)) // and there is a valid link to get more results
             {
-                this.CancellationToken.ThrowIfCancellationRequested();
+                CancellationToken.ThrowIfCancellationRequested();
 
-                result = await this.Table.ReadAsync(result.NextLink);
-                await this.ProcessAll(result.Values); // process the results as soon as we've gotten them
+                result = await Table.ReadAsync(result.NextLink);
+                await ProcessAll(result.Values); // process the results as soon as we've gotten them
             }
             return result;
         }
@@ -181,12 +181,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return !hasInvalidOption;
         }
 
-        private bool EndOfResult(QueryResult result)
+        private bool EndOfResult(QueryResult<T> result)
         {
             // if we got as many as we initially wanted 
             // or there are no more results
             // then we're at the end
-            return cursor.Complete || result.Values.Count == 0;
+            return cursor.Complete || result.Values.Length == 0;
         }
 
         private async Task CreatePullStrategy()

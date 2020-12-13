@@ -500,7 +500,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
         {
             int paramNumber = this.Parameters.Count + 1;
             string paramName = "@p" + paramNumber;
-            this.Parameters.Add(paramName, SqlHelpers.SerializeValue(new JValue(value), allowNull: true));
+            this.Parameters.Add(paramName, SqlHelpers.SerializeValue(value, allowNull: true));
             return paramName;
         }
     }
