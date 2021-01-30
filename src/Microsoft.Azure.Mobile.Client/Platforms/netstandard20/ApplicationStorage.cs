@@ -62,9 +62,6 @@ namespace Microsoft.WindowsAzure.MobileServices
                 value = reader.ReadToEnd();
                 return value != null;
             }
-                    }
-                }
-            }
             catch
             {
                 value = Guid.Empty;
@@ -96,9 +93,6 @@ namespace Microsoft.WindowsAzure.MobileServices
                 using IsolatedStorageFileStream fileStream = isoStore.OpenFile(filename, FileMode.OpenOrCreate, FileAccess.Write);
                 using var writer = new StreamWriter(fileStream);
                 writer.WriteLine(value.ToString());
-            }
-                    }
-                }
             }
             catch (Exception)
             {
