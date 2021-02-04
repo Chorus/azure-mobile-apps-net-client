@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.MobileServices.Internal;
 
 #if PLATFORM_ANDROID || PLATFORM_IOS || PLATFORM_PCL
 using PCLCrypto;
@@ -22,7 +23,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         protected Uri LoginUri { get; private set; }
 
         protected Uri CallbackUri { get; private set; }
-        
+
         protected string CodeVerifier { get; private set; }
 
         protected MobileServicePKCEAuthentication(MobileServiceClient client, string provider, string uriScheme, IDictionary<string, string> parameters)
@@ -53,7 +54,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             loginParameters.Add("session_mode", "token");
             var loginQueryString = MobileServiceUrlBuilder.GetQueryString(loginParameters, false);
             var loginPathAndQuery = MobileServiceUrlBuilder.CombinePathAndQuery(path, loginQueryString);
-            
+
             this.LoginUri = new Uri(this.Client.MobileAppUri, loginPathAndQuery);
             if (this.Client.AlternateLoginHost != null)
             {
@@ -65,7 +66,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Login via OAuth 2.0 PKCE protocol.
         /// </summary>
         /// <returns></returns>
-        protected sealed override async Task<string> LoginAsyncOverride()
+        public sealed override async Task<string> LoginAsyncOverride()
         {
             // Show platform-specific login ui and care about handling authorization_code from callback via deep linking.
             var authorizationCode = await this.GetAuthorizationCodeAsync();
