@@ -32,7 +32,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <exception cref="InvalidOperationException">
         ///     Thrown if the authentication fails.
         /// </exception>
-        public override async Task<string> GetAuthorizationCodeAsync()
+        protected override async Task<string> GetAuthorizationCodeAsync()
         {
             try
             {
