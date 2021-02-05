@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.MobileServices.Internal;
 
 #if PLATFORM_ANDROID || PLATFORM_IOS || PLATFORM_PCL
 using PCLCrypto;
@@ -65,7 +66,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Login via OAuth 2.0 PKCE protocol.
         /// </summary>
         /// <returns></returns>
-        protected sealed override async Task<string> LoginAsyncOverride()
+        public sealed override async Task<string> LoginAsyncOverride()
         {
             // Show platform-specific login ui and care about handling authorization_code from callback via deep linking.
             var authorizationCode = await this.GetAuthorizationCodeAsync();
