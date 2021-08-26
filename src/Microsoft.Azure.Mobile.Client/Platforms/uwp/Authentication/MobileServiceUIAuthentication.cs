@@ -39,7 +39,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <returns>
         /// Task that will complete with the authorization code when the user finishes authentication.
         /// </returns>
-        public override Task<string> GetAuthorizationCodeAsync()
+        protected override Task<string> GetAuthorizationCodeAsync()
         {
             var tcs = new TaskCompletionSource<string>();
 
