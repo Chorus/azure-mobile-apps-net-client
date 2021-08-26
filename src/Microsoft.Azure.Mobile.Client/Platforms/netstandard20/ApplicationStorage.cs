@@ -52,7 +52,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         bool IApplicationStorage.TryReadSetting(string name, out object value)
         {
             Arguments.IsNotNullOrWhiteSpace(name, nameof(name));
-            
+
             var filename = string.Concat(StoragePrefix, name);
             try
             {

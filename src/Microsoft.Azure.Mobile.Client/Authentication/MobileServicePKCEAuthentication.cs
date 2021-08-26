@@ -23,7 +23,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         protected Uri LoginUri { get; private set; }
 
         protected Uri CallbackUri { get; private set; }
-        
+
         protected string CodeVerifier { get; private set; }
 
         protected MobileServicePKCEAuthentication(MobileServiceClient client, string provider, string uriScheme, IDictionary<string, string> parameters)
@@ -54,7 +54,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             loginParameters.Add("session_mode", "token");
             var loginQueryString = MobileServiceUrlBuilder.GetQueryString(loginParameters, false);
             var loginPathAndQuery = MobileServiceUrlBuilder.CombinePathAndQuery(path, loginQueryString);
-            
+
             this.LoginUri = new Uri(this.Client.MobileAppUri, loginPathAndQuery);
             if (this.Client.AlternateLoginHost != null)
             {

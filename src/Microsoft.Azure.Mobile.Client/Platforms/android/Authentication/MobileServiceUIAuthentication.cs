@@ -17,9 +17,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Internal
     internal class MobileServiceUIAuthentication : MobileServicePKCEAuthentication
     {
         public MobileServiceUIAuthentication(
-            MobileServiceClient client, 
-            string providerName, 
-            string uriScheme, 
+            MobileServiceClient client,
+            string providerName,
+            string uriScheme,
             IDictionary<string, string> parameters
         ) : base(client, providerName, uriScheme, parameters)
         {
