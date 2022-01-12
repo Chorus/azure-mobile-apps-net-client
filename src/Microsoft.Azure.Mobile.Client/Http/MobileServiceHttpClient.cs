@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using Microsoft.WindowsAzure.MobileServices.Http;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -118,7 +119,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="installationId">
         /// The installation id of the application.
         /// </param>
-        public MobileServiceHttpClient(IEnumerable<HttpMessageHandler> handlers, Uri applicationUri, string installationId)
+        public MobileServiceHttpClient(IEnumerable<HttpMessageHandler> handlers, Uri applicationUri, string installationId, HttpClientSettings httpClientSettings)
         {
             Arguments.IsNotNull(handlers, nameof(handlers));
             Arguments.IsNotNull(applicationUri, nameof(applicationUri));
@@ -126,8 +127,14 @@ namespace Microsoft.WindowsAzure.MobileServices
             this.applicationUri = applicationUri;
             this.installationId = installationId;
             this.httpHandler = CreatePipeline(handlers);
-            this.httpClient = new HttpClient(httpHandler);
-            this.httpClientSansHandlers = new HttpClient(DefaultHandlerFactory());
+            this.httpClient = new HttpClient(httpHandler)
+            {
+                Timeout = httpClientSettings.Timeout
+            };
+            this.httpClientSansHandlers = new HttpClient(DefaultHandlerFactory())
+            {
+                Timeout = httpClientSettings.Timeout
+            };
             this.userAgentHeaderValue = GetUserAgentHeader();
 
             // Work around user agent header passing mono bug
