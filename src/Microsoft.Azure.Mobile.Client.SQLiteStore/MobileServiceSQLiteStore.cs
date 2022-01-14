@@ -280,36 +280,46 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             {
                 throw new ArgumentNullException("ids");
             }
+            if (!ids.Any())
+            {
+                return Task.CompletedTask;
+            }
 
             this.EnsureInitialized();
 
-            string idRange = String.Join(",", ids.Select((_, i) => "@id" + i));
+            return this.operationSemaphore.WaitAsync()
+                .ContinueWith(t =>
+                {
+                    try
+                    {
+                        this.ExecuteNonQueryInternal("BEGIN TRANSACTION", null);
+
+                        foreach (var batch in ids.Split(MaxParametersPerQuery))
+                        {
+                            BatchDelete(tableName, batch);
+                        }
+
+                        this.ExecuteNonQueryInternal("COMMIT TRANSACTION", null);
+                    }
+                    finally
+                    {
+                        this.operationSemaphore.Release();
+                    }
+                });
+        }
+
+        private void BatchDelete(string tableName, IEnumerable<string> ids)
+        {
+            var parameters = ids
+                .Select((value, index) => (value, index))
+                .ToDictionary(pair => "@id" + pair.index, pair => (object)pair.value);
 
             string sql = string.Format("DELETE FROM {0} WHERE {1} IN ({2})",
                                        SqlHelpers.FormatTableName(tableName),
                                        MobileServiceSystemColumns.Id,
-                                       idRange);
+                                       string.Join(",", parameters.Keys));
 
-            var parameters = new Dictionary<string, object>();
-
-            int j = 0;
-            foreach (string id in ids)
-            {
-                parameters.Add("@id" + (j++), id);
-            }
-
-            return this.operationSemaphore.WaitAsync()
-               .ContinueWith(t =>
-               {
-                   try
-                   {
-                       this.ExecuteNonQueryInternal(sql, parameters);
-                   }
-                   finally
-                   {
-                       this.operationSemaphore.Release();
-                   }
-               });
+            this.ExecuteNonQueryInternal(sql, parameters);
         }
 
         /// <summary>
