@@ -292,7 +292,7 @@ namespace SQLiteStore.Tests
             hijack.AddResponseContent("[]");
 
             await table.PullAsync(queryId: "todoItems", query: table.CreateQuery());
-            QueryEquals(hijack.Requests[0].RequestUri.Query, "?$filter=(updatedAt%20ge%20datetimeoffset'1970-01-01T00%3A00%3A00.0000000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
+            QueryEquals(hijack.Requests[0].RequestUri.Query, "?$filter=(updatedAt%20ge%201970-01-01T00%3A00%3A00.0000000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
 
 
             pullResult = "[{\"id\":\"b\",\"String\":\"Updated\",\"version\":\"def\", \"updatedAt\":\"2014-02-27T23:01:33.444Z\"}]";
@@ -303,7 +303,7 @@ namespace SQLiteStore.Tests
 
             var item = await table.LookupAsync("b");
             Assert.Equal("Updated", item.String);
-            QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%20datetimeoffset'2014-01-30T23%3A01%3A33.4440000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
+            QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%202014-01-30T23%3A01%3A33.4440000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
         }
 
         [Fact]
@@ -319,7 +319,7 @@ namespace SQLiteStore.Tests
             hijack.AddResponseContent("[]");
 
             await table.PullAsync(queryId: "todoItems", query: table.CreateQuery());
-            QueryEquals(hijack.Requests[0].RequestUri.Query, "?$filter=(updatedAt%20ge%20datetimeoffset'1970-01-01T00%3A00%3A00.0000000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
+            QueryEquals(hijack.Requests[0].RequestUri.Query, "?$filter=(updatedAt%20ge%201970-01-01T00%3A00%3A00.0000000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
 
             table = await GetSynctable<ToDoWithStringId>(hijack);
 
@@ -332,7 +332,7 @@ namespace SQLiteStore.Tests
 
             var item = await table.LookupAsync("b");
             Assert.Equal("Updated", item.String);
-            QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%20datetimeoffset'2014-01-30T23%3A01%3A33.4440000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
+            QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%202014-01-30T23%3A01%3A33.4440000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
         }
 
         [Fact]
@@ -1011,6 +1011,6 @@ namespace SQLiteStore.Tests
             TestUtilities.ResetDatabase(TestDbName);
         }
 
-        private void QueryEquals(string a, string b) => Assert.Equal(Uri.UnescapeDataString(a), Uri.UnescapeDataString(b));
+        private void QueryEquals(string actual, string expected) => Assert.Equal(Uri.UnescapeDataString(expected), Uri.UnescapeDataString(actual));
     }
 }
