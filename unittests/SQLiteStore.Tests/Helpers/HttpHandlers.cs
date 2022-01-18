@@ -32,8 +32,6 @@ namespace SQLiteStore.Tests.Helpers
             this.nullResponse = CreateResponse(String.Empty);
         }
 
-        public TimeSpan? RequestSendingTime { get; set; }
-
         public HttpRequestMessage Request
         {
             get { return this.Requests.Count == 0 ? null : this.Requests[this.Requests.Count - 1]; }
@@ -88,10 +86,6 @@ namespace SQLiteStore.Tests.Helpers
 
             if (responseIndex < this.Responses.Count)
             {
-                if (RequestSendingTime is { } time)
-                {
-                    await Task.Delay(time, cancellationToken);
-                }
                 return Responses[responseIndex++];
             }
 

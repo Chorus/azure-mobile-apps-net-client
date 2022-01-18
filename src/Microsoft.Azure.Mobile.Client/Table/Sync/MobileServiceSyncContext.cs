@@ -39,7 +39,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         private OperationQueue opQueue;
         private IMobileServiceLocalStore localOperationsStore;
-        
+
         public IMobileServiceSyncHandler Handler { get; private set; }
 
         public IMobileServiceLocalStore Store
@@ -233,7 +233,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             var queryDescription = MobileServiceTableQueryDescription.Parse(tableName, query);
 
             using var trackedStore = CreateTrackedStore(StoreOperationSource.LocalPurge);
-            var action = new PurgeAction(table, tableKind, queryId, queryDescription, force, this, opQueue, 
+            var action = new PurgeAction(table, tableKind, queryId, queryDescription, force, this, opQueue,
                 client.EventManager, settings, Store, cancellationToken);
             await ExecuteSyncAction(action);
         }
