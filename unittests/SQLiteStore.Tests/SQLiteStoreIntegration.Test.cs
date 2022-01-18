@@ -989,8 +989,9 @@ namespace SQLiteStore.Tests
             var store = new MobileServiceSQLiteStore(TestDbName);
             store.DefineTable<ToDoWithSystemPropertiesType>();
 
-            var insertResponse_tcs = new TaskCompletionSource<bool>();
-            var hijack = new TestHttpHandler { OnSendingRequest = async r => { await insertResponse_tcs.Task; return r; } };
+            Action beginDeleteItem = null;
+            Task deleting = null;
+            var hijack = new TestHttpHandler { OnSendingRequest = r => { beginDeleteItem(); return Task.FromResult(r); } };
             hijack.AddResponseContent("{\"id\":\"b\",\"String\":\"Hey\",\"version\":\"def\",\"createdAt\":\"2014-01-29T23:01:33.444Z\", \"updatedAt\":\"2014-01-30T23:01:33.444Z\"}"); // insert response
             var service = await CreateClient(hijack, store);
             var table = service.GetSyncTable<ToDoWithSystemPropertiesType>();
@@ -998,14 +999,12 @@ namespace SQLiteStore.Tests
             // first, insert an item
             var item = new ToDoWithSystemPropertiesType("b") { String = "Hey" };
             await table.InsertAsync(item);
+            beginDeleteItem = () => deleting = table.DeleteAsync(item);
 
             // then start pushing it
-            var pushing = service.SyncContext.PushAsync();
-            // while push is in progress, delete the record while it doesn't have the 'version'
-            var deleting = table.DeleteAsync(item);
-            // 'insert' response received
-            insertResponse_tcs.SetResult(true);
-            await pushing;
+            await service.SyncContext.PushAsync();
+            // on 'insert' request is sent (that is while push is in progress), delete the record while it doesn't have the 'version'
+            // wait until deleting locally is complete
             await deleting;
 
             // push again to send the Delete request
