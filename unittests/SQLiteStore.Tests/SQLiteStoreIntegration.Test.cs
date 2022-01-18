@@ -981,6 +981,34 @@ namespace SQLiteStore.Tests
             Assert.Empty(remaining);
         }
 
+        [Fact]
+        public async Task Insert_ThenStartPush_ThenDelete_ThenEndPush_ThenPush()
+        {
+            string tableName = "stringId_test_table";
+            ResetDatabase(tableName);
+            var store = new MobileServiceSQLiteStore(TestDbName);
+            store.DefineTable<ToDoWithSystemPropertiesType>();
+
+            var hijack = new TestHttpHandler { RequestSendingTime = TimeSpan.FromSeconds(1) };
+            hijack.AddResponseContent("{\"id\":\"b\",\"String\":\"Hey\",\"version\":\"def\",\"createdAt\":\"2014-01-29T23:01:33.444Z\", \"updatedAt\":\"2014-01-30T23:01:33.444Z\"}"); // insert response
+            var service = await CreateClient(hijack, store);
+            var table = service.GetSyncTable<ToDoWithSystemPropertiesType>();
+
+            // first, insert an item
+            var item = new ToDoWithSystemPropertiesType("b") { String = "Hey" };
+            await table.InsertAsync(item);
+
+            // then start pushing it
+            var pushing = service.SyncContext.PushAsync();
+            // while push is in progress, delete the record while it doesn't have the 'version'
+            await table.DeleteAsync(item);
+            await pushing;
+            // push again to send the Delete request
+            await service.SyncContext.PushAsync();
+
+            Assert.Equal("\"def\"", hijack.Requests[1].Headers.IfMatch.ToString());
+        }
+
         private static async Task<IMobileServiceSyncTable<T>> GetSynctable<T>(TestHttpHandler hijack)
         {
             var store = new MobileServiceSQLiteStore(TestDbName);
