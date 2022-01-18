@@ -2,14 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+#nullable enable annotations
 using Microsoft.WindowsAzure.MobileServices.Eventing;
-using Microsoft.WindowsAzure.MobileServices.Http;
 using Microsoft.WindowsAzure.MobileServices.Internal;
 using Microsoft.WindowsAzure.MobileServices.Sync;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -45,8 +44,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Default empty array of HttpMessageHandlers.
         /// </summary>
         private static readonly HttpMessageHandler[] EmptyHttpMessageHandlers = new HttpMessageHandler[0];
-
-        private readonly HttpClientSettings _httpClientSettings;
+        private readonly TimeSpan? httpRequestTimeout;
 
         /// <summary>
         /// Absolute URI of the Microsoft Azure Mobile App.
@@ -106,7 +104,7 @@ namespace Microsoft.WindowsAzure.MobileServices
                     throw new ArgumentException("Invalid AlternateLoginHost", nameof(value));
                 }
 
-                this.AlternateAuthHttpClient = new MobileServiceHttpClient(EmptyHttpMessageHandlers, alternateLoginHost, this.InstallationId, _httpClientSettings);
+                this.AlternateAuthHttpClient = new MobileServiceHttpClient(EmptyHttpMessageHandlers, alternateLoginHost, this.InstallationId, httpRequestTimeout);
             }
         }
 
@@ -193,8 +191,8 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Chain of <see cref="HttpMessageHandler" /> instances.
         /// All but the last should be <see cref="DelegatingHandler"/>s.
         /// </param>
-        public MobileServiceClient(string mobileAppUri, HttpClientSettings httpClientSettings, params HttpMessageHandler[] handlers)
-            : this(new Uri(mobileAppUri, UriKind.Absolute), httpClientSettings, handlers)
+        public MobileServiceClient(string mobileAppUri, params HttpMessageHandler[] handlers)
+            : this(new Uri(mobileAppUri, UriKind.Absolute), handlers)
         {
         }
 
@@ -208,10 +206,9 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Chain of <see cref="HttpMessageHandler" /> instances.
         /// All but the last should be <see cref="DelegatingHandler"/>s.
         /// </param>
-        public MobileServiceClient(Uri mobileAppUri, HttpClientSettings httpClientSettings, params HttpMessageHandler[] handlers)
+        public MobileServiceClient(Uri mobileAppUri, params HttpMessageHandler[] handlers)
         {
             Arguments.IsNotNull(mobileAppUri, nameof(mobileAppUri));
-            _httpClientSettings = httpClientSettings;
             if (mobileAppUri.IsAbsoluteUri)
             {
                 // Trailing slash in the MobileAppUri is important. Fix it right here before we pass it on further.
@@ -225,7 +222,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             this.InstallationId = GetApplicationInstallationId();
 
             handlers ??= EmptyHttpMessageHandlers;
-            this.HttpClient = new MobileServiceHttpClient(handlers, this.MobileAppUri, this.InstallationId, httpClientSettings);
+            this.HttpClient = new MobileServiceHttpClient(handlers, this.MobileAppUri, this.InstallationId, httpRequestTimeout);
             this.Serializer = new MobileServiceSerializer();
             this.EventManager = new MobileServiceEventManager();
             this.SyncContext = new MobileServiceSyncContext(this);
@@ -235,7 +232,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Initializes a new instance of the <see cref="MobileServiceClient"/> class.
         /// </summary>
         /// <param name="options">the connection options.</param>
-        public MobileServiceClient(IMobileServiceClientOptions options, HttpClientSettings httpClientSettings) : this(options.MobileAppUri, null)
+        public MobileServiceClient(IMobileServiceClientOptions options) : this(options.MobileAppUri, null)
         {
             AlternateLoginHost = options.AlternateLoginHost;
             LoginUriPrefix = options.LoginUriPrefix;
@@ -243,8 +240,17 @@ namespace Microsoft.WindowsAzure.MobileServices
             var handlers = options.GetDefaultMessageHandlers(this) ?? EmptyHttpMessageHandlers;
             if (handlers.Any())
             {
-                HttpClient = new MobileServiceHttpClient(handlers, MobileAppUri, InstallationId, httpClientSettings);
+                HttpClient = new MobileServiceHttpClient(handlers, MobileAppUri, InstallationId, httpRequestTimeout);
             }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MobileServiceClient"/> class.
+        /// </summary>
+        /// <param name="options">the connection options.</param>
+        public MobileServiceClient(IMobileServiceClientOptions2 options) : this((IMobileServiceClientOptions)options)
+        {
+            httpRequestTimeout = options.HttpRequestTimeout;
         }
 
         /// <summary>

@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
-using Microsoft.WindowsAzure.MobileServices.Http;
+#nullable enable annotations
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -119,7 +119,7 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="installationId">
         /// The installation id of the application.
         /// </param>
-        public MobileServiceHttpClient(IEnumerable<HttpMessageHandler> handlers, Uri applicationUri, string installationId, HttpClientSettings httpClientSettings)
+        public MobileServiceHttpClient(IEnumerable<HttpMessageHandler> handlers, Uri applicationUri, string installationId, TimeSpan? httpRequestTimeout)
         {
             Arguments.IsNotNull(handlers, nameof(handlers));
             Arguments.IsNotNull(applicationUri, nameof(applicationUri));
@@ -127,13 +127,14 @@ namespace Microsoft.WindowsAzure.MobileServices
             this.applicationUri = applicationUri;
             this.installationId = installationId;
             this.httpHandler = CreatePipeline(handlers);
+            TimeSpan timeout = httpRequestTimeout ?? TimeSpan.FromSeconds(100);
             this.httpClient = new HttpClient(httpHandler)
             {
-                Timeout = httpClientSettings.Timeout
+                Timeout = timeout
             };
             this.httpClientSansHandlers = new HttpClient(DefaultHandlerFactory())
             {
-                Timeout = httpClientSettings.Timeout
+                Timeout = timeout
             };
             this.userAgentHeaderValue = GetUserAgentHeader();
 
