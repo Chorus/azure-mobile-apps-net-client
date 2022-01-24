@@ -380,7 +380,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
                 try
                 {
-                    if (operation.Kind == MobileServiceTableOperationKind.Delete && !item.ContainsKey(MobileServiceSystemColumns.Version))
+                    if (operation.Kind == MobileServiceTableOperationKind.Delete && !item.ContainsKey(MobileServiceSystemColumns.Version) || operation.Kind == MobileServiceTableOperationKind.Update)
                     {
                         var localItem = await LookupAsync(operation.TableName, item.Value<string>(MobileServiceSystemColumns.Id));
                         if (localItem?.Value<string>(MobileServiceSystemColumns.Version) is { } version)
