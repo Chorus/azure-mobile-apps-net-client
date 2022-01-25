@@ -131,7 +131,7 @@ namespace SQLiteStore.Tests
                 Assert.Single(items);
 
                 var lookedup = items.First as JObject;
-                Assert.Equal(lookedup.ToString(Formatting.None), upserted.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()));
+                Assert.Equal(lookedup.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()), upserted.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()));
             }
         }
 
@@ -387,24 +387,24 @@ namespace SQLiteStore.Tests
                 DefineTestTable(store);
                 await store.InitializeAsync();
 
-                await store.UpsertAsync(TestTable, new[]{new JObject()
+                await store.UpsertAsync(TestTable, new[] { new JObject()
                 {
                     { "id", "abc" },
                     { "text", "xyz" },
                     { "createdAt", DateTime.Now }
                 }}, ignoreMissingColumns: false);
 
-                await store.UpsertAsync(TestTable, new[]{new JObject()
+                await store.UpsertAsync(TestTable, new[] { new JObject()
                 {
                     { "id", "abc" },
-                    { "createdAt", new DateTime(200,1,2) }
+                    { "createdAt", new DateTime(200, 1, 3) }
                 }}, ignoreMissingColumns: false);
 
                 JObject result = await store.LookupAsync(TestTable, "abc");
 
                 Assert.Equal("abc", result.Value<string>("id"));
                 Assert.Equal("xyz", result.Value<string>("text"));
-                Assert.Equal("0200-01-02 00:00:00", result.Value<string>("createdAt"));
+                Assert.Equal("01/02/0200 22:00:00", result.Value<string>("createdAt"));
             }
             long count = TestUtilities.CountRows(TestDbName, TestTable);
             Assert.Equal(1L, count);
@@ -434,8 +434,10 @@ namespace SQLiteStore.Tests
                 await store.InitializeAsync();
 
                 //attempt to insert a couple of items
-                var item1 = new JObject(template);
-                item1["id"] = 1;
+                var item1 = new JObject(template)
+                {
+                    ["id"] = 1
+                };
 
                 var item2 = new JObject(template);
                 item1["id"] = 2;
@@ -474,8 +476,10 @@ namespace SQLiteStore.Tests
                 var itemsToInsert = Enumerable.Range(1, insertedItemCount)
                                               .Select(id =>
                                               {
-                                                  var o = new JObject(template);
-                                                  o["id"] = id;
+                                                  var o = new JObject(template)
+                                                  {
+                                                      ["id"] = id
+                                                  };
                                                   return o;
                                               })
                                               .ToArray();
