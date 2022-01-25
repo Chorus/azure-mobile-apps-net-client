@@ -446,10 +446,10 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
         private QueryNode FormatDateFunction(string formatSting, FunctionCallNode nodeIn)
         {
-            // CAST(strftime('%d', datetime([__createdAt], 'unixepoch')) AS INTEGER)
+            // CAST(strftime('%d', datetime([__createdAt], 'utc')) AS INTEGER)
             this.sql.AppendFormat("CAST(strftime('{0}', datetime(", formatSting);
             nodeIn.Arguments[0].Accept(this);
-            this.sql.Append(", 'unixepoch')) AS INTEGER)");
+            this.sql.Append(", 'utc')) AS INTEGER)");
 
             return nodeIn;
         }

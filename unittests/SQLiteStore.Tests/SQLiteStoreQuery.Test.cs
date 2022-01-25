@@ -62,8 +62,8 @@ namespace SQLiteStore.Tests
         [Fact]
         public async Task Query_Date_Functions()
         {
+            //await TestQuery("$filter=col4 gt '1970-09-12T12:00:00Z'", 3);
             await TestQuery("$filter=year(col4) ge 1980", 2);
-            await TestQuery("$filter=col4 gt 1970-09-12T12:00:00Z", 3);
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace SQLiteStore.Tests
             JArray results = await Query<JArray>("$filter=((col1 eq 'brown') or (col1 eq 'fox')) and (col2 le 5)");
             Assert.Single(results);
 
-            Assert.Equal(testData[2].ToString(Formatting.None, new MobileServiceNetDateTimeConverter()), results[0].ToString(Formatting.None));
+            Assert.Equal(testData[2].ToString(Formatting.None, new MobileServiceNetDateTimeConverter()), results[0].ToString(Formatting.None, new MobileServiceNetDateTimeConverter()));
         }
 
         [Fact]
@@ -330,14 +330,14 @@ namespace SQLiteStore.Tests
             using (MobileServiceSQLiteStore store = await SetupMathTestTable(mathTestData))
             {
                 var results = await Query<JArray>(store, MathTestTable, query);
-                Assert.Equal(results.Count, mathTestData.Length);
+                Assert.Equal(mathTestData.Length, results.Count);
             }
         }
 
         private static async Task TestQuery(string query, int expectedResults)
         {
             JArray results = await Query<JArray>(query);
-            Assert.Equal(results.Count, expectedResults);
+            Assert.Equal(expectedResults, results.Count);
         }
 
         private static async Task<T> Query<T>(string query) where T : JToken
