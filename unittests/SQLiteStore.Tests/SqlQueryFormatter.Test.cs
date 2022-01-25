@@ -61,7 +61,7 @@ namespace SQLiteStore.Tests
 
             string expectedSql = "SELECT * FROM [test] WHERE ([close_dt] > @p1)";
 
-            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, (DateTime.Parse("2012-05-29T09:13:28") - epoch).TotalSeconds);
+            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, DateTime.Parse("2012-05-29T09:13:28"));
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace SQLiteStore.Tests
 
             string expectedSql = "SELECT * FROM [test] WHERE ([close_dt] > @p1)";
 
-            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, (DateTime.Parse("2012-05-29T09:13:28") - epoch).TotalSeconds);
+            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, DateTime.Parse("2012-05-29T09:13:28"));
         }
 
         [Fact]
@@ -257,7 +257,7 @@ namespace SQLiteStore.Tests
             {
                 string name = "@p" + (i + 1);
                 Assert.True(formatter.Parameters.ContainsKey(name));
-                Assert.Equal(formatter.Parameters[name], parameters[i]);
+                Assert.Equal(parameters[i], formatter.Parameters[name]);
             }
         }
     }
