@@ -234,12 +234,21 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             {
                 return JToken.Parse(strValue);
             }
-            //if (type == JTokenType.Date)
-            //{
-            //    return DeserializeDateTime(strValue);
-            //}
+            if (type == JTokenType.Date)
+            {
+                return DeserializeDateTime(strValue);
+            }
 
             return strValue;
+        }
+
+        private static JToken DeserializeDateTime(string value)
+        {
+            return value is { } ? 
+                DateTime.TryParseExact(value, _efCoreDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var result)  ? 
+                    result : 
+                    DateTime.Parse(value) :
+                value;
         }
 
         private static JToken ParseReal(JTokenType type, object value)
@@ -256,15 +265,6 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 return boolValue;
             }
             return longValue;
-        }
-
-        private static JToken DeserializeDateTime(string value)
-        {
-            return value is { } ? 
-                DateTime.TryParseExact(value, _efCoreDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var result)  ? 
-                    result : 
-                    DateTime.Parse(value) :
-                value;
         }
 
         private static void ValidateIdentifier(string identifier)
