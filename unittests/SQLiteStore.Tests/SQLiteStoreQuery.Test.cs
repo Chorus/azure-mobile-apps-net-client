@@ -127,7 +127,7 @@ namespace SQLiteStore.Tests
             JArray results = await Query<JArray>("$filter=((col1 eq 'brown') or (col1 eq 'fox')) and (col2 le 5)");
             Assert.Single(results);
 
-            Assert.Equal(results[0].ToString(), testData[2].ToString());
+            Assert.Equal(testData[2].ToString(Formatting.None, new MobileServiceNetDateTimeConverter()), results[0].ToString(Formatting.None));
         }
 
         [Fact]
@@ -320,9 +320,9 @@ namespace SQLiteStore.Tests
 
         private static void AssertJArraysAreEqual(JArray results, JArray expected)
         {
-            string actualResult = results.ToString(Formatting.None);
-            string expectedResult = expected.ToString(Formatting.None);
-            Assert.Equal(actualResult, expectedResult);
+            string actualResult = results.ToString(Formatting.None, new MobileServiceNetDateTimeConverter());
+            string expectedResult = expected.ToString(Formatting.None, new MobileServiceNetDateTimeConverter());
+            Assert.Equal(expectedResult, actualResult);
         }
 
         private static async Task TestMathQuery(JObject[] mathTestData, string query)

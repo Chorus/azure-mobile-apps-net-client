@@ -10,7 +10,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 {
     internal class SqlHelpers
     {
-        private const string _efCoreDateTimeFormat = @"yyyy\-MM\-dd HH\:mm\:ss.FFFFFFF";
+        public const string _efCoreDateTimeFormat = @"yyyy\-MM\-dd HH\:mm\:ss.FFFFFFF";
 
         public static object SerializeValue(JValue value, bool allowNull)
         {

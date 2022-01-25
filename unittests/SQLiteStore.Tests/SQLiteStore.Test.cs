@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.WindowsAzure.MobileServices.Query;
 using Microsoft.WindowsAzure.MobileServices.SQLiteStore;
 using Newtonsoft.Json;
@@ -130,7 +131,7 @@ namespace SQLiteStore.Tests
                 Assert.Single(items);
 
                 var lookedup = items.First as JObject;
-                Assert.Equal(upserted.ToString(Formatting.None), lookedup.ToString(Formatting.None));
+                Assert.Equal(lookedup.ToString(Formatting.None), upserted.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()));
             }
         }
 
