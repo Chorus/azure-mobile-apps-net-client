@@ -264,10 +264,10 @@ namespace MobileClient.Tests.Table
             AssertFilter(query.Filter, "((Weight le 10f) or (InStock eq true))");
 
             query = Compile<Product, Product>(table => table.Where(p => p.Created == new DateTime(1994, 10, 14, 0, 0, 0, DateTimeKind.Utc)));
-            AssertFilter(query.Filter, "(Created eq datetime'1994-10-14T00%3A00%3A00.000Z')");
+            AssertFilter(query.Filter, "(Created eq 1994-10-14T00%3A00%3A00.000Z)");
 
             query = Compile<ProductWithDateTimeOffset, ProductWithDateTimeOffset>(table => table.Where(p => p.Created == new DateTimeOffset(1994, 10, 13, 17, 0, 0, TimeSpan.FromHours(7))));
-            AssertFilter(query.Filter, "(Created eq datetimeoffset'1994-10-13T17%3A00%3A00.0000000%2B07%3A00')");
+            AssertFilter(query.Filter, "(Created eq 1994-10-13T17%3A00%3A00.0000000%2B07%3A00)");
         }
 
         [Fact]
@@ -979,7 +979,7 @@ namespace MobileClient.Tests.Table
                from p in table
                where p.Updated == minDate
                select p);
-            AssertFilter(query.Filter, "(Updated eq datetime'0001-01-01T08%3A00%3A00.000Z')");
+            AssertFilter(query.Filter, "(Updated eq 0001-01-01T08%3A00%3A00.000Z)");
 
             query = Compile<Product, Product>(table =>
                 from p in table

@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SQLiteStore.Tests.Helpers;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -16,10 +17,14 @@ namespace SQLiteStore.Tests
 {
     public class SQLiteStore_Test
     {
-        private static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private const string TestDbName = "sqlitestore-test.db";
         private const string TestTable = "todo";
         private static readonly DateTime testDate = DateTime.Parse("2014-02-11 14:52:19").ToUniversalTime();
+
+        static SQLiteStore_Test()
+        {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+        }
 
         [Fact]
         public async Task InitializeAsync_InitializesTheStore()
@@ -66,10 +71,10 @@ namespace SQLiteStore.Tests
         {
             await PrepareTodoTable();
 
-            long date = (long)(testDate - epoch).TotalSeconds;
+            string date = testDate.ToString();
 
             // insert a row and make sure it is inserted
-            TestUtilities.ExecuteNonQuery(TestDbName, "INSERT INTO todo (id, createdAt) VALUES ('abc', " + date + ")");
+            TestUtilities.ExecuteNonQuery(TestDbName, "INSERT INTO todo (id, createdAt) VALUES ('abc', '" + date + "')");
             long count = TestUtilities.CountRows(TestDbName, TestTable);
             Assert.Equal(1L, count);
 

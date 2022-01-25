@@ -6,6 +6,7 @@ using Microsoft.WindowsAzure.MobileServices.SQLiteStore;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Xunit;
 
 namespace SQLiteStore.Tests
@@ -89,21 +90,6 @@ namespace SQLiteStore.Tests
                 var ex = Assert.Throws<NotSupportedException>(() => SqlHelpers.GetStoreType(type, allowNull: false));
                 Assert.Equal(ex.Message, String.Format("Property of type '{0}' is not supported.", type));
             }
-        }
-
-        [Fact]
-        public void SerializeValue_LosesPrecision_WhenValueIsDate()
-        {
-            var original = new DateTime(635338107839470268);
-            var serialized = (double)SqlHelpers.SerializeValue(new JValue(original), SqlColumnType.DateTime, JTokenType.Date);
-            Assert.Equal(1398213983.9470000, serialized);
-        }
-
-        [Fact]
-        public void ParseReal_LosesPrecision_WhenValueIsDate()
-        {
-            var date = (DateTime)SqlHelpers.DeserializeValue(1398213983.9470267, SqlColumnType.Real, JTokenType.Date);
-            Assert.Equal(635338107839470000, date.Ticks);
         }
     }
 }

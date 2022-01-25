@@ -26,7 +26,7 @@
     <Company>Microsoft</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>4.1.110</Version>
+    <Version>4.1.111-dev.1</Version>
     <PackageId>Chorus.Azure.Mobile.Client</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">

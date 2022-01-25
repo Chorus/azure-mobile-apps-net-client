@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using SQLiteStore.Tests.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -23,6 +24,11 @@ namespace SQLiteStore.Tests
     {
         private const string TestTable = "stringId_test_table";
         private static string TestDbName = "integration-test.db";
+
+        static SQLiteStoreIntegration()
+        {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+        }
 
         [Fact]
         public async Task InsertAsync_Throws_IfItemAlreadyExistsInLocalStore()

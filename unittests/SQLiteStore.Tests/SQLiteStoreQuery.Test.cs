@@ -63,7 +63,7 @@ namespace SQLiteStore.Tests
         public async Task Query_Date_Functions()
         {
             await TestQuery("$filter=year(col4) ge 1980", 2);
-            await TestQuery("$filter=col4 gt datetime'1970-09-12T12:00:00Z'", 3);
+            await TestQuery("$filter=col4 gt 1970-09-12T12:00:00Z", 3);
         }
 
         [Fact]
@@ -75,8 +75,8 @@ namespace SQLiteStore.Tests
             JObject result = (JObject)results[0];
             DateTime col4 = result.Value<DateTime>("col4");
 
-            Assert.Equal(DateTimeKind.Utc, col4.Kind);
             Assert.Equal(testData[0]["col4"].Value<DateTime>(), col4);
+            Assert.Equal(DateTimeKind.Utc, col4.Kind);
         }
 
         [Fact]
