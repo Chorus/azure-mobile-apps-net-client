@@ -9,14 +9,6 @@ using System.Globalization;
 
 namespace Microsoft.WindowsAzure.MobileServices
 {
-    public class MobileServiceNetDateTimeConverter : MobileServiceIsoDateTimeConverter
-    {
-        public MobileServiceNetDateTimeConverter()
-        {
-            this.DateTimeFormat = "yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'FFFFFFF";
-        }
-    }
-
     /// <summary>
     /// Converts DateTime and DateTimeOffset object into UTC DateTime and creates a ISO string representation
     /// by calling ToUniversalTime on serialization and ToLocalTime on deserialization.
