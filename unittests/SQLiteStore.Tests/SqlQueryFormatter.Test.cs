@@ -61,7 +61,7 @@ namespace SQLiteStore.Tests
 
             string expectedSql = "SELECT * FROM [test] WHERE ([close_dt] > @p1)";
 
-            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, DateTime.Parse("2012-05-29T09:13:28"));
+            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, DateTime.Parse("2012-05-29T09:13:28").ToString(SqlHelpers._efCoreDateTimeFormat));
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace SQLiteStore.Tests
 
             string expectedSql = "SELECT * FROM [test] WHERE ([close_dt] > @p1)";
 
-            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, DateTime.Parse("2012-05-29T09:13:28"));
+            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, DateTime.Parse("2012-05-29T09:13:28").ToString(SqlHelpers._efCoreDateTimeFormat));
         }
 
         [Fact]

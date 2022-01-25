@@ -78,11 +78,11 @@ namespace SQLiteStore.Tests
             DateTime theDate = new DateTime(2014, 3, 10, 0, 0, 0, DateTimeKind.Utc);
             JObject inserted = await table.InsertAsync(new JObject() { { "date", theDate } });
 
-            Assert.Equal(inserted["date"].Value<DateTime>(), theDate);
+            Assert.Equal(theDate, inserted["date"].Value<DateTime>());
 
             JObject rehydrated = await table.LookupAsync(inserted["id"].Value<string>());
 
-            Assert.Equal(rehydrated["date"].Value<DateTime>(), theDate);
+            Assert.Equal(theDate, rehydrated["date"].Value<DateTime>());
         }
 
         [Fact]
@@ -609,8 +609,8 @@ namespace SQLiteStore.Tests
             Assert.Equal("Hey", lookedupItem.String);
             Assert.Equal("abc", lookedupItem.Version);
             // we ignored the sys properties on the local object
-            Assert.Equal(lookedupItem.CreatedAt, new DateTime(0, DateTimeKind.Utc));
-            Assert.Equal(lookedupItem.UpdatedAt, new DateTime(0, DateTimeKind.Utc));
+            Assert.Equal(new DateTime(0, DateTimeKind.Utc), lookedupItem.CreatedAt);
+            Assert.Equal(new DateTime(0, DateTimeKind.Utc), lookedupItem.UpdatedAt);
 
             Assert.Equal(1L, service.SyncContext.PendingOperations); // operation pending
 
@@ -630,8 +630,8 @@ namespace SQLiteStore.Tests
             Assert.Equal("Wow", lookedupItem.String);
             Assert.Equal("def", lookedupItem.Version);
             // we preserved the system properties returned from server on update
-            Assert.Equal(lookedupItem.CreatedAt.ToUniversalTime(), new DateTime(2014, 01, 29, 23, 1, 33, 444, DateTimeKind.Utc));
-            Assert.Equal(lookedupItem.UpdatedAt.ToUniversalTime(), new DateTime(2014, 01, 30, 23, 1, 33, 444, DateTimeKind.Utc));
+            Assert.Equal(new DateTime(2014, 01, 29, 23, 1, 33, 444, DateTimeKind.Utc), lookedupItem.CreatedAt.ToUniversalTime());
+            Assert.Equal(new DateTime(2014, 01, 30, 23, 1, 33, 444, DateTimeKind.Utc), lookedupItem.UpdatedAt.ToUniversalTime());
         }
 
         [Fact]

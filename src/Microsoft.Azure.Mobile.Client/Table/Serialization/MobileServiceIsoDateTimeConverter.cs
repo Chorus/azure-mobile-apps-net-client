@@ -44,13 +44,13 @@ namespace Microsoft.WindowsAzure.MobileServices
         {
             object datetimeObject = base.ReadJson(reader, objectType, existingValue, serializer);
 
-            if(datetimeObject != null)
+            if (datetimeObject != null)
             {
-                if(datetimeObject is DateTime time)
+                if (datetimeObject is DateTime time)
                 {
                     return time.ToLocalTime();
                 }
-                else if(datetimeObject is DateTimeOffset)
+                else if (datetimeObject is DateTimeOffset)
                 {
                     return new DateTimeOffset((DateTime)reader.Value).ToLocalTime();
                 }

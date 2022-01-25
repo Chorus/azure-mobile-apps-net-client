@@ -397,14 +397,14 @@ namespace SQLiteStore.Tests
                 await store.UpsertAsync(TestTable, new[]{new JObject()
                 {
                     { "id", "abc" },
-                    { "createdAt", new DateTime(200,1,1) }
+                    { "createdAt", new DateTime(200,1,2) }
                 }}, ignoreMissingColumns: false);
 
                 JObject result = await store.LookupAsync(TestTable, "abc");
 
                 Assert.Equal("abc", result.Value<string>("id"));
                 Assert.Equal("xyz", result.Value<string>("text"));
-                Assert.Equal("01/01/0200 00:00:00", result.Value<string>("createdAt"));
+                Assert.Equal("0200-01-02 00:00:00", result.Value<string>("createdAt"));
             }
             long count = TestUtilities.CountRows(TestDbName, TestTable);
             Assert.Equal(1L, count);
@@ -527,7 +527,7 @@ namespace SQLiteStore.Tests
                 JObject itemRead = await store.LookupAsync(TestTable, "abc");
 
                 // make sure everything was persisted the same
-                Assert.Equal(originalItem.ToString(), itemRead.ToString());
+                Assert.Equal(originalItem.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()), itemRead.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()));
 
                 // change the item
                 originalItem["double"] = 111.222d;
@@ -542,10 +542,10 @@ namespace SQLiteStore.Tests
                 Assert.Equal(111.222d, updatedItem.Value<double>("double"));
 
                 // make sure the item is same as updated item
-                Assert.Equal(originalItem.ToString(), updatedItem.ToString());
+                Assert.Equal(originalItem.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()), updatedItem.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()));
 
                 // make sure item is not same as its initial state
-                Assert.NotEqual(originalItem.ToString(), itemRead.ToString());
+                Assert.NotEqual(originalItem.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()), itemRead.ToString(Formatting.None, new MobileServiceNetDateTimeConverter()));
 
                 // now delete the item
                 await store.DeleteAsync(TestTable, new[] { "abc" });
