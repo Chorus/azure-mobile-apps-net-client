@@ -380,15 +380,25 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
                 try
                 {
-                    // Deleting/updating a record while pushing it, causes an error, so we have to update the version before executing the local operation
+                    // Deleting/updating a record while pushing it, causes an error, so the version has to be updating after
+                    // pushing the record to the server and before executing the local operation.
                     // see https://github.com/Chorus/azure-mobile-apps-net-client/pull/13
-                    if (operation.Kind == MobileServiceTableOperationKind.Delete && !item.ContainsKey(MobileServiceSystemColumns.Version) 
-                        || operation.Kind == MobileServiceTableOperationKind.Update)
+                    if ((operation.Kind == MobileServiceTableOperationKind.Delete || operation.Kind == MobileServiceTableOperationKind.Update)
+                        && !item.ContainsKey(MobileServiceSystemColumns.Version))
                     {
                         var localItem = await Store.LookupAsync(operation.TableName, item.Value<string>(MobileServiceSystemColumns.Id));
                         if (localItem?.Value<string>(MobileServiceSystemColumns.Version) is { } version)
                         {
                             item[MobileServiceSystemColumns.Version] = version;
+                        }
+                        else if (localItem is null)
+                        {
+                            throw new InvalidOperationException("The item doesn't have a version, and it doesn't exist in the local store anymore");
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("The local item doesn't have a version, and without it, it can't be pushed to the server");
+
                         }
                     }
 
