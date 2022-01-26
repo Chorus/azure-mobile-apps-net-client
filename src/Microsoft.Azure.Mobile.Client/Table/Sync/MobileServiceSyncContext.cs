@@ -380,8 +380,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
                 try
                 {
-                    // Deleting/updating a record while pushing it, causes an error, so the version has to be updating after
-                    // pushing the record to the server and before executing the local operation.
+                    // Deleting/updating a record while pushing it right after it was created, causes PreconditionRequired
+                    // error because version was missing from the item,
+                    // so the version has to be updated after pushing the record to the server and before executing the local operation.
                     // see https://github.com/Chorus/azure-mobile-apps-net-client/pull/13
                     if ((operation.Kind == MobileServiceTableOperationKind.Delete || operation.Kind == MobileServiceTableOperationKind.Update)
                         && !item.ContainsKey(MobileServiceSystemColumns.Version))
