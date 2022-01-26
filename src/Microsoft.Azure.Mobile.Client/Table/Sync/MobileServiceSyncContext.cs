@@ -380,6 +380,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
                 try
                 {
+                    // Deleting/updating a record while pushing it, causes an error, so we have to update the version before executing the local operation
+                    // see https://github.com/Chorus/azure-mobile-apps-net-client/pull/13
                     if (operation.Kind == MobileServiceTableOperationKind.Delete && !item.ContainsKey(MobileServiceSystemColumns.Version) 
                         || operation.Kind == MobileServiceTableOperationKind.Update)
                     {
