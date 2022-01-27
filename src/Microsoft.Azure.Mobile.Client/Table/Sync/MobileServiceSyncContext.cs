@@ -392,15 +392,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                         {
                             item[MobileServiceSystemColumns.Version] = version;
                         }
-                        else if (localItem is null)
-                        {
-                            throw new InvalidOperationException("The item doesn't have a version, and it doesn't exist in the local store anymore");
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException("The local item doesn't have a version, and without it, it can't be pushed to the server");
-
-                        }
                     }
 
                     await operation.ExecuteLocalAsync(this.localOperationsStore, item); // first execute operation on local store
