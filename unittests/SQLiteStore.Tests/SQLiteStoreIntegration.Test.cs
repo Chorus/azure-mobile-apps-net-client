@@ -1019,54 +1019,6 @@ namespace SQLiteStore.Tests
             Assert.Equal("\"def\"", hijack.Requests[1].Headers.IfMatch.ToString());
         }
 
-        [Fact]
-        public async Task Update_ThenStartPush_ThenUpdate_ThenEndPush_ThenPush()
-        {
-            string tableName = "stringId_test_table";
-            ResetDatabase(tableName);
-            var store = new MobileServiceSQLiteStore(TestDbName);
-            store.DefineTable<ToDoWithSystemPropertiesType>();
-
-            Action beginSecondUpdate = null;
-            Task updating = null;
-            var hijack = new TestHttpHandler { OnSendingRequest = r => { beginSecondUpdate?.Invoke(); return Task.FromResult(r); } };
-            // insert response
-            hijack.AddResponseContent("{\"id\":\"b\",\"String\":\"Hey\",\"version\":\"v1\",\"createdAt\":\"2014-01-29T23:01:33.444Z\", \"updatedAt\":\"2014-01-30T23:01:33.444Z\"}"); // insert response
-            // update 1 response
-            hijack.AddResponseContent("{\"id\":\"b\",\"String\":\"Updated 1\",\"version\":\"v2\",\"createdAt\":\"2014-01-29T23:01:33.444Z\", \"updatedAt\":\"2014-01-30T23:02:33.444Z\"}"); // insert response
-            // update 2 response
-            hijack.AddResponseContent("{\"id\":\"b\",\"String\":\"Updated 2\",\"version\":\"v3\",\"createdAt\":\"2014-01-29T23:01:33.444Z\", \"updatedAt\":\"2014-01-30T23:03:33.444Z\"}"); // insert response
-
-            var service = await CreateClient(hijack, store);
-            var table = service.GetSyncTable<ToDoWithSystemPropertiesType>();
-
-            // first, insert an item
-            var item = new ToDoWithSystemPropertiesType("b") { String = "Hey" };
-            await table.InsertAsync(item);
-            await service.SyncContext.PushAsync();
-
-            var rehydratedItem = await table.LookupAsync(item.Id);
-            rehydratedItem.String = "Updated 1";
-            await table.UpdateAsync(item);
-
-            beginSecondUpdate = () =>
-            {
-                rehydratedItem.String = "Updated 2";
-                updating = table.UpdateAsync(rehydratedItem);
-            };
-
-            // then start pushing it
-            await service.SyncContext.PushAsync();
-            // on 'insert' request is sent (that is while push is in progress), delete the record while it doesn't have the 'version'
-            // wait until deleting locally is complete
-            await updating;
-
-            // push again to send the Delete request
-            await service.SyncContext.PushAsync();
-
-            Assert.Equal("\"v2\"", hijack.Requests[2].Headers.IfMatch.ToString());
-        }
-
         private static async Task<IMobileServiceSyncTable<T>> GetSynctable<T>(TestHttpHandler hijack)
         {
             var store = new MobileServiceSQLiteStore(TestDbName);
