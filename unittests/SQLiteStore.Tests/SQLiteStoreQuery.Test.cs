@@ -62,10 +62,13 @@ namespace SQLiteStore.Tests
         [Fact]
         public async Task Query_Date_Functions()
         {
-            //await TestQuery("$filter=col4 gt '1970-09-12T12:00:00Z'", 3);
+            await TestQuery("$filter=col4 gt '1970-09-12T12:00:00Z'", 3);
             await TestQuery("$filter=year(col4) ge 1980", 2);
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task Query_Date_ReturnedAsDate()
         {

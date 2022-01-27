@@ -376,6 +376,9 @@ namespace SQLiteStore.Tests
             Assert.Equal(1L, count);
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task UpsertAsync_UpdatesTheRow_WhenItExists()
         {

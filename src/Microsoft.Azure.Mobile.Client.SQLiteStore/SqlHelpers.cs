@@ -236,7 +236,8 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             }
             if (type == JTokenType.Date)
             {
-                return DeserializeDateTime(strValue);
+                // TODO: uncomment this when tested together with the NOTE app
+                //return DeserializeDateTime(strValue);
             }
 
             return strValue;

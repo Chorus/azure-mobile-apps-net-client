@@ -85,6 +85,9 @@ namespace SQLiteStore.Tests
             Assert.Equal(theDate, rehydrated["date"].Value<DateTime>());
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task ReadAsync_RoundTripsDate_Generic()
         {
@@ -341,6 +344,9 @@ namespace SQLiteStore.Tests
             QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%202014-01-30T23%3A01%3A33.4440000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task PullAsync_RequestsSystemProperties_WhenDefinedOnTableType()
         {
@@ -581,6 +587,9 @@ namespace SQLiteStore.Tests
             Assert.Equal(0L, client.SyncContext.PendingOperations);
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task SystemPropertiesArePreserved_OnlyWhenReturnedFromServer()
         {
@@ -812,6 +821,9 @@ namespace SQLiteStore.Tests
             Assert.Null(updatedItem); // item is deleted
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task Insert_AllTypes_ThenRead_ThenPush_ThenLookup()
         {
