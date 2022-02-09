@@ -20,8 +20,8 @@ namespace SQLiteStore.Tests.Helpers
     /// </summary>
     public class TestHttpHandler : DelegatingHandler
     {
-        HttpResponseMessage nullResponse;
-        int responseIndex = 0;
+        private HttpResponseMessage nullResponse;
+        private int responseIndex = 0;
 
         public TestHttpHandler()
         {
@@ -70,7 +70,7 @@ namespace SQLiteStore.Tests.Helpers
             this.Responses.Add(CreateResponse(content));
         }
 
-        protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             string content = request.Content == null ? null : await request.Content.ReadAsStringAsync();
             this.RequestContents.Add(content);

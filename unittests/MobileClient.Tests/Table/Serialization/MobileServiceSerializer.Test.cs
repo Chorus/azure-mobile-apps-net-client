@@ -1636,6 +1636,8 @@ namespace MobileClient.Tests.Table.Serialization
         [Fact]
         public void DecimalSerializationNegative()
         {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+
             decimal twoToTheFifthyThird = 9007199254740992.0m; // 2^53
             string errorString = "The value {0} for member Decimal is outside the valid range for numeric columns.";
             List<Tuple<DecimalType, string>> testCases = new List<Tuple<DecimalType, string>>() {

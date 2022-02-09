@@ -6,6 +6,7 @@
     <Title>Azure Mobile SQLiteStore</Title>
     <Authors>Microsoft; Chorus</Authors>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
+	<LangVersion>10.0</LangVersion>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps-net-client</PackageProjectUrl>
@@ -20,8 +21,8 @@
     <DebugType>portable</DebugType>
     <RootNamespace>Microsoft.WindowsAzure.MobileServices.SQLiteStore</RootNamespace>
     <Company>Microsoft</Company>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>4.1.108</Version>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Version>4.1.113</Version>
     <PackageId>Chorus.Azure.Mobile.Client.SQLiteStore</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">

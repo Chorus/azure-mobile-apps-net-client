@@ -106,8 +106,8 @@ namespace MobileClient.Tests.Table.Sync
                 new JObject() { { "id", "abc" }, { "text", "has id"}, { "updatedAt", "1985-07-17" } },
                 new JObject() { { "id", "abc" }, { "text", "has id"}, { "updatedAt", "2014-07-09" } }
             });
-            string firstQuery = "$filter=(updatedAt ge datetimeoffset'2013-01-01T00%3A00%3A00.0000000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50";
-            string secondQuery = "$filter=(updatedAt ge datetimeoffset'2014-07-09T07%3A00%3A00.0000000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50";
+            string firstQuery = "$filter=(updatedAt ge 2013-01-01T00%3A00%3A00.0000000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50";
+            string secondQuery = "$filter=(updatedAt ge 2014-07-09T07%3A00%3A00.0000000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50";
 
             var action = new PullAction(
                 table.Object, MobileServiceTableKind.Table, 
@@ -180,8 +180,8 @@ namespace MobileClient.Tests.Table.Sync
                 new JObject() { { "id", "abc" }, { "text", "has id"}, { "updatedAt", "1985-07-17" } },
                 new JObject() { { "id", "abc" }, { "text", "has id"}, { "updatedAt", "2014-07-09" } }
             });
-            string firstQuery = "$filter=((4 eq 3) and (updatedAt ge datetimeoffset'2013-01-01T00%3A00%3A00.0000000%2B00%3A00'))&$orderby=updatedAt&$skip=0&$top=50";
-            string secondQuery = "$filter=((4 eq 3) and (updatedAt ge datetimeoffset'2014-07-09T07%3A00%3A00.0000000%2B00%3A00'))&$orderby=updatedAt&$skip=0&$top=50";
+            string firstQuery = "$filter=((4 eq 3) and (updatedAt ge 2013-01-01T00%3A00%3A00.0000000%2B00%3A00))&$orderby=updatedAt&$skip=0&$top=50";
+            string secondQuery = "$filter=((4 eq 3) and (updatedAt ge 2014-07-09T07%3A00%3A00.0000000%2B00%3A00))&$orderby=updatedAt&$skip=0&$top=50";
 
             var action = new PullAction(
                 table.Object, MobileServiceTableKind.Table, 
@@ -247,7 +247,7 @@ namespace MobileClient.Tests.Table.Sync
 
             var query = new MobileServiceTableQueryDescription(testName);
             var result = new JArray();
-            string firstQuery = "$filter=(updatedAt ge datetimeoffset'2013-01-01T00%3A00%3A00.0000000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50";
+            string firstQuery = "$filter=(updatedAt ge 2013-01-01T00%3A00%3A00.0000000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50";
 
             var action = new PullAction(
                 table.Object, MobileServiceTableKind.Table, 
@@ -304,8 +304,8 @@ namespace MobileClient.Tests.Table.Sync
             {
                 new JObject() { { "id", "abc" }, { "text", "has id"}, { "updatedAt", "1985-07-17" } },
             });
-            string firstQuery = "$filter=((4 eq 3) and (updatedAt ge datetimeoffset'2013-01-01T00%3A00%3A00.0000000%2B00%3A00'))&$orderby=updatedAt&$skip=0&$top=50";
-            string secondQuery = "$filter=((4 eq 3) and (updatedAt ge datetimeoffset'2013-01-01T00%3A00%3A00.0000000%2B00%3A00'))&$orderby=updatedAt&$skip=1&$top=50";
+            string firstQuery = "$filter=((4 eq 3) and (updatedAt ge 2013-01-01T00%3A00%3A00.0000000%2B00%3A00))&$orderby=updatedAt&$skip=0&$top=50";
+            string secondQuery = "$filter=((4 eq 3) and (updatedAt ge 2013-01-01T00%3A00%3A00.0000000%2B00%3A00))&$orderby=updatedAt&$skip=1&$top=50";
 
             var action = new PullAction(
                 table.Object, MobileServiceTableKind.Table, 
@@ -365,8 +365,8 @@ namespace MobileClient.Tests.Table.Sync
             var handler = new Mock<IMobileServiceSyncHandler>(MockBehavior.Strict);
             var client = new Mock<MobileServiceClient>();
             client.Object.Serializer = new MobileServiceSerializer();
-            var context = new Mock<MobileServiceSyncContext>(client.Object);
-            var table = new Mock<MobileServiceTable<ToDoWithSystemPropertiesType>>(testName, client.Object);
+            var context = new Mock<MobileServiceSyncContext>(MockBehavior.Strict, client.Object);
+            var table = new Mock<MobileServiceTable<ToDoWithSystemPropertiesType>>(MockBehavior.Strict, testName, client.Object);
 
             var query = new MobileServiceTableQueryDescription(testName);
             query.Filter = new BinaryOperatorNode(BinaryOperatorKind.Equal, new ConstantNode(4), new ConstantNode(3));
@@ -375,8 +375,8 @@ namespace MobileClient.Tests.Table.Sync
                 new JObject() { { "id", "abc" }, { "text", "has id"} },
                 new JObject() { { "id", "abc" }, { "text", "has id"} }
             });
-            string firstQuery = "$filter=((4 eq 3) and (updatedAt ge datetimeoffset'2013-01-01T00%3A00%3A00.0000000%2B00%3A00'))&$orderby=updatedAt&$skip=0&$top=50";
-            string secondQuery = "$filter=((4 eq 3) and (updatedAt ge datetimeoffset'2013-01-01T00%3A00%3A00.0000000%2B00%3A00'))&$orderby=updatedAt&$skip=2&$top=50";
+            string firstQuery = "$filter=((4 eq 3) and (updatedAt ge 2013-01-01T00%3A00%3A00.0000000%2B00%3A00))&$orderby=updatedAt&$skip=0&$top=50";
+            string secondQuery = "$filter=((4 eq 3) and (updatedAt ge 2013-01-01T00%3A00%3A00.0000000%2B00%3A00))&$orderby=updatedAt&$skip=2&$top=50";
 
             var action = new PullAction(
                 table.Object, MobileServiceTableKind.Table, 

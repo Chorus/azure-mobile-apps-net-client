@@ -263,8 +263,8 @@ namespace MobileClient.Tests.Table
             Assert.Equal("How", store.TableMap["stringId_test_table"]["def"].Value<string>("String"));
 
             MatchUris(hijack.Requests, 
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'2001-02-04T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"));
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 2001-02-04T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"));
 
             Assert.Equal("2001-02-04T00:00:00.0000000+00:00", store.TableMap[MobileServiceLocalSystemTables.Config]["deltaToken|stringId_test_table|items"]["value"]);
         }
@@ -294,8 +294,8 @@ namespace MobileClient.Tests.Table
             Assert.Equal("How", store.TableMap["stringId_test_table"]["def"].Value<string>("String"));
 
             MatchUris(hijack.Requests, 
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$skip=0&$top=50&__includeDeleted=true"),
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$skip=2&$top=50&__includeDeleted=true"));
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$skip=0&$top=50&__includeDeleted=true"),
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$skip=2&$top=50&__includeDeleted=true"));
 
             Assert.False(store.TableMap[MobileServiceLocalSystemTables.Config].ContainsKey("deltaToken|stringId_test_table|items"));
         }
@@ -689,8 +689,8 @@ namespace MobileClient.Tests.Table
         public async Task PullAsync_Incremental_AllOptions_MovesByUpdatedAt()
         {
             await TestPullAsyncIncrementalWithOptions(MobileServiceRemoteTableOptions.All,
-                    "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-01T00:00:00.0000000%2B00:00'))&$orderby=updatedAt&$skip=0&$top=50&param1=val1&__includeDeleted=true",
-                    "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-03T00:00:00.0000000%2B00:00'))&$orderby=updatedAt&$skip=0&$top=50&param1=val1&__includeDeleted=true");
+                    "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-01T00:00:00.0000000%2B00:00))&$orderby=updatedAt&$skip=0&$top=50&param1=val1&__includeDeleted=true",
+                    "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-03T00:00:00.0000000%2B00:00))&$orderby=updatedAt&$skip=0&$top=50&param1=val1&__includeDeleted=true");
         }
 
         [Fact]
@@ -713,8 +713,8 @@ namespace MobileClient.Tests.Table
 
             await table.PullAsync("items", table.CreateQuery());
             MatchUris(hijack.Requests,
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=1&$top=50&__includeDeleted=true"));
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=1&$top=50&__includeDeleted=true"));
         }
 
         [Fact]
@@ -738,40 +738,40 @@ namespace MobileClient.Tests.Table
 
             await table.PullAsync("items", table.CreateQuery());
             MatchUris(hijack.Requests,
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'2001-02-03T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'2001-02-03T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=1&$top=50&__includeDeleted=true"));
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 2001-02-03T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 2001-02-03T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=1&$top=50&__includeDeleted=true"));
         }
 
         [Fact]
         public async Task PullAsync_Incremental_WithoutOrderBy_MovesBySkipAndTop()
         {
             await TestPullAsyncIncrementalWithOptions(MobileServiceRemoteTableOptions.Skip | MobileServiceRemoteTableOptions.Top,
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-01T00:00:00.0000000%2B00:00'))&$skip=0&$top=50&param1=val1&__includeDeleted=true",
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-01T00:00:00.0000000%2B00:00'))&$skip=2&$top=50&param1=val1&__includeDeleted=true");
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-01T00:00:00.0000000%2B00:00))&$skip=0&$top=50&param1=val1&__includeDeleted=true",
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-01T00:00:00.0000000%2B00:00))&$skip=2&$top=50&param1=val1&__includeDeleted=true");
         }
 
         [Fact]
         public async Task PullAsync_Incremental_WithoutSkipAndOrderBy_CanNotMoveForward()
         {
             await TestPullAsyncIncrementalWithOptions(MobileServiceRemoteTableOptions.Top,
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-01T00:00:00.0000000%2B00:00'))&$top=50&param1=val1&__includeDeleted=true");
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-01T00:00:00.0000000%2B00:00))&$top=50&param1=val1&__includeDeleted=true");
         }
 
         [Fact]
         public async Task PullAsync_Incremental_WithoutTopAndOrderBy_MovesBySkip()
         {
             await TestPullAsyncIncrementalWithOptions(MobileServiceRemoteTableOptions.Skip,
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-01T00:00:00.0000000%2B00:00'))&param1=val1&__includeDeleted=true",
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-01T00:00:00.0000000%2B00:00'))&$skip=2&param1=val1&__includeDeleted=true");
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-01T00:00:00.0000000%2B00:00))&param1=val1&__includeDeleted=true",
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-01T00:00:00.0000000%2B00:00))&$skip=2&param1=val1&__includeDeleted=true");
         }
 
         [Fact]
         public async Task PullAsync_Incremental_WithoutSkipAndTop_MovesByUpdatedAt()
         {
             await TestPullAsyncIncrementalWithOptions(MobileServiceRemoteTableOptions.OrderBy,
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-01T00:00:00.0000000%2B00:00'))&$orderby=updatedAt&param1=val1&__includeDeleted=true",
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-03T00:00:00.0000000%2B00:00'))&$orderby=updatedAt&param1=val1&__includeDeleted=true");
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-01T00:00:00.0000000%2B00:00))&$orderby=updatedAt&param1=val1&__includeDeleted=true",
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-03T00:00:00.0000000%2B00:00))&$orderby=updatedAt&param1=val1&__includeDeleted=true");
         }
 
         [Fact]
@@ -797,8 +797,8 @@ namespace MobileClient.Tests.Table
 
             await table.PullAsync("items", table.CreateQuery(), pullOptions: pullOptions);
             MatchUris(hijack.Requests,
-                string.Format("http://www.test.com/tables/stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top={0}&__includeDeleted=true", pullOptions.MaxPageSize),
-                string.Format("http://www.test.com/tables/stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=1&$top={0}&__includeDeleted=true", pullOptions.MaxPageSize));
+                string.Format("http://www.test.com/tables/stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top={0}&__includeDeleted=true", pullOptions.MaxPageSize),
+                string.Format("http://www.test.com/tables/stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=1&$top={0}&__includeDeleted=true", pullOptions.MaxPageSize));
         }
 
         private static async Task TestPullAsyncIncrementalWithOptions(MobileServiceRemoteTableOptions options, params string[] uris)
@@ -815,8 +815,8 @@ namespace MobileClient.Tests.Table
             var store = new MobileServiceLocalStoreMock();
             store.TableMap[MobileServiceLocalSystemTables.Config] = new Dictionary<string, JObject>();
             await TestIncrementalPull(store, MobileServiceRemoteTableOptions.All,
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00'))&$orderby=updatedAt&$skip=0&$top=50&param1=val1&__includeDeleted=true",
-                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge datetimeoffset'2001-02-03T00:00:00.0000000%2B00:00'))&$orderby=updatedAt&$skip=0&$top=50&param1=val1&__includeDeleted=true");
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00))&$orderby=updatedAt&$skip=0&$top=50&param1=val1&__includeDeleted=true",
+                "stringId_test_table?$filter=((String eq 'world') and (updatedAt ge 2001-02-03T00:00:00.0000000%2B00:00))&$orderby=updatedAt&$skip=0&$top=50&param1=val1&__includeDeleted=true");
         }
 
         private static async Task TestIncrementalPull(MobileServiceLocalStoreMock store, MobileServiceRemoteTableOptions options, params string[] expectedTableUriComponents)
@@ -954,9 +954,9 @@ namespace MobileClient.Tests.Table
 
             // verify request urls
             MatchUris(hijack.Requests, 
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'2001-02-04T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
-                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge datetimeoffset'1970-01-01T00:00:00.0000000%2B00:00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"));
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 2001-02-04T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"),
+                mobileAppUriValidator.GetTableUri("stringId_test_table?$filter=(updatedAt ge 1970-01-01T00:00:00.0000000%2B00:00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true"));
         }
 
         [Fact]

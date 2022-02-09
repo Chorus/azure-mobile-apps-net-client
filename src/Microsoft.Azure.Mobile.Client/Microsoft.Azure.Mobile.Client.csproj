@@ -25,8 +25,8 @@
     <RootNamespace>Microsoft.WindowsAzure.MobileServices</RootNamespace>
     <Company>Microsoft</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>4.1.107</Version>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Version>4.1.113</Version>
     <PackageId>Chorus.Azure.Mobile.Client</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">

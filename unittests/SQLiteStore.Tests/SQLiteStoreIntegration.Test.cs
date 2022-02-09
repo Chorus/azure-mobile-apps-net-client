@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using SQLiteStore.Tests.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -23,6 +24,11 @@ namespace SQLiteStore.Tests
     {
         private const string TestTable = "stringId_test_table";
         private static string TestDbName = "integration-test.db";
+
+        static SQLiteStoreIntegration()
+        {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+        }
 
         [Fact]
         public async Task InsertAsync_Throws_IfItemAlreadyExistsInLocalStore()
@@ -72,13 +78,16 @@ namespace SQLiteStore.Tests
             DateTime theDate = new DateTime(2014, 3, 10, 0, 0, 0, DateTimeKind.Utc);
             JObject inserted = await table.InsertAsync(new JObject() { { "date", theDate } });
 
-            Assert.Equal(inserted["date"].Value<DateTime>(), theDate);
+            Assert.Equal(theDate, inserted["date"].Value<DateTime>());
 
             JObject rehydrated = await table.LookupAsync(inserted["id"].Value<string>());
 
-            Assert.Equal(rehydrated["date"].Value<DateTime>(), theDate);
+            Assert.Equal(theDate, rehydrated["date"].Value<DateTime>());
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task ReadAsync_RoundTripsDate_Generic()
         {
@@ -292,7 +301,7 @@ namespace SQLiteStore.Tests
             hijack.AddResponseContent("[]");
 
             await table.PullAsync(queryId: "todoItems", query: table.CreateQuery());
-            QueryEquals(hijack.Requests[0].RequestUri.Query, "?$filter=(updatedAt%20ge%20datetimeoffset'1970-01-01T00%3A00%3A00.0000000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
+            QueryEquals(hijack.Requests[0].RequestUri.Query, "?$filter=(updatedAt%20ge%201970-01-01T00%3A00%3A00.0000000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
 
 
             pullResult = "[{\"id\":\"b\",\"String\":\"Updated\",\"version\":\"def\", \"updatedAt\":\"2014-02-27T23:01:33.444Z\"}]";
@@ -303,7 +312,7 @@ namespace SQLiteStore.Tests
 
             var item = await table.LookupAsync("b");
             Assert.Equal("Updated", item.String);
-            QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%20datetimeoffset'2014-01-30T23%3A01%3A33.4440000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
+            QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%202014-01-30T23%3A01%3A33.4440000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
         }
 
         [Fact]
@@ -319,7 +328,7 @@ namespace SQLiteStore.Tests
             hijack.AddResponseContent("[]");
 
             await table.PullAsync(queryId: "todoItems", query: table.CreateQuery());
-            QueryEquals(hijack.Requests[0].RequestUri.Query, "?$filter=(updatedAt%20ge%20datetimeoffset'1970-01-01T00%3A00%3A00.0000000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
+            QueryEquals(hijack.Requests[0].RequestUri.Query, "?$filter=(updatedAt%20ge%201970-01-01T00%3A00%3A00.0000000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
 
             table = await GetSynctable<ToDoWithStringId>(hijack);
 
@@ -332,9 +341,12 @@ namespace SQLiteStore.Tests
 
             var item = await table.LookupAsync("b");
             Assert.Equal("Updated", item.String);
-            QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%20datetimeoffset'2014-01-30T23%3A01%3A33.4440000%2B00%3A00')&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
+            QueryEquals(hijack.Requests[2].RequestUri.Query, "?$filter=(updatedAt%20ge%202014-01-30T23%3A01%3A33.4440000%2B00%3A00)&$orderby=updatedAt&$skip=0&$top=50&__includeDeleted=true");
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task PullAsync_RequestsSystemProperties_WhenDefinedOnTableType()
         {
@@ -575,6 +587,9 @@ namespace SQLiteStore.Tests
             Assert.Equal(0L, client.SyncContext.PendingOperations);
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task SystemPropertiesArePreserved_OnlyWhenReturnedFromServer()
         {
@@ -603,8 +618,8 @@ namespace SQLiteStore.Tests
             Assert.Equal("Hey", lookedupItem.String);
             Assert.Equal("abc", lookedupItem.Version);
             // we ignored the sys properties on the local object
-            Assert.Equal(lookedupItem.CreatedAt, new DateTime(0, DateTimeKind.Utc));
-            Assert.Equal(lookedupItem.UpdatedAt, new DateTime(0, DateTimeKind.Utc));
+            Assert.Equal(new DateTime(0, DateTimeKind.Utc), lookedupItem.CreatedAt);
+            Assert.Equal(new DateTime(0, DateTimeKind.Utc), lookedupItem.UpdatedAt);
 
             Assert.Equal(1L, service.SyncContext.PendingOperations); // operation pending
 
@@ -624,8 +639,8 @@ namespace SQLiteStore.Tests
             Assert.Equal("Wow", lookedupItem.String);
             Assert.Equal("def", lookedupItem.Version);
             // we preserved the system properties returned from server on update
-            Assert.Equal(lookedupItem.CreatedAt.ToUniversalTime(), new DateTime(2014, 01, 29, 23, 1, 33, 444, DateTimeKind.Utc));
-            Assert.Equal(lookedupItem.UpdatedAt.ToUniversalTime(), new DateTime(2014, 01, 30, 23, 1, 33, 444, DateTimeKind.Utc));
+            Assert.Equal(new DateTime(2014, 01, 29, 23, 1, 33, 444, DateTimeKind.Utc), lookedupItem.CreatedAt.ToUniversalTime());
+            Assert.Equal(new DateTime(2014, 01, 30, 23, 1, 33, 444, DateTimeKind.Utc), lookedupItem.UpdatedAt.ToUniversalTime());
         }
 
         [Fact]
@@ -806,6 +821,9 @@ namespace SQLiteStore.Tests
             Assert.Null(updatedItem); // item is deleted
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task Insert_AllTypes_ThenRead_ThenPush_ThenLookup()
         {
@@ -981,6 +999,38 @@ namespace SQLiteStore.Tests
             Assert.Empty(remaining);
         }
 
+        [Fact]
+        public async Task Insert_ThenStartPush_ThenDelete_ThenEndPush_ThenPush()
+        {
+            string tableName = "stringId_test_table";
+            ResetDatabase(tableName);
+            var store = new MobileServiceSQLiteStore(TestDbName);
+            store.DefineTable<ToDoWithSystemPropertiesType>();
+
+            Action beginDeleteItem = null;
+            Task deleting = null;
+            var hijack = new TestHttpHandler { OnSendingRequest = r => { beginDeleteItem(); return Task.FromResult(r); } };
+            hijack.AddResponseContent("{\"id\":\"b\",\"String\":\"Hey\",\"version\":\"def\",\"createdAt\":\"2014-01-29T23:01:33.444Z\", \"updatedAt\":\"2014-01-30T23:01:33.444Z\"}"); // insert response
+            var service = await CreateClient(hijack, store);
+            var table = service.GetSyncTable<ToDoWithSystemPropertiesType>();
+
+            // first, insert an item
+            var item = new ToDoWithSystemPropertiesType("b") { String = "Hey" };
+            await table.InsertAsync(item);
+            beginDeleteItem = () => deleting = table.DeleteAsync(item);
+
+            // then start pushing it
+            await service.SyncContext.PushAsync();
+            // on 'insert' request is sent (that is while push is in progress), delete the record while it doesn't have the 'version'
+            // wait until deleting locally is complete
+            await deleting;
+
+            // push again to send the Delete request
+            await service.SyncContext.PushAsync();
+
+            Assert.Equal("\"def\"", hijack.Requests[1].Headers.IfMatch.ToString());
+        }
+
         private static async Task<IMobileServiceSyncTable<T>> GetSynctable<T>(TestHttpHandler hijack)
         {
             var store = new MobileServiceSQLiteStore(TestDbName);
@@ -1011,6 +1061,6 @@ namespace SQLiteStore.Tests
             TestUtilities.ResetDatabase(TestDbName);
         }
 
-        private void QueryEquals(string a, string b) => Assert.Equal(Uri.UnescapeDataString(a), Uri.UnescapeDataString(b));
+        private void QueryEquals(string actual, string expected) => Assert.Equal(Uri.UnescapeDataString(expected), Uri.UnescapeDataString(actual));
     }
 }

@@ -57,21 +57,23 @@ namespace SQLiteStore.Tests
         [Fact]
         public void FormatSelect_Date_Comparison()
         {
-            string odata = "$filter=close_dt gt datetime'2012-05-29T09:13:28'";
+            string odata = "$filter=close_dt gt '2012-05-29T09:13:28'";
 
             string expectedSql = "SELECT * FROM [test] WHERE ([close_dt] > @p1)";
 
-            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, (DateTime.Parse("2012-05-29T09:13:28") - epoch).TotalSeconds);
+            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, 
+                DateTime.Parse("2012-05-29T09:13:28Z").ToUniversalTime().ToString(@"yyyy\-MM\-ddTHH\:mm\:ss.FFFFFFF"));
         }
 
         [Fact]
         public void FormatSelect_DateTimeOffset_Comparison()
         {
-            string odata = "$filter=close_dt gt datetimeoffset'2012-05-29T09:13:28'";
+            string odata = "$filter=close_dt gt '2012-05-29T09:13:28'";
 
             string expectedSql = "SELECT * FROM [test] WHERE ([close_dt] > @p1)";
 
-            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, (DateTime.Parse("2012-05-29T09:13:28") - epoch).TotalSeconds);
+            TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, 
+                DateTime.Parse("2012-05-29T09:13:28Z").ToUniversalTime().ToString(@"yyyy\-MM\-ddTHH\:mm\:ss.FFFFFFF"));
         }
 
         [Fact]
@@ -114,7 +116,7 @@ namespace SQLiteStore.Tests
         {
             string odata = "$filter=" + fn + "(close_dt) eq 5";
 
-            string expectedSql = "SELECT * FROM [test] WHERE (CAST(strftime('" + format + "', datetime([close_dt], 'unixepoch')) AS INTEGER) = @p1)";
+            string expectedSql = "SELECT * FROM [test] WHERE (CAST(strftime('" + format + "', datetime([close_dt], 'utc')) AS INTEGER) = @p1)";
 
             TestSqlFormatting(f => f.FormatSelect, odata, expectedSql, 5L);
         }
@@ -257,7 +259,7 @@ namespace SQLiteStore.Tests
             {
                 string name = "@p" + (i + 1);
                 Assert.True(formatter.Parameters.ContainsKey(name));
-                Assert.Equal(formatter.Parameters[name], parameters[i]);
+                Assert.Equal(parameters[i], formatter.Parameters[name]);
             }
         }
     }
