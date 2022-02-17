@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.MobileServices.Sync;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -232,16 +233,11 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Initializes a new instance of the <see cref="MobileServiceClient"/> class.
         /// </summary>
         /// <param name="options">the connection options.</param>
-        public MobileServiceClient(IMobileServiceClientOptions options) : this(options.MobileAppUri, null)
+        public MobileServiceClient(IMobileServiceClientOptions options, TimeSpan? timeout = null) : this(options.MobileAppUri, null)
         {
-            AlternateLoginHost = options.AlternateLoginHost;
-            LoginUriPrefix = options.LoginUriPrefix;
+            httpRequestTimeout = timeout;
 
-            var handlers = options.GetDefaultMessageHandlers(this) ?? EmptyHttpMessageHandlers;
-            if (handlers.Any())
-            {
-                HttpClient = new MobileServiceHttpClient(handlers, MobileAppUri, InstallationId, httpRequestTimeout);
-            }
+            Debug.WriteLine($"IMobileServiceClientOptions2 ctr. httpRequestTimeout = {httpRequestTimeout}, handlers.Any(): {handlers.Any()}");
         }
 
         /// <summary>
@@ -250,7 +246,16 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// <param name="options">the connection options.</param>
         public MobileServiceClient(IMobileServiceClientOptions2 options) : this((IMobileServiceClientOptions)options)
         {
-            httpRequestTimeout = options.HttpRequestTimeout;
+            AlternateLoginHost = options.AlternateLoginHost;
+            LoginUriPrefix = options.LoginUriPrefix;
+
+            var handlers = options.GetDefaultMessageHandlers(this) ?? EmptyHttpMessageHandlers;
+            if (handlers.Any())
+            {
+                HttpClient = new MobileServiceHttpClient(handlers, MobileAppUri, InstallationId, options.HttpRequestTimeout);
+            }
+
+            Debug.WriteLine($"IMobileServiceClientOptions2 ctr. httpRequestTimeout = {httpRequestTimeout}");
         }
 
         /// <summary>
