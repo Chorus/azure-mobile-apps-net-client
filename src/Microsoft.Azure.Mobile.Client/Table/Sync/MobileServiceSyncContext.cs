@@ -39,7 +39,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         private OperationQueue opQueue;
         private IMobileServiceLocalStore localOperationsStore;
-        
+
         public IMobileServiceSyncHandler Handler { get; private set; }
 
         public IMobileServiceLocalStore Store
@@ -233,7 +233,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             var queryDescription = MobileServiceTableQueryDescription.Parse(tableName, query);
 
             using var trackedStore = CreateTrackedStore(StoreOperationSource.LocalPurge);
-            var action = new PurgeAction(table, tableKind, queryId, queryDescription, force, this, opQueue, 
+            var action = new PurgeAction(table, tableKind, queryId, queryDescription, force, this, opQueue,
                 client.EventManager, settings, Store, cancellationToken);
             await ExecuteSyncAction(action);
         }
@@ -380,6 +380,20 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
                 try
                 {
+                    // Deleting/updating a record while pushing it right after it was created, causes PreconditionRequired
+                    // error because version was missing from the item,
+                    // so the version has to be updated after pushing the record to the server and before executing the local operation.
+                    // see https://github.com/Chorus/azure-mobile-apps-net-client/pull/13
+                    if ((operation.Kind == MobileServiceTableOperationKind.Delete || operation.Kind == MobileServiceTableOperationKind.Update)
+                        && !item.ContainsKey(MobileServiceSystemColumns.Version))
+                    {
+                        var localItem = await Store.LookupAsync(operation.TableName, item.Value<string>(MobileServiceSystemColumns.Id));
+                        if (localItem?.Value<string>(MobileServiceSystemColumns.Version) is { } version)
+                        {
+                            item[MobileServiceSystemColumns.Version] = version;
+                        }
+                    }
+
                     await operation.ExecuteLocalAsync(this.localOperationsStore, item); // first execute operation on local store
                 }
                 catch (Exception ex)

@@ -62,10 +62,13 @@ namespace SQLiteStore.Tests
         [Fact]
         public async Task Query_Date_Functions()
         {
+            await TestQuery("$filter=col4 gt '1970-09-12T12:00:00Z'", 3);
             await TestQuery("$filter=year(col4) ge 1980", 2);
-            await TestQuery("$filter=col4 gt datetime'1970-09-12T12:00:00Z'", 3);
         }
 
+        // TODO: uncomment this when tested together with the NOTE app
+        // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
+        // return DeserializeDateTime(strValue)
         [Fact]
         public async Task Query_Date_ReturnedAsDate()
         {
@@ -75,8 +78,8 @@ namespace SQLiteStore.Tests
             JObject result = (JObject)results[0];
             DateTime col4 = result.Value<DateTime>("col4");
 
-            Assert.Equal(DateTimeKind.Utc, col4.Kind);
             Assert.Equal(testData[0]["col4"].Value<DateTime>(), col4);
+            Assert.Equal(DateTimeKind.Utc, col4.Kind);
         }
 
         [Fact]
@@ -127,7 +130,7 @@ namespace SQLiteStore.Tests
             JArray results = await Query<JArray>("$filter=((col1 eq 'brown') or (col1 eq 'fox')) and (col2 le 5)");
             Assert.Single(results);
 
-            Assert.Equal(results[0].ToString(), testData[2].ToString());
+            Assert.Equal(testData[2].ToString(Formatting.None, new MobileServiceNetDateTimeConverter()), results[0].ToString(Formatting.None, new MobileServiceNetDateTimeConverter()));
         }
 
         [Fact]
@@ -320,9 +323,9 @@ namespace SQLiteStore.Tests
 
         private static void AssertJArraysAreEqual(JArray results, JArray expected)
         {
-            string actualResult = results.ToString(Formatting.None);
-            string expectedResult = expected.ToString(Formatting.None);
-            Assert.Equal(actualResult, expectedResult);
+            string actualResult = results.ToString(Formatting.None, new MobileServiceNetDateTimeConverter());
+            string expectedResult = expected.ToString(Formatting.None, new MobileServiceNetDateTimeConverter());
+            Assert.Equal(expectedResult, actualResult);
         }
 
         private static async Task TestMathQuery(JObject[] mathTestData, string query)
@@ -330,14 +333,14 @@ namespace SQLiteStore.Tests
             using (MobileServiceSQLiteStore store = await SetupMathTestTable(mathTestData))
             {
                 var results = await Query<JArray>(store, MathTestTable, query);
-                Assert.Equal(results.Count, mathTestData.Length);
+                Assert.Equal(mathTestData.Length, results.Count);
             }
         }
 
         private static async Task TestQuery(string query, int expectedResults)
         {
             JArray results = await Query<JArray>(query);
-            Assert.Equal(results.Count, expectedResults);
+            Assert.Equal(expectedResults, results.Count);
         }
 
         private static async Task<T> Query<T>(string query) where T : JToken

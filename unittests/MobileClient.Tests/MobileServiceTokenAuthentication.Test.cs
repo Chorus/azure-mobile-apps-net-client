@@ -52,7 +52,7 @@ namespace MobileClient.Tests
         {
             var authTestInfo = Initialize_Client(appUrl, loginPrefix, alternateLoginUri);
             var auth = new MobileServiceTokenAuthentication(authTestInfo.Client, "MicrosoftAccount", new Newtonsoft.Json.Linq.JObject(), parameters);
-            Assert.Equal(auth.StartUri.OriginalString, uri);
+            Assert.Equal(uri, auth.StartUri.OriginalString);
         }
 
         private async Task TestLoginAsyncForParameters(Dictionary<string, string> parameters, string uri, string loginPrefix = null,
@@ -61,7 +61,7 @@ namespace MobileClient.Tests
             var authTestInfo = Initialize_Client(appUrl, loginPrefix, alternateLoginUrl);
             var auth = new MobileServiceTokenAuthentication(authTestInfo.Client, "MicrosoftAccount", new JObject(), parameters);
             await auth.LoginAsync();
-            Assert.Equal(authTestInfo.Hijack.Request.RequestUri.OriginalString, uri);
+            Assert.Equal(uri, authTestInfo.Hijack.Request.RequestUri.OriginalString);
         }
 
         [Fact]
