@@ -206,7 +206,22 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Chain of <see cref="HttpMessageHandler" /> instances.
         /// All but the last should be <see cref="DelegatingHandler"/>s.
         /// </param>
-        public MobileServiceClient(Uri mobileAppUri, params HttpMessageHandler[] handlers)
+        public MobileServiceClient(string mobileAppUri, TimeSpan? httpRequestTimeout, params HttpMessageHandler[] handlers)
+            : this(new Uri(mobileAppUri, UriKind.Absolute), httpRequestTimeout, handlers)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the MobileServiceClient class.
+        /// </summary>
+        /// <param name="mobileAppUri">
+        /// Absolute URI of the Microsoft Azure Mobile App.
+        /// </param>
+        /// <param name="handlers">
+        /// Chain of <see cref="HttpMessageHandler" /> instances.
+        /// All but the last should be <see cref="DelegatingHandler"/>s.
+        /// </param>
+        public MobileServiceClient(Uri mobileAppUri, TimeSpan? httpRequestTimeout, params HttpMessageHandler[] handlers)
         {
             Arguments.IsNotNull(mobileAppUri, nameof(mobileAppUri));
             if (mobileAppUri.IsAbsoluteUri)
@@ -222,6 +237,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             this.InstallationId = GetApplicationInstallationId();
 
             handlers ??= EmptyHttpMessageHandlers;
+            this.httpRequestTimeout = httpRequestTimeout;
             this.HttpClient = new MobileServiceHttpClient(handlers, this.MobileAppUri, this.InstallationId, httpRequestTimeout);
             this.Serializer = new MobileServiceSerializer();
             this.EventManager = new MobileServiceEventManager();
@@ -229,10 +245,26 @@ namespace Microsoft.WindowsAzure.MobileServices
         }
 
         /// <summary>
+        /// Initializes a new instance of the MobileServiceClient class.
+        /// </summary>
+        /// <param name="mobileAppUri">
+        /// Absolute URI of the Microsoft Azure Mobile App.
+        /// </param>
+        /// <param name="handlers">
+        /// Chain of <see cref="HttpMessageHandler" /> instances.
+        /// All but the last should be <see cref="DelegatingHandler"/>s.
+        /// </param>
+        public MobileServiceClient(Uri mobileAppUri, params HttpMessageHandler[] handlers) 
+            : this(mobileAppUri, httpRequestTimeout: null, handlers)
+        {
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MobileServiceClient"/> class.
         /// </summary>
         /// <param name="options">the connection options.</param>
-        public MobileServiceClient(IMobileServiceClientOptions options) : this(options.MobileAppUri, null)
+        public MobileServiceClient(IMobileServiceClientOptions options, TimeSpan? httpRequestTimeout)
+            : this(options.MobileAppUri, httpRequestTimeout, null)
         {
             AlternateLoginHost = options.AlternateLoginHost;
             LoginUriPrefix = options.LoginUriPrefix;
@@ -240,7 +272,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             var handlers = options.GetDefaultMessageHandlers(this) ?? EmptyHttpMessageHandlers;
             if (handlers.Any())
             {
-                HttpClient = new MobileServiceHttpClient(handlers, MobileAppUri, InstallationId, httpRequestTimeout);
+                HttpClient = new MobileServiceHttpClient(handlers, MobileAppUri, InstallationId, this.httpRequestTimeout);
             }
         }
 
@@ -248,9 +280,19 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// Initializes a new instance of the <see cref="MobileServiceClient"/> class.
         /// </summary>
         /// <param name="options">the connection options.</param>
-        public MobileServiceClient(IMobileServiceClientOptions2 options) : this((IMobileServiceClientOptions)options)
+        public MobileServiceClient(IMobileServiceClientOptions options)
+            : this(options, httpRequestTimeout: null)
         {
-            httpRequestTimeout = options.HttpRequestTimeout;
+
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MobileServiceClient"/> class.
+        /// </summary>
+        /// <param name="options">the connection options.</param>
+        public MobileServiceClient(IMobileServiceClientOptions2 options) 
+            : this(options, (options ?? throw new ArgumentNullException(nameof(options))).HttpRequestTimeout)
+        {
         }
 
         /// <summary>
