@@ -117,9 +117,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public async Task UpdateAsync(string tableName, MobileServiceTableKind tableKind, string id, JObject item)
         {
+            var localItem = await Store.LookupAsync(tableName, id);
             var operation = new UpdateOperation(tableName, tableKind, id)
             {
-                Table = await this.GetTable(tableName)
+                Table = await this.GetTable(tableName),
+                PreviousItem = localItem, // item will be updated in store, so we need to put it in the operation queue
+                Item = localItem // item will be updated in store, so we need to put it in the operation queue
             };
 
             await this.ExecuteOperationAsync(operation, item);
@@ -130,6 +133,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             var operation = new DeleteOperation(tableName, tableKind, id)
             {
                 Table = await this.GetTable(tableName),
+                PreviousItem = (JObject)item.DeepClone(), // item will be deleted from store, so we need to put it in the operation queue
                 Item = item // item will be deleted from store, so we need to put it in the operation queue
             };
 
@@ -391,6 +395,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                         if (localItem?.Value<string>(MobileServiceSystemColumns.Version) is { } version)
                         {
                             item[MobileServiceSystemColumns.Version] = version;
+                        }
+
+                        if (operation.Kind == MobileServiceTableOperationKind.Update)
+                        {
+                            operation.PreviousItem = localItem;
                         }
                     }
 

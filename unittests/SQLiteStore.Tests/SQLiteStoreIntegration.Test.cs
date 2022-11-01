@@ -691,6 +691,7 @@ namespace SQLiteStore.Tests
             Assert.Equal(0L, result.TotalCount);
         }
 
+        //
         [Fact]
         public async Task PushAsync_RetriesOperation_WhenConflictOccursInLastPush()
         {
@@ -747,6 +748,71 @@ namespace SQLiteStore.Tests
             Assert.Equal("Wow", updatedItem.String); // item is updated
         }
 
+
+        [Fact]
+        public async Task PushAsync_HandlesUpdateConflict_WhenConflictOccursInLastPush()
+        {
+            ResetDatabase(TestTable);
+
+            var hijack = new TestHttpHandler();
+            string push1SuccessResult = "{\"id\":\"b\",\"String\":\"Hey 1\",\"version\":\"abc\"}";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(push1SuccessResult) }); // first push
+            string conflictResult = "{\"id\":\"b\",\"String\":\"Hey 2 server\",\"version\":\"def\"}";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.PreconditionFailed) { Content = new StringContent(conflictResult) }); // first push
+            string push3SuccessResult = "{\"id\":\"b\",\"String\":\"Hey 3 merged\",\"version\":\"efg\"}";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(push3SuccessResult) }); // second push
+
+            var store = new MobileServiceSQLiteStore(TestDbName);
+            store.DefineTable<ToDoWithSystemPropertiesType>();
+
+            IMobileServiceClient service = await CreateClient(hijack, store);
+            IMobileServiceSyncTable<ToDoWithSystemPropertiesType> table = service.GetSyncTable<ToDoWithSystemPropertiesType>();
+
+            // first, insert and push an item
+            var originalItem = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 1", Version = "abc" };
+            await table.InsertAsync(originalItem);
+            await service.SyncContext.PushAsync();
+
+            // then update the item
+            var updatedItem = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 2 local", Version = "bcd" };
+            await table.UpdateAsync(updatedItem);
+
+            // then push it to server
+            var ex = await Assert.ThrowsAsync<MobileServicePushFailedException>(service.SyncContext.PushAsync);
+
+            Assert.NotNull(ex.PushResult);
+            Assert.Equal(MobileServicePushStatus.Complete, ex.PushResult.Status);
+            Assert.Single(ex.PushResult.Errors);
+            MobileServiceTableOperationError error = ex.PushResult.Errors.Single();
+            Assert.NotNull(error);
+            Assert.False(error.Handled);
+            Assert.Equal(MobileServiceTableOperationKind.Update, error.OperationKind);
+            Assert.Equal(error.RawResult, conflictResult);
+            Assert.Equal(error.TableName, TestTable);
+            Assert.Equal(HttpStatusCode.PreconditionFailed, error.Status);
+
+            var errorItem = error.Item.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
+            Assert.Equal(originalItem.Id, errorItem.Id);
+            Assert.Equal(originalItem.String, errorItem.String);
+            Assert.Equal(originalItem.Version, errorItem.Version);
+            Assert.Equal(originalItem.CreatedAt, errorItem.CreatedAt);
+            Assert.Equal(originalItem.UpdatedAt, errorItem.UpdatedAt);
+
+            //Assert.Equal(error.Result.ToString(Formatting.None), conflictResult);
+
+            //Assert.Equal(1L, service.SyncContext.PendingOperations); // operation not removed
+            //updatedItem = await table.LookupAsync("b");
+            //Assert.Equal("Hey", updatedItem.String); // item is not updated 
+
+            //await service.SyncContext.PushAsync();
+
+            //Assert.Equal(0L, service.SyncContext.PendingOperations); // operation now succeeds
+
+            //updatedItem = await table.LookupAsync("b");
+            //Assert.Equal("Wow", updatedItem.String); // item is updated
+        }
+
+        //
         [Fact]
         public async Task PushAsync_DiscardsOperationAndUpdatesTheItem_WhenCancelAndUpdateItemAsync()
         {
@@ -784,6 +850,7 @@ namespace SQLiteStore.Tests
             Assert.Equal("Wow", updatedItem.String); // item is updated             
         }
 
+        //
         [Fact]
         public async Task PushAsync_DiscardsOperationAndDeletesTheItem_WhenCancelAndDiscardItemAsync()
         {

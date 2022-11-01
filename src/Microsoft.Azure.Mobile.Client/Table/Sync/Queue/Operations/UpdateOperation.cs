@@ -16,6 +16,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             get { return MobileServiceTableOperationKind.Update; }
         }
 
+        protected override bool SerializeItemToQueue => true;
+
         public UpdateOperation(string tableName, MobileServiceTableKind tableKind, string itemId)
             : base(tableName, tableKind, itemId)
         {

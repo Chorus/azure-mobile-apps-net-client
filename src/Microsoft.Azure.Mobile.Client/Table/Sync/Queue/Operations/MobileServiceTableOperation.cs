@@ -18,6 +18,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public string TableName { get; private set; }
         public string ItemId { get; private set; }
         public JObject Item { get; set; }
+        public JObject PreviousItem { get; set; }
 
         public MobileServiceTableOperationState State { get; internal set; }
         public long Sequence { get; set; }
@@ -115,6 +116,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 { "tableKind", 0 },
                 { "itemId", String.Empty },
                 { "item", String.Empty },
+                { "previousItem", String.Empty },
                 { MobileServiceSystemColumns.CreatedAt, DateTime.Now },
                 { "sequence", 0 },
                 { "version", 0 }
@@ -132,6 +134,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 { "tableKind", (int)this.TableKind },
                 { "itemId", this.ItemId },
                 { "item", this.Item != null && this.SerializeItemToQueue ? this.Item.ToString(Formatting.None) : null },
+                { "previousItem", this.PreviousItem != null && this.SerializeItemToQueue ? this.PreviousItem.ToString(Formatting.None) : null },
                 { "sequence", this.Sequence },
                 { "version", this.Version }
             };
@@ -170,6 +173,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 operation.Version = obj.Value<long?>("version").GetValueOrDefault();
                 string itemJson = obj.Value<string>("item");
                 operation.Item = !String.IsNullOrEmpty(itemJson) ? JObject.Parse(itemJson) : null;
+                string previousItemJson = obj.Value<string>("previousItem");
+                operation.PreviousItem = !String.IsNullOrEmpty(previousItemJson) ? JObject.Parse(previousItemJson) : null;
                 operation.State = (MobileServiceTableOperationState)obj.Value<int?>("state").GetValueOrDefault();
             }
 
