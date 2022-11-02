@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using FluentAssertions;
 using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.WindowsAzure.MobileServices.SQLiteStore;
 using Microsoft.WindowsAzure.MobileServices.Sync;
@@ -774,38 +775,35 @@ namespace SQLiteStore.Tests
             await service.SyncContext.PushAsync();
 
             // then update the item
-            var updatedItem = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 2 local", Version = "bcd" };
-            await table.UpdateAsync(updatedItem);
+            var updatedItem1 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 1.5 local", Version = "bcd" };
+            await table.UpdateAsync(updatedItem1);
+
+            // then update the item the second time
+            var updatedItem2 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 2 local", Version = "cde" };
+            await table.UpdateAsync(updatedItem2);
 
             // then push it to server
             var ex = await Assert.ThrowsAsync<MobileServicePushFailedException>(service.SyncContext.PushAsync);
 
-            Assert.NotNull(ex.PushResult);
-            Assert.Equal(MobileServicePushStatus.Complete, ex.PushResult.Status);
-            Assert.Single(ex.PushResult.Errors);
-            MobileServiceTableOperationError error = ex.PushResult.Errors.Single();
-            Assert.NotNull(error);
-            Assert.False(error.Handled);
-            Assert.Equal(MobileServiceTableOperationKind.Update, error.OperationKind);
-            Assert.Equal(error.RawResult, conflictResult);
-            Assert.Equal(error.TableName, TestTable);
-            Assert.Equal(HttpStatusCode.PreconditionFailed, error.Status);
+            ex.PushResult.Should().NotBeNull();
+            ex.PushResult.Status.Should().Be(MobileServicePushStatus.Complete);
+            MobileServiceTableOperationError error = ex.PushResult.Errors.Should().ContainSingle().Subject;
+            error.Should().BeEquivalentTo(new
+            {
+                Handled = false,
+                OperationKind = MobileServiceTableOperationKind.Update,
+                RawResult = conflictResult,
+                TableName = TestTable,
+                Status = HttpStatusCode.PreconditionFailed
+            });
 
             var errorItem = error.Item.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
-            Assert.Equal(updatedItem.Id, errorItem.Id);
-            Assert.Equal(updatedItem.String, errorItem.String);
-            Assert.Equal(updatedItem.Version, errorItem.Version);
-            Assert.Equal(updatedItem.CreatedAt, errorItem.CreatedAt);
-            Assert.Equal(updatedItem.UpdatedAt, errorItem.UpdatedAt);
+            errorItem.Should().BeEquivalentTo(updatedItem2);
 
-            Assert.NotNull(error.PreviousItem);
+            error.PreviousItem.Should().NotBeNull();
 
             var errorPreviousItem = error.PreviousItem.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
-            Assert.Equal(originalItem.Id, errorPreviousItem.Id);
-            Assert.Equal(originalItem.String, errorPreviousItem.String);
-            Assert.Equal(originalItem.Version, errorPreviousItem.Version);
-            Assert.Equal(originalItem.CreatedAt, errorPreviousItem.CreatedAt);
-            Assert.Equal(originalItem.UpdatedAt, errorPreviousItem.UpdatedAt);
+            errorPreviousItem.Should().BeEquivalentTo(originalItem);
 
             //Assert.Equal(error.Result.ToString(Formatting.None), conflictResult);
 
