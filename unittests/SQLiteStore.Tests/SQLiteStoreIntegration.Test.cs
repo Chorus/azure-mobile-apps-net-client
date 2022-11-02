@@ -792,11 +792,20 @@ namespace SQLiteStore.Tests
             Assert.Equal(HttpStatusCode.PreconditionFailed, error.Status);
 
             var errorItem = error.Item.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
-            Assert.Equal(originalItem.Id, errorItem.Id);
-            Assert.Equal(originalItem.String, errorItem.String);
-            Assert.Equal(originalItem.Version, errorItem.Version);
-            Assert.Equal(originalItem.CreatedAt, errorItem.CreatedAt);
-            Assert.Equal(originalItem.UpdatedAt, errorItem.UpdatedAt);
+            Assert.Equal(updatedItem.Id, errorItem.Id);
+            Assert.Equal(updatedItem.String, errorItem.String);
+            Assert.Equal(updatedItem.Version, errorItem.Version);
+            Assert.Equal(updatedItem.CreatedAt, errorItem.CreatedAt);
+            Assert.Equal(updatedItem.UpdatedAt, errorItem.UpdatedAt);
+
+            Assert.NotNull(error.PreviousItem);
+
+            var errorPreviousItem = error.PreviousItem.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
+            Assert.Equal(originalItem.Id, errorPreviousItem.Id);
+            Assert.Equal(originalItem.String, errorPreviousItem.String);
+            Assert.Equal(originalItem.Version, errorPreviousItem.Version);
+            Assert.Equal(originalItem.CreatedAt, errorPreviousItem.CreatedAt);
+            Assert.Equal(originalItem.UpdatedAt, errorPreviousItem.UpdatedAt);
 
             //Assert.Equal(error.Result.ToString(Formatting.None), conflictResult);
 

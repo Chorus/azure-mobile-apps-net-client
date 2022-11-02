@@ -212,18 +212,20 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     rawResult = content.Item1;
                     result = content.Item2.ValidItemOrNull();
                 }
-                var syncError = new MobileServiceTableOperationError(operation.Id,
-                                                                        operation.Version,
-                                                                        operation.Kind,
-                                                                        statusCode,
-                                                                        operation.TableName,
-                                                                        operation.Item,
-                                                                        rawResult,
-                                                                        result)
-                                                                        {
-                                                                            TableKind = this.tableKind,
-                                                                            Context = this.context
-                                                                        };
+                var syncError = new MobileServiceTableOperationError(
+                    operation.Id,
+                    operation.Version,
+                    operation.Kind,
+                    statusCode,
+                    operation.TableName,
+                    operation.Item,
+                    operation.PreviousItem,
+                    rawResult,
+                    result)
+                {
+                    TableKind = this.tableKind,
+                    Context = this.context
+                };
                 await batch.AddSyncErrorAsync(syncError);
             }
 
@@ -252,12 +254,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 {
                     // Create an item with only id to be able handle error properly.
                     var item = new JObject(new JProperty(MobileServiceSystemColumns.Id, operation.ItemId));
-                    var syncError = new MobileServiceTableOperationError(operation.Id,
-                                                                         operation.Version,
-                                                                         operation.Kind,
-                                                                         null,
-                                                                         operation.TableName,
-                                                                         item, null, null)
+                    var previousItem = new JObject(new JProperty(MobileServiceSystemColumns.Id, operation.ItemId));
+                    var syncError = new MobileServiceTableOperationError(
+                        operation.Id,
+                        operation.Version,
+                        operation.Kind,
+                        null,
+                        operation.TableName,
+                        item,
+                        previousItem,
+                        null,
+                        null)
                     {
                         TableKind = this.tableKind,
                         Context = this.context

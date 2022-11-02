@@ -51,6 +51,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public JObject Item { get; private set; }
 
         /// <summary>
+        /// The previous version of the item associated with the operation.
+        /// </summary>
+        public JObject PreviousItem { get; private set; }
+
+        /// <summary>
         /// Response of the table operation.
         /// </summary>
         public JObject Result { get; private set; }
@@ -78,14 +83,16 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="item">The item associated with the operation.</param>
         /// <param name="rawResult">Raw response of the table operation.</param>
         /// <param name="result">Response of the table operation.</param>
-        public MobileServiceTableOperationError(string id,
-                                                long operationVersion,
-                                                MobileServiceTableOperationKind operationKind,
-                                                HttpStatusCode? status,
-                                                string tableName,
-                                                JObject item,
-                                                string rawResult,
-                                                JObject result)
+        public MobileServiceTableOperationError(
+            string id,
+            long operationVersion,
+            MobileServiceTableOperationKind operationKind,
+            HttpStatusCode? status,
+            string tableName,
+            JObject item,
+            JObject previousItem,
+            string rawResult,
+            JObject result)
         {
             this.Id = id;
             this.OperationVersion = operationVersion;
@@ -93,6 +100,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             this.OperationKind = operationKind;
             this.TableName = tableName;
             this.Item = item;
+            this.PreviousItem = previousItem;
             this.RawResult = rawResult;
             this.Result = result;
         }
@@ -149,6 +157,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 { "tableName", String.Empty },
                 { "tableKind", 0 },
                 { "item", String.Empty },
+                { "previousItem", String.Empty },
                 { "rawResult", String.Empty }
             });
         }
@@ -164,6 +173,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 { "tableName", this.TableName },
                 { "tableKind", (int)this.TableKind },
                 { "item", this.Item?.ToString(Formatting.None) },
+                { "previousItem", this.PreviousItem?.ToString(Formatting.None) },
                 { "rawResult", this.RawResult }
             };
         }
@@ -183,6 +193,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
             string itemStr = obj.Value<string>("item");
             JObject item = itemStr == null ? null : JObject.Parse(itemStr);
+
+            string previousItemStr = obj.Value<string>("previousItem");
+            JObject previousItem = string.IsNullOrEmpty(previousItemStr) ? null : JObject.Parse(previousItemStr);
+
             string rawResult = obj.Value<string>("rawResult");
             JObject result = null;
             try
@@ -194,14 +208,16 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 // Ignore JsonReaderException, because 'rawResult' might not be JSON.
             }
 
-            return new MobileServiceTableOperationError(id,
-                                                        operationVersion,
-                                                        operationKind,
-                                                        status,
-                                                        tableName,
-                                                        item,
-                                                        rawResult,
-                                                        result)
+            return new MobileServiceTableOperationError(
+                id,
+                operationVersion,
+                operationKind,
+                status,
+                tableName,
+                item,
+                previousItem,
+                rawResult,
+                result)
             {
                 Id = id,
                 TableKind = tableKind
