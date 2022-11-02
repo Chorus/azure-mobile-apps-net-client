@@ -770,16 +770,16 @@ namespace SQLiteStore.Tests
             IMobileServiceSyncTable<ToDoWithSystemPropertiesType> table = service.GetSyncTable<ToDoWithSystemPropertiesType>();
 
             // first, insert and push an item
-            var originalItem = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 1", Version = "abc" };
+            var originalItem = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 1" };
             await table.InsertAsync(originalItem);
             await service.SyncContext.PushAsync();
 
             // then update the item
-            var updatedItem1 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 1.5 local", Version = "bcd" };
+            var updatedItem1 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 1.5 local" };
             await table.UpdateAsync(updatedItem1);
 
             // then update the item the second time
-            var updatedItem2 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 2 local", Version = "cde" };
+            var updatedItem2 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 2 local" };
             await table.UpdateAsync(updatedItem2);
 
             // then push it to server
@@ -798,12 +798,12 @@ namespace SQLiteStore.Tests
             });
 
             var errorItem = error.Item.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
-            errorItem.Should().BeEquivalentTo(updatedItem2);
+            errorItem.Should().BeEquivalentTo(updatedItem2, r => r.Excluding(i => i.Version));
 
             error.PreviousItem.Should().NotBeNull();
 
             var errorPreviousItem = error.PreviousItem.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
-            errorPreviousItem.Should().BeEquivalentTo(originalItem);
+            errorPreviousItem.Should().BeEquivalentTo(originalItem, r => r.Excluding(i => i.Version));
 
             //Assert.Equal(error.Result.ToString(Formatting.None), conflictResult);
 
