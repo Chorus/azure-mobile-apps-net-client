@@ -223,5 +223,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 TableKind = tableKind
             };
         }
+
+        public async Task MergeAndUpdateOperationAsync()
+        {
+            
+        }
     }
 }
