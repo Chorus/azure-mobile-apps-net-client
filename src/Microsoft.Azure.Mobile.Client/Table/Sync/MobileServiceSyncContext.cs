@@ -117,11 +117,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public async Task UpdateAsync(string tableName, MobileServiceTableKind tableKind, string id, JObject item)
         {
-            var localItem = await Store.LookupAsync(tableName, id);
             var operation = new UpdateOperation(tableName, tableKind, id)
             {
                 Table = await this.GetTable(tableName),
-                PreviousItem = localItem // item will be updated in store, so we need to put it in the operation queue
             };
 
             await this.ExecuteOperationAsync(operation, item);
@@ -386,7 +384,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     // error because version was missing from the item,
                     // so the version has to be updated after pushing the record to the server and before executing the local operation.
                     // see https://github.com/Chorus/azure-mobile-apps-net-client/pull/13
-                    if ((operation.Kind == MobileServiceTableOperationKind.Delete || operation.Kind == MobileServiceTableOperationKind.Update)
+                    if (operation.Kind == MobileServiceTableOperationKind.Delete
                         && !item.ContainsKey(MobileServiceSystemColumns.Version))
                     {
                         var localItem = await Store.LookupAsync(operation.TableName, item.Value<string>(MobileServiceSystemColumns.Id));
@@ -394,11 +392,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                         {
                             item[MobileServiceSystemColumns.Version] = version;
                         }
-
-                        if (operation.Kind == MobileServiceTableOperationKind.Update)
-                        {
-                            operation.PreviousItem = localItem;
-                        }
+                    }
+                    else if (operation.Kind == MobileServiceTableOperationKind.Update)
+                    {
+                        operation.PreviousItem = await Store.LookupAsync(operation.TableName, operation.ItemId);
                     }
 
                     await operation.ExecuteLocalAsync(this.localOperationsStore, item); // first execute operation on local store

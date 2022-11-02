@@ -134,7 +134,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 { "tableKind", (int)this.TableKind },
                 { "itemId", this.ItemId },
                 { "item", this.Item != null && this.SerializeItemToQueue ? this.Item.ToString(Formatting.None) : null },
-                { "previousItem", this.PreviousItem != null && this.SerializeItemToQueue ? this.PreviousItem.ToString(Formatting.None) : null },
+                { "previousItem", this.PreviousItem != null ? this.PreviousItem.ToString(Formatting.None) : null },
                 { "sequence", this.Sequence },
                 { "version", this.Version }
             };
