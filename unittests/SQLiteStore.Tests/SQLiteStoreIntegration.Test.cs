@@ -792,11 +792,11 @@ namespace SQLiteStore.Tests
             await service.SyncContext.PushAsync();
 
             // then update the item
-            var updatedItem1 = new ToDoWithSystemPropertiesType { Id = "b", String = "2ey 2 local" };
+            var updatedItem1 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 2 local" };
             await table.UpdateAsync(updatedItem1);
 
             // then update the item the second time
-            var updatedItem2 = new ToDoWithSystemPropertiesType { Id = "b", String = "3ey 3 local" };
+            var updatedItem2 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 3 local" };
             await table.UpdateAsync(updatedItem2);
 
             // then push it to server - 2nd push
