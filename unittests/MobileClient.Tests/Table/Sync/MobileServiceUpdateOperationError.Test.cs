@@ -73,6 +73,22 @@ namespace MobileClient.Tests.Table.Sync
                 .ContainEquivalentOf(new { PropertyName = "Property2", IsLocalChanged = true, IsRemoteChanged = false });
         }
 
+        [Fact]
+        public void WhenLocalAndRemoteSamePropertyChanged_Then1Conflict()
+        {
+            // Arrange
+            var local = (JObject)JToken.Parse(@"{""Property1"": 2, ""Property2"": ""abc""}");
+            var remote = (JObject)JToken.Parse(@"{""Property1"": 1, ""Property2"": ""abc""}");
+            var @base = (JObject)JToken.Parse(@"{""Property1"": 0, ""Property2"": ""abc""}");
+
+            // Act
+            var sut = CreateSut(local, remote, @base);
+
+            // Assert
+            sut.PropertyConflicts.Should().ContainSingle().Which.Should()
+                .BeEquivalentTo(new { PropertyName = "Property1", IsLocalChanged = true, IsRemoteChanged = true });
+        }
+
         private MobileServiceUpdateOperationError CreateSut(JObject? local, JObject? remote, JObject? @base)
         {
             return new MobileServiceUpdateOperationError(
