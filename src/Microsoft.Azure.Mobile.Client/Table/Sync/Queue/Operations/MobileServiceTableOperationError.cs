@@ -1,7 +1,7 @@
 ﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
-
+#nullable enable annotations
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -51,11 +51,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public JObject Item { get; private set; }
 
         /// <summary>
-        /// The previous version of the item associated with the operation.
-        /// </summary>
-        public JObject PreviousItem { get; private set; }
-
-        /// <summary>
         /// Response of the table operation.
         /// </summary>
         public JObject Result { get; private set; }
@@ -90,7 +85,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             HttpStatusCode? status,
             string tableName,
             JObject item,
-            JObject previousItem,
             string rawResult,
             JObject result)
         {
@@ -100,7 +94,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             this.OperationKind = operationKind;
             this.TableName = tableName;
             this.Item = item;
-            this.PreviousItem = previousItem;
             this.RawResult = rawResult;
             this.Result = result;
         }
@@ -162,7 +155,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             });
         }
 
-        internal JObject Serialize()
+        internal virtual JObject Serialize()
         {
             return new JObject()
             {
@@ -173,7 +166,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 { "tableName", this.TableName },
                 { "tableKind", (int)this.TableKind },
                 { "item", this.Item?.ToString(Formatting.None) },
-                { "previousItem", this.PreviousItem?.ToString(Formatting.None) },
                 { "rawResult", this.RawResult }
             };
         }
@@ -208,25 +200,62 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 // Ignore JsonReaderException, because 'rawResult' might not be JSON.
             }
 
-            return new MobileServiceTableOperationError(
+            return Create(
+                status,
                 id,
                 operationVersion,
                 operationKind,
-                status,
                 tableName,
+                tableKind,
                 item,
                 previousItem,
                 rawResult,
-                result)
-            {
-                Id = id,
-                TableKind = tableKind
-            };
+                result);
         }
 
-        public async Task MergeAndUpdateOperationAsync()
+        internal static MobileServiceTableOperationError Create(
+            HttpStatusCode? status,
+            string id,
+            long operationVersion,
+            MobileServiceTableOperationKind operationKind,
+            string tableName,
+            MobileServiceTableKind tableKind,
+            JObject item,
+            JObject? previousItem,
+            string rawResult,
+            JObject result,
+            MobileServiceSyncContext? context = null)
         {
-            
+            return previousItem is null ?
+                new MobileServiceTableOperationError(
+                    id,
+                    operationVersion,
+                    operationKind,
+                    status,
+                    tableName,
+                    item,
+                    rawResult,
+                    result)
+                {
+                    Id = id,
+                    TableKind = tableKind,
+                    Context = context
+                } :
+                new MobileServiceUpdateOperationError(
+                    id,
+                    operationVersion,
+                    operationKind,
+                    status,
+                    tableName,
+                    item,
+                    previousItem,
+                    rawResult,
+                    result)
+                {
+                    Id = id,
+                    TableKind = tableKind,
+                    Context = context 
+                };
         }
     }
 }

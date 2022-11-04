@@ -212,20 +212,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     rawResult = content.Item1;
                     result = content.Item2.ValidItemOrNull();
                 }
-                var syncError = new MobileServiceTableOperationError(
+                var syncError = MobileServiceTableOperationError.Create(
+                    statusCode,
                     operation.Id,
                     operation.Version,
                     operation.Kind,
-                    statusCode,
                     operation.TableName,
+                    tableKind,
                     operation.Item,
                     operation.PreviousItem,
                     rawResult,
-                    result)
-                {
-                    TableKind = this.tableKind,
-                    Context = this.context
-                };
+                    result,
+                    context);
                 await batch.AddSyncErrorAsync(syncError);
             }
 
@@ -255,20 +253,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     // Create an item with only id to be able handle error properly.
                     var item = new JObject(new JProperty(MobileServiceSystemColumns.Id, operation.ItemId));
                     var previousItem = new JObject(new JProperty(MobileServiceSystemColumns.Id, operation.ItemId));
-                    var syncError = new MobileServiceTableOperationError(
+                    var syncError = MobileServiceTableOperationError.Create(
+                        null,
                         operation.Id,
                         operation.Version,
                         operation.Kind,
-                        null,
                         operation.TableName,
+                        tableKind,
                         item,
                         previousItem,
                         null,
-                        null)
-                    {
-                        TableKind = this.tableKind,
-                        Context = this.context
-                    };
+                        null,
+                        context);
                     await batch.AddSyncErrorAsync(syncError);
                 }
             }

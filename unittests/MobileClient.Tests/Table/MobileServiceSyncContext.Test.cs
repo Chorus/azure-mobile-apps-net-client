@@ -137,7 +137,6 @@ namespace MobileClient.Tests.Table
                                                             HttpStatusCode.PreconditionFailed,
                                                             "test",
                                                             new JObject(),
-                                                            new JObject(),
                                                             "{}",
                                                             new JObject());
             var store = new MobileServiceLocalStoreMock();
@@ -449,7 +448,6 @@ namespace MobileClient.Tests.Table
                                                              HttpStatusCode.Conflict,
                                                              tableName,
                                                              item: new JObject() { { "id", itemId } },
-                                                             previousItem: new JObject() { { "id", itemId } },
                                                              rawResult: "{}",
                                                              result: new JObject());
 
@@ -495,7 +493,6 @@ namespace MobileClient.Tests.Table
                                                              HttpStatusCode.Conflict,
                                                              tableName,
                                                              item: new JObject() { { "id", itemId } },
-                                                             previousItem: new JObject() { { "id", itemId } },
                                                              rawResult: "{}",
                                                              result: new JObject());
 
@@ -541,7 +538,6 @@ namespace MobileClient.Tests.Table
                                                              HttpStatusCode.PreconditionFailed,
                                                              tableName,
                                                              item: new JObject() { { "id", itemId } },
-                                                             previousItem: new JObject() { { "id", itemId } },
                                                              rawResult: "{}",
                                                              result: new JObject());
             var item2 = new JObject() { { "id", itemId }, { "name", "unknown" }, { "version", 2 } };
@@ -597,7 +593,6 @@ namespace MobileClient.Tests.Table
                                                              HttpStatusCode.Conflict,
                                                              tableName,
                                                              item: new JObject() { { "id", itemId } },
-                                                             previousItem: new JObject() { { "id", itemId } },
                                                              rawResult: "{}",
                                                              result: new JObject());
 
@@ -668,7 +663,6 @@ namespace MobileClient.Tests.Table
                                                              HttpStatusCode.Conflict,
                                                              tableName,
                                                              item: new JObject() { { "id", itemId } },
-                                                             previousItem: new JObject() { { "id", itemId } },
                                                              rawResult: "{}",
                                                              result: new JObject());
 
@@ -720,7 +714,6 @@ namespace MobileClient.Tests.Table
                                                              HttpStatusCode.Conflict,
                                                              tableName,
                                                              item: new JObject() { { "id", itemId } },
-                                                             previousItem: new JObject() { { "id", itemId } },
                                                              rawResult: "{}",
                                                              result: new JObject());
             var item = new JObject() { { "id", itemId }, { "name", "unknown" } };
@@ -763,7 +756,6 @@ namespace MobileClient.Tests.Table
                                                              HttpStatusCode.Conflict,
                                                              tableName,
                                                              item: new JObject() { { "id", itemId } },
-                                                             previousItem: new JObject() { { "id", itemId } },
                                                              rawResult: "{}",
                                                              result: new JObject());
 

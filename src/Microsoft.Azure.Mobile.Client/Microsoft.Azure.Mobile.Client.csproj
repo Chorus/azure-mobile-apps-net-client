@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461;monoandroid90;monoandroid10.0;xamarin.ios10</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <PackageTitle>Azure Mobile Client SDK</PackageTitle>
@@ -39,7 +39,10 @@
     <Compile Remove="Platforms\**\*.*" />
     <EmbeddedResource Include="Properties\*.rd.xml" />
     <None Remove="IMobileServiceClientOptions2.cs" />
+    <None Remove="IsExternalInit.cs" />
     <None Remove="Platforms\netstandard20\PlatformInformation.cs" />
+    <None Remove="Table\Sync\Queue\Operations\MobileServiceUpdateOperationError.cs" />
+    <None Remove="Table\Sync\Queue\Operations\PropertyConflict.cs" />
     <Compile Update="Resources.Designer.cs" DesignTime="true" AutoGen="true" DependentUpon="Resources.resx" />
     <EmbeddedResource Update="Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
   </ItemGroup>
