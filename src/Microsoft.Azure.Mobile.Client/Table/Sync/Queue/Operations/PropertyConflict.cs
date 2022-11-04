@@ -16,18 +16,26 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             _error = error ?? throw new ArgumentNullException(nameof(error));
 
             // TODO: make sure the items are not null
-            RemoteValue = _error.Result.GetValue(PropertyName);
-            LocalValue = _error.Item.GetValue(PropertyName);
-            BaseValue = _error.PreviousItem.GetValue(PropertyName);
+            RemoteValue = _error.Result.GetValue(PropertyName) is JValue remoteValue ?
+                remoteValue :
+                throw new InvalidOperationException($"Remote value is an object or array which is not supported. Only primitive values are supported.");
+            LocalValue = _error.Item.GetValue(PropertyName) is JValue localValue ?
+                localValue :
+                throw new InvalidOperationException($"Local value is an object or array which is not supported. Only primitive values are supported.");
+            BaseValue = _error.PreviousItem.GetValue(PropertyName) is JValue baseValue ?
+                baseValue :
+                throw new InvalidOperationException($"Base value is an object or array which is not supported. Only primitive values are supported.");
+
             IsLocalChanged = !Equals(BaseValue, LocalValue);
             IsRemoteChanged = !Equals(BaseValue, RemoteValue);
         }
 
         public string PropertyName { get; }
-        public JToken? RemoteValue { get; }
-        public JToken? LocalValue { get; }
-        public JToken? BaseValue { get; }
-        public JToken? ResolvedValue { get; private set; }
+        public JValue? RemoteValue { get; }
+        public JValue? LocalValue { get; }
+        public JValue? BaseValue { get; }
+        public JValue? ResolvedValue { get; private set; }
+
         public bool Handled => _handled != 0;
         public bool IsLocalChanged { get; }
         public bool IsRemoteChanged { get; }
@@ -44,7 +52,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             ResolvedValue = LocalValue;
         }
 
-        public void UpdateValue(JToken? newValue)
+        public void UpdateValue(JValue? newValue)
         {
             SetHandled();
             ResolvedValue = newValue;
