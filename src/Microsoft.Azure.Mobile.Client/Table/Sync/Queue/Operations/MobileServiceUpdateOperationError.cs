@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,6 +45,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             }
 
             PreviousItem = previousItem;
+            PropertyConflicts = GetPropertyConflicts();
         }
 
         internal override JObject Serialize()
@@ -60,7 +62,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         private IEnumerable<PropertyConflict> GetPropertyConflicts()
         {
-            throw new Exception();
+            return new PropertyConflict[0].AsEnumerable();
         }
     }
 }

@@ -85,5 +85,25 @@ namespace MobileClient.Tests.Table.Sync
             .Throw<InvalidOperationException>()
             .Where(r => r.Message.Contains("value is an object or array which is not supported"));
         }
+
+        [Fact]
+        public void ConflictsGeneration()
+        {
+            // Arrange
+            var baseValue = JToken.Parse(@"{""Property1"":null}");
+            var remoteValue = JToken.Parse(@"{""Property1"":0}");
+            var localValue = JToken.Parse(@"{""Property1"":0}");
+            var error = Mock.Of<IMobileServiceUpdateOperationError>(x =>
+                x.PreviousItem == baseValue &&
+                x.Result == remoteValue &&
+                x.Item == localValue);
+
+            // Act
+            var sut = new PropertyConflict("Property1", error);
+
+            // Assert
+            sut.IsLocalChanged.Should().BeTrue();
+            sut.IsRemoteChanged.Should().BeTrue();
+        }
     }
 }
