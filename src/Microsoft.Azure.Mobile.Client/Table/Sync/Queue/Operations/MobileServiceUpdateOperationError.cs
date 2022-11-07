@@ -69,7 +69,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         public async Task MergeAndUpdateOperationAsync()
         {
+            if (PropertyConflicts.Any(r => !r.Handled))
+            {
+                throw new InvalidOperationException("All conflicts must be handled first.");
+            }
 
+            var item = RemoteItem;
+            foreach (var conflict in PropertyConflicts)
+            {
+                item[conflict.PropertyName] = conflict.ResolvedValue;
+            }
+
+            await UpdateOperationAsync(item);
         }
     }
 }
