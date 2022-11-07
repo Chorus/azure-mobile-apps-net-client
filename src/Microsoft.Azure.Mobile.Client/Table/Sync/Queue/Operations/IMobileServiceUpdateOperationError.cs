@@ -1,13 +1,13 @@
 ﻿#nullable enable
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     public interface IMobileServiceUpdateOperationError
     {
-        IEnumerable<PropertyConflict> PropertyConflicts { get; }
+        ImmutableArray<PropertyConflict> PropertyConflicts { get; }
         /// <summary>
         /// The base item before the update
         /// </summary>

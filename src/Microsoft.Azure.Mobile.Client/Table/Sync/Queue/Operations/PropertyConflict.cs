@@ -10,7 +10,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private readonly IMobileServiceUpdateOperationError _error;
         private int _handled;
 
-        internal PropertyConflict(string propertyName, IMobileServiceUpdateOperationError error)
+        internal PropertyConflict(in string propertyName, IMobileServiceUpdateOperationError error)
         {
             PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
             _error = error ?? throw new ArgumentNullException(nameof(error));

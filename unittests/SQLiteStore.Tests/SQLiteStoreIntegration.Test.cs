@@ -804,7 +804,7 @@ namespace SQLiteStore.Tests
 
             ex.PushResult.Should().NotBeNull();
             ex.PushResult.Status.Should().Be(MobileServicePushStatus.Complete);
-            MobileServiceTableOperationError error = ex.PushResult.Errors.Should().ContainSingle().Subject;
+            var error = ex.PushResult.Errors.Should().ContainSingle().Which.Should().BeOfType<MobileServiceUpdateOperationError>().Which;
             error.Should().BeEquivalentTo(new
             {
                 Handled = false,
@@ -827,6 +827,23 @@ namespace SQLiteStore.Tests
 
             var localItem = await table.LookupAsync(originalItem.Id);
             localItem.String.Should().Be(updatedItem2.String); // item is not updated 
+
+            // handle conflict
+            var conflict = error.PropertyConflicts.Should().ContainSingle().Subject;
+            conflict.Should().BeEquivalentTo(new
+            {
+                PropertyName = nameof(ToDoWithSystemPropertiesType.String),
+                IsLocalChanged = true,
+                IsRemoteChanged = true,
+                Handled = false,
+                ResolvedValue = (object)null
+            });
+
+            var localString = conflict.LocalValue.ToString();
+            var remoteString = conflict.RemoteValue.ToString();
+            localString.Should().Be("Hey 3 local");
+            remoteString.Should().Be("Hey 2 server");
+            conflict.UpdateValue((JValue)JToken.Parse(@"""Hey 3 merged"""));
 
             // merge with the server version
             await error.MergeAndUpdateOperationAsync();

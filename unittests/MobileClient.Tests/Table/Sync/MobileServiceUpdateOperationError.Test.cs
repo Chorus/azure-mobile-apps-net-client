@@ -16,9 +16,9 @@ namespace MobileClient.Tests.Table.Sync
         public void WhenIdenticalItems_ThenNoConflicts()
         {
             // Arrange
-            var local = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abc""}");
-            var remote = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abc""}");
-            var @base = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abc""}");
+            var local = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abc", "version": "local" }""");
+            var remote = (JObject)JToken.Parse("""{"Property1": 0, "Property2": "abc", "version": "remote" }""");
+            var @base = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abc", "version": "base" }""");
 
             // Act
             var sut = CreateSut(local, remote, @base);
@@ -26,13 +26,14 @@ namespace MobileClient.Tests.Table.Sync
             // Assert
             sut.PropertyConflicts.Should().BeEmpty();
         }
+
         [Fact]
         public void WhenRemoteDifferentFromBase_ThenNoConflicts()
         {
             // Arrange
-            var local = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abc""}");
-            var remote = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abcdef""}");
-            var @base = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abc""}");
+            var local = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abc", "version": "local" }""");
+            var remote = (JObject)JToken.Parse("""{"Property1": 0, "Property2": "abcdef", "version": "remote" }""");
+            var @base = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abc", "version": "base" }""");
 
             // Act
             var sut = CreateSut(local, remote, @base);
@@ -45,9 +46,9 @@ namespace MobileClient.Tests.Table.Sync
         public void WhenLocalDifferentFromBase_ThenNoConflicts()
         {
             // Arrange
-            var local = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abcdef""}");
-            var remote = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abc""}");
-            var @base = (JObject)JToken.Parse(@"{""Property1"":0, ""Property2"": ""abc""}");
+            var local = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abcdef", "version": "local" }""");
+            var remote = (JObject)JToken.Parse("""{"Property1": 0, "Property2": "abc", "version": "remote" }""");
+            var @base = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abc", "version": "base" }""");
 
             // Act
             var sut = CreateSut(local, remote, @base);
@@ -60,9 +61,9 @@ namespace MobileClient.Tests.Table.Sync
         public void WhenLocalProperty2ChangedAndRemoteProperty1Changed_Then2Conflicts()
         {
             // Arrange
-            var local = (JObject)JToken.Parse(@"{""Property1"": 0, ""Property2"": ""abcdef""}");
-            var remote = (JObject)JToken.Parse(@"{""Property1"": 1, ""Property2"": ""abc""}");
-            var @base = (JObject)JToken.Parse(@"{""Property1"": 0, ""Property2"": ""abc""}");
+            var local = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abcdef", "version": "local" }""");
+            var remote = (JObject)JToken.Parse("""{"Property1": 1, "Property2": "abc", "version": "remote" }""");
+            var @base = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abc", "version": "base" }""");
 
             // Act
             var sut = CreateSut(local, remote, @base);
@@ -77,9 +78,9 @@ namespace MobileClient.Tests.Table.Sync
         public void WhenLocalAndRemoteSamePropertyChanged_Then1Conflict()
         {
             // Arrange
-            var local = (JObject)JToken.Parse(@"{""Property1"": 2, ""Property2"": ""abc""}");
-            var remote = (JObject)JToken.Parse(@"{""Property1"": 1, ""Property2"": ""abc""}");
-            var @base = (JObject)JToken.Parse(@"{""Property1"": 0, ""Property2"": ""abc""}");
+            var local = (JObject)JToken.Parse(""" {"Property1": 2, "Property2": "abc", "version": "local" }""");
+            var remote = (JObject)JToken.Parse("""{"Property1": 1, "Property2": "abc", "version": "remote" }""");
+            var @base = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abc", "version": "base" }""");
 
             // Act
             var sut = CreateSut(local, remote, @base);
