@@ -839,10 +839,8 @@ namespace SQLiteStore.Tests
                 ResolvedValue = (object)null
             });
 
-            var localString = conflict.LocalValue.ToString();
-            var remoteString = conflict.RemoteValue.ToString();
-            localString.Should().Be("Hey 3 local");
-            remoteString.Should().Be("Hey 2 server");
+            conflict.LocalValue.ToString().Should().Be("Hey 3 local");
+            conflict.RemoteValue.ToString().Should().Be("Hey 2 server");
             conflict.UpdateValue((JValue)JToken.Parse(@"""Hey 3 merged"""));
 
             // merge with the server version
