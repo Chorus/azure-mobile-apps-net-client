@@ -26,7 +26,7 @@
     <Company>Microsoft</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <Version>4.2.122</Version>
+    <Version>4.2.123-dev.5</Version>
     <PackageId>Chorus.Azure.Mobile.Client</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
@@ -42,6 +42,7 @@
     <None Remove="IsExternalInit.cs" />
     <None Remove="Platforms\netstandard20\PlatformInformation.cs" />
     <None Remove="Table\Sync\Queue\Operations\IMobileServiceUpdateOperationError.cs" />
+    <None Remove="Table\Sync\Queue\Operations\IPropertyConflict.cs" />
     <None Remove="Table\Sync\Queue\Operations\MobileServiceUpdateOperationError.cs" />
     <None Remove="Table\Sync\Queue\Operations\PropertyConflict.cs" />
     <Compile Update="Resources.Designer.cs" DesignTime="true" AutoGen="true" DependentUpon="Resources.resx" />

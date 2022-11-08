@@ -36,7 +36,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             PreviousItem = previousItem ?? throw new ArgumentNullException(nameof(previousItem));
             PropertyConflicts = GetPropertyConflicts();
 
-            ImmutableArray<PropertyConflict> GetPropertyConflicts()
+            ImmutableArray<IPropertyConflict> GetPropertyConflicts()
             {
                 static IEnumerable<string> GetPropertyNames(JObject item) =>
                     MobileServiceSerializer.RemoveSystemProperties(item, out _).Properties().Select(r => r.Name);
@@ -48,12 +48,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                          GetPropertyNames(RemoteItem))
                      let change = new PropertyConflict(propertyName, this)
                      where change.IsLocalChanged || change.IsRemoteChanged
-                     select change)
+                     select (IPropertyConflict)change)
                     .ToImmutableArray();
 
                 return changes.Any(r => r.IsLocalChanged) && changes.Any(r => r.IsRemoteChanged) ?
                     changes :
-                    ImmutableArray.Create<PropertyConflict>();
+                    ImmutableArray.Create<IPropertyConflict>();
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// </summary>
         public JObject PreviousItem { get; }
 
-        public ImmutableArray<PropertyConflict> PropertyConflicts { get; }
+        public ImmutableArray<IPropertyConflict> PropertyConflicts { get; }
 
         internal override JObject Serialize()
         {

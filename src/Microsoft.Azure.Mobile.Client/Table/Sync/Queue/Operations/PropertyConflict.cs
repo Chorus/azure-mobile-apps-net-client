@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
-    public class PropertyConflict
+    public class PropertyConflict : IPropertyConflict
     {
         private readonly IMobileServiceUpdateOperationError _error;
         private int _handled;

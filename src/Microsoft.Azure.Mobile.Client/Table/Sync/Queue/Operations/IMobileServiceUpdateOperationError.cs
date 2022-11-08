@@ -7,7 +7,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     public interface IMobileServiceUpdateOperationError
     {
-        ImmutableArray<PropertyConflict> PropertyConflicts { get; }
+        bool Handled { get; set; }
+        Task CancelAndDiscardItemAsync();
+        Task UpdateOperationAsync(JObject item);
+        Task CancelAndUpdateItemAsync(JObject item);
+        string TableName { get; }
+        ImmutableArray<IPropertyConflict> PropertyConflicts { get; }
         /// <summary>
         /// The base item before the update
         /// </summary>
