@@ -32,6 +32,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             {
                 throw new ArgumentException($"Only {nameof(operationKind)}={nameof(MobileServiceTableOperationKind.Update)} is supported", nameof(operationKind));
             }
+            _ = item ?? throw new ArgumentNullException(nameof(item));
+            _ = result ?? throw new ArgumentNullException(nameof(result));
 
             PreviousItem = previousItem ?? throw new ArgumentNullException(nameof(previousItem));
             PropertyConflicts = GetPropertyConflicts();

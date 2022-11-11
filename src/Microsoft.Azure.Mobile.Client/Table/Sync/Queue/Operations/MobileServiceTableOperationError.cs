@@ -226,7 +226,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             JObject result,
             MobileServiceSyncContext? context = null)
         {
-            return previousItem is null ?
+            return previousItem is null || item is null || result is null ?
                 new MobileServiceTableOperationError(
                     id,
                     operationVersion,
@@ -254,7 +254,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 {
                     Id = id,
                     TableKind = tableKind,
-                    Context = context 
+                    Context = context
                 };
         }
     }
