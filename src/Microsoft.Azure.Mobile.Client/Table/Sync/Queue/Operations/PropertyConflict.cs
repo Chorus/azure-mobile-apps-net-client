@@ -15,7 +15,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
             _error = error ?? throw new ArgumentNullException(nameof(error));
 
-            // TODO: make sure the items are not null
+            _ = error.Result ?? throw new ArgumentException($"{nameof(error)}.{nameof(error.Result)} should not be null", nameof(error));
+            _ = error.Item ?? throw new ArgumentException($"{nameof(error)}.{nameof(error.Item)} should not be null", nameof(error));
+            _ = error.PreviousItem ?? throw new ArgumentException($"{nameof(error)}.{nameof(error.PreviousItem)} should not be null", nameof(error));
+
             RemoteValue = _error.Result.GetValue(PropertyName) is JValue remoteValue ?
                 remoteValue :
                 throw new InvalidOperationException($"Remote value is an object or array which is not supported. Only primitive values are supported.");
