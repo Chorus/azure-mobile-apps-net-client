@@ -19,14 +19,19 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             _ = error.Item ?? throw new ArgumentException($"{nameof(error)}.{nameof(error.Item)} should not be null", nameof(error));
             _ = error.PreviousItem ?? throw new ArgumentException($"{nameof(error)}.{nameof(error.PreviousItem)} should not be null", nameof(error));
 
-            RemoteValue = _error.Result.GetValue(PropertyName) is JValue remoteValue ?
-                remoteValue :
+            var remoteValueJToken = _error.Result.GetValue(PropertyName);
+            RemoteValue = remoteValueJToken is null or JValue ?
+                (JValue?)remoteValueJToken :
                 throw new InvalidOperationException($"Remote value is an object or array which is not supported. Only primitive values are supported.");
-            LocalValue = _error.Item.GetValue(PropertyName) is JValue localValue ?
-                localValue :
+            
+            var localValueJToken = _error.Item.GetValue(PropertyName); 
+            LocalValue = localValueJToken is null or JValue ?
+                (JValue?)localValueJToken :
                 throw new InvalidOperationException($"Local value is an object or array which is not supported. Only primitive values are supported.");
-            BaseValue = _error.PreviousItem.GetValue(PropertyName) is JValue baseValue ?
-                baseValue :
+            
+            var baseValueJToken = _error.PreviousItem.GetValue(PropertyName); 
+            BaseValue = baseValueJToken is null or JValue ?
+                (JValue?)baseValueJToken :
                 throw new InvalidOperationException($"Base value is an object or array which is not supported. Only primitive values are supported.");
 
             IsLocalChanged = !Equals(BaseValue, LocalValue);
