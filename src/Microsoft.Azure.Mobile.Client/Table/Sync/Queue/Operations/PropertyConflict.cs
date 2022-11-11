@@ -39,14 +39,18 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         }
 
         public string PropertyName { get; }
+        public bool IsLocalChanged { get; }
+        public bool IsRemoteChanged { get; }
+
         public JValue? RemoteValue { get; }
         public JValue? LocalValue { get; }
         public JValue? BaseValue { get; }
-        public JValue? ResolvedValue { get; private set; }
 
         public bool Handled => _handled != 0;
-        public bool IsLocalChanged { get; }
-        public bool IsRemoteChanged { get; }
+        public bool IsBaseTaken => Equals(ResolvedValue, BaseValue);
+        public bool IsLocalTaken => Equals(ResolvedValue, LocalValue);
+        public bool IsRemoteTaken => Equals(ResolvedValue, RemoteValue);
+        public JValue? ResolvedValue { get; private set; }
 
         public void TakeRemote()
         {
