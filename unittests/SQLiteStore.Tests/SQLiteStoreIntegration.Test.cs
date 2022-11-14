@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
 
+using FluentAssertions;
 using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.WindowsAzure.MobileServices.SQLiteStore;
 using Microsoft.WindowsAzure.MobileServices.Sync;
@@ -88,7 +89,7 @@ namespace SQLiteStore.Tests
         // TODO: uncomment this when tested together with the NOTE app
         // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
         // return DeserializeDateTime(strValue)
-        [Fact]
+        //[Fact]
         public async Task ReadAsync_RoundTripsDate_Generic()
         {
             string tableName = "NotSystemPropertyCreatedAtType";
@@ -347,7 +348,7 @@ namespace SQLiteStore.Tests
         // TODO: uncomment this when tested together with the NOTE app
         // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
         // return DeserializeDateTime(strValue)
-        [Fact]
+        //[Fact]
         public async Task PullAsync_RequestsSystemProperties_WhenDefinedOnTableType()
         {
             ResetDatabase(TestTable);
@@ -590,7 +591,7 @@ namespace SQLiteStore.Tests
         // TODO: uncomment this when tested together with the NOTE app
         // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
         // return DeserializeDateTime(strValue)
-        [Fact]
+        //[Fact]
         public async Task SystemPropertiesArePreserved_OnlyWhenReturnedFromServer()
         {
             ResetDatabase(TestTable);
@@ -691,6 +692,7 @@ namespace SQLiteStore.Tests
             Assert.Equal(0L, result.TotalCount);
         }
 
+        //
         [Fact]
         public async Task PushAsync_RetriesOperation_WhenConflictOccursInLastPush()
         {
@@ -747,6 +749,115 @@ namespace SQLiteStore.Tests
             Assert.Equal("Wow", updatedItem.String); // item is updated
         }
 
+
+        [Fact]
+        public async Task PushAsync_HandlesUpdateConflict_WhenConflictOccursInLastPush()
+        {
+            ResetDatabase(TestTable);
+
+            var hijack = new TestHttpHandler();
+
+            // 1st push
+            string push1SuccessResult = "{\"id\":\"b\",\"String\":\"Hey 1\",\"version\":\"abc\"}";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content =
+                new StringContent(push1SuccessResult)
+            });
+            // 2nd push
+            string conflictResult = "{\"id\":\"b\",\"String\":\"Hey 2 server\",\"version\":\"def\"}";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.PreconditionFailed)
+            {
+                Content =
+                new StringContent(conflictResult)
+            });
+            // 3rd push
+            string push3SuccessResult = "{\"id\":\"b\",\"String\":\"Hey 3 merged\",\"version\":\"efg\"}";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content =
+                new StringContent(push3SuccessResult)
+            });
+
+            var store = new MobileServiceSQLiteStore(TestDbName);
+            store.DefineTable<ToDoWithSystemPropertiesType>();
+
+            IMobileServiceClient service = await CreateClient(hijack, store);
+            IMobileServiceSyncTable<ToDoWithSystemPropertiesType> table = service.GetSyncTable<ToDoWithSystemPropertiesType>();
+
+            // first, insert and push an item
+            var originalItem = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 1" };
+            await table.InsertAsync(originalItem);
+            // 1st push
+            await service.SyncContext.PushAsync();
+
+            // then update the item
+            var updatedItem1 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 2 local" };
+            await table.UpdateAsync(updatedItem1);
+
+            // then update the item the second time
+            var updatedItem2 = new ToDoWithSystemPropertiesType { Id = "b", String = "Hey 3 local" };
+            await table.UpdateAsync(updatedItem2);
+
+            // then push it to server - 2nd push
+            var ex = await Assert.ThrowsAsync<MobileServicePushFailedException>(service.SyncContext.PushAsync);
+
+            ex.PushResult.Should().NotBeNull();
+            ex.PushResult.Status.Should().Be(MobileServicePushStatus.Complete);
+            var error = ex.PushResult.Errors.Should().ContainSingle().Which.Should().BeOfType<MobileServiceUpdateOperationError>().Which;
+            error.Should().BeEquivalentTo(new
+            {
+                Handled = false,
+                OperationKind = MobileServiceTableOperationKind.Update,
+                RawResult = conflictResult,
+                TableName = TestTable,
+                Status = HttpStatusCode.PreconditionFailed
+            });
+            error.Result.ToString(Formatting.None).Should().Be(conflictResult);
+
+            var errorItem = error.Item.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
+            errorItem.Should().BeEquivalentTo(updatedItem2, r => r.Excluding(i => i.Version));
+
+            error.PreviousItem.Should().NotBeNull();
+
+            var errorPreviousItem = error.PreviousItem.ToObject<ToDoWithSystemPropertiesType>(JsonSerializer.Create(service.SerializerSettings));
+            errorPreviousItem.Should().BeEquivalentTo(originalItem, r => r.Excluding(i => i.Version));
+
+            service.SyncContext.PendingOperations.Should().Be(1); // operation not removed
+
+            var localItem = await table.LookupAsync(originalItem.Id);
+            localItem.String.Should().Be(updatedItem2.String); // item is not updated 
+
+            // handle conflict
+            var conflict = error.PropertyConflicts.Should().ContainSingle().Subject;
+            conflict.Should().BeEquivalentTo(new
+            {
+                PropertyName = nameof(ToDoWithSystemPropertiesType.String),
+                IsLocalChanged = true,
+                IsRemoteChanged = true,
+                Handled = false,
+                ResolvedValue = (object)null
+            });
+
+            conflict.LocalValue.ToString().Should().Be("Hey 3 local");
+            conflict.RemoteValue.ToString().Should().Be("Hey 2 server");
+            conflict.UpdateValue((JValue)JToken.Parse(@"""Hey 3 merged"""));
+
+            // merge with the server version
+            await error.MergeAndUpdateOperationAsync();
+
+            // 3rd push
+            await service.SyncContext.PushAsync();
+
+            hijack.RequestContents[^1].Should().Be(@"{""id"":""b"",""String"":""Hey 3 merged""}");
+
+            service.SyncContext.PendingOperations.Should().Be(0); // operation now succeeds
+
+            localItem = await table.LookupAsync(originalItem.Id);
+            localItem.String.Should().Be("Hey 3 merged"); // item is updated
+        }
+
+        //
         [Fact]
         public async Task PushAsync_DiscardsOperationAndUpdatesTheItem_WhenCancelAndUpdateItemAsync()
         {
@@ -784,6 +895,7 @@ namespace SQLiteStore.Tests
             Assert.Equal("Wow", updatedItem.String); // item is updated             
         }
 
+        //
         [Fact]
         public async Task PushAsync_DiscardsOperationAndDeletesTheItem_WhenCancelAndDiscardItemAsync()
         {
@@ -824,7 +936,7 @@ namespace SQLiteStore.Tests
         // TODO: uncomment this when tested together with the NOTE app
         // and uncomment \src\Microsoft.Azure.Mobile.Client.SQLiteStore\SqlHelpers.cs, line 240:
         // return DeserializeDateTime(strValue)
-        [Fact]
+        //[Fact]
         public async Task Insert_AllTypes_ThenRead_ThenPush_ThenLookup()
         {
             ResetDatabase("AllBaseTypesWithAllSystemPropertiesType");
