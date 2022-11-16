@@ -6,7 +6,7 @@ namespace SQLiteStore.Tests
     {
         public MobileServiceNetDateTimeConverter()
         {
-            DateTimeFormat = "yyyy'-'MM'-'dd' 'HH':'mm':'ss'.'FFFFFFF";
+            DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'FFFFFFFK";
         }
     }
 }
