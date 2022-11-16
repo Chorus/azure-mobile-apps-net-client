@@ -262,6 +262,7 @@ namespace MobileClient.Tests.Table
             Assert.Equal(operation.Value<string>("itemId"), itemId);
         }
 
+        //
         [Fact]
         public async Task PushAsync_Succeeds_WithClientWinsPolicy()
         {
@@ -323,6 +324,7 @@ namespace MobileClient.Tests.Table
             }
         }
 
+        //
         [Fact]
         public async Task PushAsync_Succeeds_WithPendingOperations_AndOpQueueIsConsistent()
         {

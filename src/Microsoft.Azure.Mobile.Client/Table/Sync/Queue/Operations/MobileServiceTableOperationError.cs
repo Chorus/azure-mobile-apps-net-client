@@ -1,7 +1,7 @@
 ﻿// ----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // ----------------------------------------------------------------------------
-
+#nullable enable annotations
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -78,14 +78,15 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         /// <param name="item">The item associated with the operation.</param>
         /// <param name="rawResult">Raw response of the table operation.</param>
         /// <param name="result">Response of the table operation.</param>
-        public MobileServiceTableOperationError(string id,
-                                                long operationVersion,
-                                                MobileServiceTableOperationKind operationKind,
-                                                HttpStatusCode? status,
-                                                string tableName,
-                                                JObject item,
-                                                string rawResult,
-                                                JObject result)
+        public MobileServiceTableOperationError(
+            string id,
+            long operationVersion,
+            MobileServiceTableOperationKind operationKind,
+            HttpStatusCode? status,
+            string tableName,
+            JObject item,
+            string rawResult,
+            JObject result)
         {
             this.Id = id;
             this.OperationVersion = operationVersion;
@@ -149,11 +150,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 { "tableName", String.Empty },
                 { "tableKind", 0 },
                 { "item", String.Empty },
+                { "previousItem", String.Empty },
                 { "rawResult", String.Empty }
             });
         }
 
-        internal JObject Serialize()
+        internal virtual JObject Serialize()
         {
             return new JObject()
             {
@@ -183,6 +185,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
             string itemStr = obj.Value<string>("item");
             JObject item = itemStr == null ? null : JObject.Parse(itemStr);
+
+            string previousItemStr = obj.Value<string>("previousItem");
+            JObject previousItem = string.IsNullOrEmpty(previousItemStr) ? null : JObject.Parse(previousItemStr);
+
             string rawResult = obj.Value<string>("rawResult");
             JObject result = null;
             try
@@ -194,18 +200,62 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 // Ignore JsonReaderException, because 'rawResult' might not be JSON.
             }
 
-            return new MobileServiceTableOperationError(id,
-                                                        operationVersion,
-                                                        operationKind,
-                                                        status,
-                                                        tableName,
-                                                        item,
-                                                        rawResult,
-                                                        result)
-            {
-                Id = id,
-                TableKind = tableKind
-            };
+            return Create(
+                status,
+                id,
+                operationVersion,
+                operationKind,
+                tableName,
+                tableKind,
+                item,
+                previousItem,
+                rawResult,
+                result);
+        }
+
+        internal static MobileServiceTableOperationError Create(
+            HttpStatusCode? status,
+            string id,
+            long operationVersion,
+            MobileServiceTableOperationKind operationKind,
+            string tableName,
+            MobileServiceTableKind tableKind,
+            JObject item,
+            JObject? previousItem,
+            string rawResult,
+            JObject result,
+            MobileServiceSyncContext? context = null)
+        {
+            return previousItem is null || item is null || result is null ?
+                new MobileServiceTableOperationError(
+                    id,
+                    operationVersion,
+                    operationKind,
+                    status,
+                    tableName,
+                    item,
+                    rawResult,
+                    result)
+                {
+                    Id = id,
+                    TableKind = tableKind,
+                    Context = context
+                } :
+                new MobileServiceUpdateOperationError(
+                    id,
+                    operationVersion,
+                    operationKind,
+                    status,
+                    tableName,
+                    item,
+                    previousItem,
+                    rawResult,
+                    result)
+                {
+                    Id = id,
+                    TableKind = tableKind,
+                    Context = context
+                };
         }
     }
 }

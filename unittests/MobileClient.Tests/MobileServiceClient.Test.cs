@@ -865,6 +865,7 @@ namespace MobileClient.Tests
             await Assert.ThrowsAsync<MobileServiceInvalidOperationException>(() => client.RefreshUserAsync());
         }
 
+        //
         [Fact]
         public async Task RefreshUserAsync_Throws_On_Unauthorized()
         {

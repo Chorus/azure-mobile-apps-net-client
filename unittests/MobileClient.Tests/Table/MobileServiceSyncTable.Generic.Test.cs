@@ -1239,6 +1239,7 @@ namespace MobileClient.Tests.Table
                                           secondOperation: (table, item) => table.UpdateAsync(item));
         }
 
+        //
         [Fact]
         public async Task UpdateAsync_CancelsSecondUpdate_WhenUpdateIsInQueue()
         {
