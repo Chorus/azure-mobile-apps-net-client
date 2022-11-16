@@ -75,7 +75,12 @@ namespace MobileClient.Tests.Table.Sync
         {
             // Arrange
             var remoteValue = JToken.Parse(@"{""Property1"":[]}");
-            var error = Mock.Of<IMobileServiceUpdateOperationError>(x => x.Result == remoteValue);
+            var localValue = JToken.Parse(@"{""Property1"":[]}");
+            var baseValue = JToken.Parse(@"{""Property1"":[]}");
+            var error = Mock.Of<IMobileServiceUpdateOperationError>(x => 
+                x.Result == remoteValue &&
+                x.Item == localValue &&
+                x.PreviousItem == baseValue);
 
             // Act
             Invoking(() => new PropertyConflict("Property1", error))
