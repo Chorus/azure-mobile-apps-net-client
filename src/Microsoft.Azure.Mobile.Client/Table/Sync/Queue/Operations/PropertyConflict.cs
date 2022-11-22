@@ -7,6 +7,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     public class PropertyConflict : IPropertyConflict
     {
+        public static IPropertyValuesComparer Comparer = new DefaultPropertyValuesComparer();
+
         private readonly IMobileServiceUpdateOperationError _error;
         private int _handled;
 
@@ -23,19 +25,21 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             RemoteValue = remoteValueJToken is null or JValue ?
                 (JValue?)remoteValueJToken :
                 throw new InvalidOperationException($"Remote value is an object or array which is not supported. Only primitive values are supported.");
-            
-            var localValueJToken = _error.Item.GetValue(PropertyName); 
+
+            var localValueJToken = _error.Item.GetValue(PropertyName);
             LocalValue = localValueJToken is null or JValue ?
                 (JValue?)localValueJToken :
                 throw new InvalidOperationException($"Local value is an object or array which is not supported. Only primitive values are supported.");
-            
-            var baseValueJToken = _error.PreviousItem.GetValue(PropertyName); 
+
+            var baseValueJToken = _error.PreviousItem.GetValue(PropertyName);
             BaseValue = baseValueJToken is null or JValue ?
                 (JValue?)baseValueJToken :
                 throw new InvalidOperationException($"Base value is an object or array which is not supported. Only primitive values are supported.");
 
-            IsLocalChanged = !Equals(BaseValue, LocalValue);
-            IsRemoteChanged = !Equals(BaseValue, RemoteValue);
+            _ = Comparer ?? throw new InvalidOperationException($"{nameof(PropertyConflict)}.{nameof(Comparer)} has to be set.");
+
+            IsLocalChanged = !Comparer.AreValuesEqual(error.TableName, propertyName, BaseValue, LocalValue);
+            IsRemoteChanged = !Comparer.AreValuesEqual(error.TableName, propertyName, BaseValue, RemoteValue);
         }
 
         public string PropertyName { get; }
