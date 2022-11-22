@@ -15,6 +15,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         internal PropertyConflict(in string propertyName, IMobileServiceUpdateOperationError error)
         {
             PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
+            TableName = error.TableName;
             _error = error ?? throw new ArgumentNullException(nameof(error));
 
             _ = error.Result ?? throw new ArgumentException($"{nameof(error)}.{nameof(error.Result)} should not be null", nameof(error));
@@ -36,13 +37,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 (JValue?)baseValueJToken :
                 throw new InvalidOperationException($"Base value is an object or array which is not supported. Only primitive values are supported.");
 
-            _ = Comparer ?? throw new InvalidOperationException($"{nameof(PropertyConflict)}.{nameof(Comparer)} has to be set.");
-
-            IsLocalChanged = !Comparer.AreValuesEqual(error.TableName, propertyName, BaseValue, LocalValue);
-            IsRemoteChanged = !Comparer.AreValuesEqual(error.TableName, propertyName, BaseValue, RemoteValue);
+            IsLocalChanged = !AreValuesEqual(BaseValue, LocalValue);
+            IsRemoteChanged = !AreValuesEqual(BaseValue, RemoteValue);
         }
 
         public string PropertyName { get; }
+        public string TableName { get; }
         public bool IsLocalChanged { get; }
         public bool IsRemoteChanged { get; }
 
@@ -51,10 +51,16 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public JValue? BaseValue { get; }
 
         public bool Handled => _handled != 0;
-        public bool IsBaseTaken => Equals(ResolvedValue, BaseValue);
-        public bool IsLocalTaken => Equals(ResolvedValue, LocalValue);
-        public bool IsRemoteTaken => Equals(ResolvedValue, RemoteValue);
+        public bool IsBaseTaken => AreValuesEqual(ResolvedValue, BaseValue);
+        public bool IsLocalTaken => AreValuesEqual(ResolvedValue, LocalValue);
+        public bool IsRemoteTaken => AreValuesEqual(ResolvedValue, RemoteValue);
         public JValue? ResolvedValue { get; private set; }
+
+        private static IPropertyValuesComparer GetComparer() =>
+            Comparer ?? throw new InvalidOperationException($"{nameof(PropertyConflict)}.{nameof(Comparer)} has to be set.");
+
+        private bool AreValuesEqual(JValue? value1, JValue? value2) =>
+            GetComparer().AreValuesEqual(TableName, PropertyName, value1, value2);
 
         public void TakeRemote()
         {
