@@ -56,9 +56,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                      select (IPropertyConflict)change)
                     .ToImmutableArray();
 
-                return changes.Any(r => r.IsLocalChanged) && changes.Any(r => r.IsRemoteChanged) ?
-                    changes :
-                    ImmutableArray.Create<IPropertyConflict>();
+                return changes;
             }
         }
 

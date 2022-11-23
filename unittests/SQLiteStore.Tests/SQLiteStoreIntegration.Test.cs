@@ -24,6 +24,7 @@ namespace SQLiteStore.Tests
     public class SQLiteStoreIntegration
     {
         private const string TestTable = "stringId_test_table";
+        private const string PropertyConflictsTestTable = "propertyConflicts_test_table";
         private static string TestDbName = "integration-test.db";
 
         static SQLiteStoreIntegration()
@@ -855,6 +856,109 @@ namespace SQLiteStore.Tests
 
             localItem = await table.LookupAsync(originalItem.Id);
             localItem.String.Should().Be("Hey 3 merged"); // item is updated
+        }
+
+        [Fact]
+        public async Task GivenOnlyServerPropertiesChanged_WhenPushAsync_ThenOnlyLocalPropertyConflict()
+        {
+            ResetDatabase(PropertyConflictsTestTable);
+
+            var hijack = new TestHttpHandler();
+
+            // 1st push
+            string push1SuccessResult = """{"id":"b","String1":"1","String2":"1","String3":null,"version":"abc"}""";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content =
+                new StringContent(push1SuccessResult)
+            });
+            // 2nd push
+            string conflictResult = """{"id":"b","String1":"1","String2":"1","String3":null,"version":"def"}""";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.PreconditionFailed)
+            {
+                Content =
+                new StringContent(conflictResult)
+            });
+            // 3rd push
+            string push3SuccessResult = """{"id":"b","String1":"1","String2":"2","String3":null,"version":"efg"}""";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content =
+                new StringContent(push3SuccessResult)
+            });
+
+            var store = new MobileServiceSQLiteStore(TestDbName);
+            store.DefineTable<ItemForPropertyConflicts>();
+
+            IMobileServiceClient service = await CreateClient(hijack, store);
+            IMobileServiceSyncTable<ItemForPropertyConflicts> table = service.GetSyncTable<ItemForPropertyConflicts>();
+
+            // first, insert and push an item
+            var originalItem = new ItemForPropertyConflicts { Id = "b", String1 = "1", String2 = "1" };
+            await table.InsertAsync(originalItem);
+            // 1st push
+            await service.SyncContext.PushAsync();
+
+            // then update the item
+            var updatedItem1 = new ItemForPropertyConflicts { Id = "b", String1 = "1", String2 = "2" };
+            await table.UpdateAsync(updatedItem1);
+
+            // then push it to server - 2nd push
+            var ex = await Assert.ThrowsAsync<MobileServicePushFailedException>(service.SyncContext.PushAsync);
+
+            ex.PushResult.Should().NotBeNull();
+            ex.PushResult.Status.Should().Be(MobileServicePushStatus.Complete);
+            var error = ex.PushResult.Errors.Should().ContainSingle().Which.Should().BeOfType<MobileServiceUpdateOperationError>().Which;
+            error.Should().BeEquivalentTo(new
+            {
+                Handled = false,
+                OperationKind = MobileServiceTableOperationKind.Update,
+                RawResult = conflictResult,
+                TableName = PropertyConflictsTestTable,
+                Status = HttpStatusCode.PreconditionFailed
+            });
+            error.Result.ToString(Formatting.None).Should().Be(conflictResult);
+
+            var errorItem = error.Item.ToObject<ItemForPropertyConflicts>(JsonSerializer.Create(service.SerializerSettings));
+            errorItem.Should().BeEquivalentTo(updatedItem1, r => r.Excluding(i => i.Version));
+
+            error.PreviousItem.Should().NotBeNull();
+
+            var errorPreviousItem = error.PreviousItem.ToObject<ItemForPropertyConflicts>(JsonSerializer.Create(service.SerializerSettings));
+            errorPreviousItem.Should().BeEquivalentTo(originalItem, r => r.Excluding(i => i.Version));
+
+            service.SyncContext.PendingOperations.Should().Be(1); // operation not removed
+
+            var localItem = await table.LookupAsync(originalItem.Id);
+            localItem.String1.Should().Be(updatedItem1.String1); // value is not updated 
+            localItem.String2.Should().Be(updatedItem1.String2); // value is updated 
+
+            var conflict = error.PropertyConflicts.Should().ContainSingle().Subject;
+            conflict.Should().BeEquivalentTo(new
+            {
+                PropertyName = nameof(ItemForPropertyConflicts.String2),
+                IsLocalChanged = true,
+                IsRemoteChanged = false,
+                Handled = false,
+                ResolvedValue = (object)null
+            });
+
+            conflict.LocalValue.ToString().Should().Be("2");
+            conflict.RemoteValue.ToString().Should().Be("1");
+            conflict.TakeLocal();
+
+            // merge with the server version
+            await error.MergeAndUpdateOperationAsync();
+
+            // 3rd push
+            await service.SyncContext.PushAsync();
+
+            hijack.RequestContents[^1].Should().Be(@"{""id"":""b"",""String1"":""1"",""String2"":""2"",""String3"":null}");
+
+            service.SyncContext.PendingOperations.Should().Be(0); // operation now succeeds
+
+            localItem = await table.LookupAsync(originalItem.Id);
+            localItem.String2.Should().Be("2"); // item is updated
         }
 
         //
