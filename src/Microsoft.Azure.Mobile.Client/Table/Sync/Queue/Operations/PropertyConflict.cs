@@ -37,13 +37,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 (JValue?)baseValueJToken :
                 throw new InvalidOperationException($"Base value is an object or array which is not supported. Only primitive values are supported.");
 
-            // if local and remote values are same, even though different than the base value, 
-            // then it's not a conflict
-            if (!AreValuesEqual(LocalValue, RemoteValue))
-            {
-                IsLocalChanged = !AreValuesEqual(BaseValue, LocalValue);
-                IsRemoteChanged = !AreValuesEqual(BaseValue, RemoteValue);
-            }
+            IsLocalChanged = !AreValuesEqual(BaseValue, LocalValue);
+            IsRemoteChanged = !AreValuesEqual(BaseValue, RemoteValue);
         }
 
         public string PropertyName { get; }
@@ -59,6 +54,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public bool IsBaseTaken => AreValuesEqual(ResolvedValue, BaseValue);
         public bool IsLocalTaken => AreValuesEqual(ResolvedValue, LocalValue);
         public bool IsRemoteTaken => AreValuesEqual(ResolvedValue, RemoteValue);
+        public bool LocalEqualsRemote => AreValuesEqual(LocalValue, RemoteValue);
         public JValue? ResolvedValue { get; private set; }
 
         private static IPropertyValuesComparer GetComparer() =>

@@ -49,6 +49,9 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                          GetPropertyNames(LocalItem)).Intersect(
                          GetPropertyNames(RemoteItem))
                      let change = new PropertyConflict(propertyName, this)
+                     // if local and remote values are the same even though different from the base value, 
+                     // then it's not a conflict
+                     where !change.LocalEqualsRemote
                      where change.IsLocalChanged || change.IsRemoteChanged
                      select (IPropertyConflict)change)
                     .ToImmutableArray();

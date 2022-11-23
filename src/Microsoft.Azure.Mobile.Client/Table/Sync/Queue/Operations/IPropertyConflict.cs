@@ -13,6 +13,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         string PropertyName { get; }
         JValue? RemoteValue { get; }
         JValue? ResolvedValue { get; }
+        bool LocalEqualsRemote { get; }
 
         void TakeLocal();
         void TakeRemote();
