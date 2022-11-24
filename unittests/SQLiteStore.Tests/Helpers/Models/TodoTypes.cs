@@ -75,6 +75,36 @@ namespace SQLiteStore.Tests.Helpers
         }
     }
 
+    [DataTable("propertyConflicts_test_table")]
+    public class ItemForPropertyConflicts
+    {
+        public string Id { get; set; }
+        public string String1 { get; set; }
+        public string String2 { get; set; }
+        public string String3 { get; set; }
+
+        [CreatedAt]
+        public DateTime CreatedAt { get; set; }
+
+        [UpdatedAt]
+        public DateTime UpdatedAt { get; set; }
+
+        [Version]
+        public String Version { get; set; }
+
+        [Deleted]
+        public bool Deleted { get; set; }
+
+        public ItemForPropertyConflicts()
+        {
+        }
+
+        public ItemForPropertyConflicts(string id)
+        {
+            this.Id = id;
+        }
+    }
+
     public class TypeWithArray
     {
         public string Id { get; set; }

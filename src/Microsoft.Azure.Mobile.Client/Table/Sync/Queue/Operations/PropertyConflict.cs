@@ -7,12 +7,15 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 {
     public class PropertyConflict : IPropertyConflict
     {
+        public static IPropertyValuesComparer Comparer = new DefaultPropertyValuesComparer();
+
         private readonly IMobileServiceUpdateOperationError _error;
         private int _handled;
 
         internal PropertyConflict(in string propertyName, IMobileServiceUpdateOperationError error)
         {
             PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
+            TableName = error.TableName;
             _error = error ?? throw new ArgumentNullException(nameof(error));
 
             _ = error.Result ?? throw new ArgumentException($"{nameof(error)}.{nameof(error.Result)} should not be null", nameof(error));
@@ -23,22 +26,23 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             RemoteValue = remoteValueJToken is null or JValue ?
                 (JValue?)remoteValueJToken :
                 throw new InvalidOperationException($"Remote value is an object or array which is not supported. Only primitive values are supported.");
-            
-            var localValueJToken = _error.Item.GetValue(PropertyName); 
+
+            var localValueJToken = _error.Item.GetValue(PropertyName);
             LocalValue = localValueJToken is null or JValue ?
                 (JValue?)localValueJToken :
                 throw new InvalidOperationException($"Local value is an object or array which is not supported. Only primitive values are supported.");
-            
-            var baseValueJToken = _error.PreviousItem.GetValue(PropertyName); 
+
+            var baseValueJToken = _error.PreviousItem.GetValue(PropertyName);
             BaseValue = baseValueJToken is null or JValue ?
                 (JValue?)baseValueJToken :
                 throw new InvalidOperationException($"Base value is an object or array which is not supported. Only primitive values are supported.");
 
-            IsLocalChanged = !Equals(BaseValue, LocalValue);
-            IsRemoteChanged = !Equals(BaseValue, RemoteValue);
+            IsLocalChanged = !AreValuesEqual(BaseValue, LocalValue);
+            IsRemoteChanged = !AreValuesEqual(BaseValue, RemoteValue);
         }
 
         public string PropertyName { get; }
+        public string TableName { get; }
         public bool IsLocalChanged { get; }
         public bool IsRemoteChanged { get; }
 
@@ -47,10 +51,17 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public JValue? BaseValue { get; }
 
         public bool Handled => _handled != 0;
-        public bool IsBaseTaken => Equals(ResolvedValue, BaseValue);
-        public bool IsLocalTaken => Equals(ResolvedValue, LocalValue);
-        public bool IsRemoteTaken => Equals(ResolvedValue, RemoteValue);
+        public bool IsBaseTaken => AreValuesEqual(ResolvedValue, BaseValue);
+        public bool IsLocalTaken => AreValuesEqual(ResolvedValue, LocalValue);
+        public bool IsRemoteTaken => AreValuesEqual(ResolvedValue, RemoteValue);
+        public bool LocalEqualsRemote => AreValuesEqual(LocalValue, RemoteValue);
         public JValue? ResolvedValue { get; private set; }
+
+        private static IPropertyValuesComparer GetComparer() =>
+            Comparer ?? throw new InvalidOperationException($"{nameof(PropertyConflict)}.{nameof(Comparer)} has to be set.");
+
+        private bool AreValuesEqual(JValue? value1, JValue? value2) =>
+            GetComparer().AreValuesEqual(TableName, PropertyName, value1, value2);
 
         public void TakeRemote()
         {
