@@ -1026,7 +1026,6 @@ namespace SQLiteStore.Tests
 
             // handle conflict
             conflict.TakeLocal();
-            conflict.ResolvedValue.Type.Should().Be(JTokenType.Date);
 
             // merge with the server version
             await error.MergeAndUpdateOperationAsync();
