@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using Newtonsoft.Json.Linq;
 using System;
+using System.Globalization;
 
 namespace Microsoft.WindowsAzure.MobileServices.Sync.Conflicts
 {
@@ -17,8 +18,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync.Conflicts
         {
             if (IsDateTime(tableName, propertyName))
             {
-                var value1 = ParseDateTime(jValue1?.Value?.ToString());
-                var value2 = ParseDateTime(jValue2?.Value?.ToString());
+                DateTime? value1 = ParseDateTime(jValue1?.Value?.ToString());
+                DateTime? value2 = ParseDateTime(jValue2?.Value?.ToString());
                 bool equal = value1 == value2;
                 return equal;
             }
@@ -26,7 +27,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync.Conflicts
             return _inner.AreValuesEqual(tableName, propertyName, jValue1, jValue2);
 
             static DateTime? ParseDateTime(in string? value) => !string.IsNullOrEmpty(value) ?
-                DateTime.SpecifyKind(DateTime.Parse(value), DateTimeKind.Utc) :
+                DateTime.Parse(value, null, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal) :
                 null;
         }
 
