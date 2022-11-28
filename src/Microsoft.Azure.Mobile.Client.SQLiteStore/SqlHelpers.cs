@@ -236,8 +236,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             }
             if (type == JTokenType.Date)
             {
-                // TODO: uncomment this when tested together with the NOTE app
-                //return DeserializeDateTime(strValue);
+                return DeserializeDateTime(strValue);
             }
 
             return strValue;
@@ -245,9 +244,9 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
         private static JToken DeserializeDateTime(string value)
         {
-            return value is { } ? 
-                DateTime.TryParseExact(value, _efCoreDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var result)  ? 
-                    result : 
+            return value is { } ?
+                DateTime.TryParseExact(value, _efCoreDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var result) ?
+                    result :
                     DateTime.Parse(value) :
                 value;
         }
