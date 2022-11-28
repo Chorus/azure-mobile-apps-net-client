@@ -5,6 +5,7 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.MobileServices.Sync.Conflicts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

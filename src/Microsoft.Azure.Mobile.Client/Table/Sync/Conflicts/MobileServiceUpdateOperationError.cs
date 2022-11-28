@@ -8,7 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.WindowsAzure.MobileServices.Sync.Conflicts
 {
     public class MobileServiceUpdateOperationError : MobileServiceTableOperationError, IMobileServiceUpdateOperationError
     {

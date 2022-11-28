@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.WindowsAzure.MobileServices.Sync.Conflicts
 {
     public interface IMobileServiceUpdateOperationError
     {

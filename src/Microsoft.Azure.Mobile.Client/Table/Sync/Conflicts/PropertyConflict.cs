@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Threading;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.WindowsAzure.MobileServices.Sync.Conflicts
 {
     public class PropertyConflict : IPropertyConflict
     {
@@ -31,6 +31,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             LocalValue = localValueJToken is null or JValue ?
                 (JValue?)localValueJToken :
                 throw new InvalidOperationException($"Local value is an object or array which is not supported. Only primitive values are supported.");
+            if (LocalValue is { } && propertyName == "DateTime1" && LocalValue.Type != JTokenType.Date)
+            {
+                LocalValue = new JValue(DateTime.Parse(LocalValue.Value<string>()));
+            }
 
             var baseValueJToken = _error.PreviousItem.GetValue(PropertyName);
             BaseValue = baseValueJToken is null or JValue ?

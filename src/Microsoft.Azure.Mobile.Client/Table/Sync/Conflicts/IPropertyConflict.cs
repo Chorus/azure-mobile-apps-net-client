@@ -1,7 +1,7 @@
 ﻿#nullable enable
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.WindowsAzure.MobileServices.Sync.Conflicts
 {
     public interface IPropertyConflict
     {
