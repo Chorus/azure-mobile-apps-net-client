@@ -22,7 +22,7 @@ using Xunit;
 
 namespace SQLiteStore.Tests
 {
-    public class SQLiteStoreIntegration
+    public partial class SQLiteStoreIntegration
     {
         private const string TestTable = "stringId_test_table";
         private const string PropertyConflictsTestTable = "propertyConflicts_test_table";
@@ -859,15 +859,6 @@ namespace SQLiteStore.Tests
             localItem.String.Should().Be("Hey 3 merged"); // item is updated
         }
 
-        class TestDateTimePropertyValuesComparer : DateTimePropertyValuesComparer
-        {
-            public TestDateTimePropertyValuesComparer() : base(PropertyConflict.Comparer) { }
-
-            protected override bool IsDateTime(in string tableName, in string propertyName) =>
-                tableName == PropertyConflictsTestTable &&
-                propertyName == nameof(ItemForPropertyConflicts.DateTime1);
-        }
-
         [Fact]
         public async Task GivenOnlyServerPropertiesChanged_WhenPushAsync_ThenOnlyLocalPropertyConflict()
         {
@@ -1033,9 +1024,6 @@ namespace SQLiteStore.Tests
                 ResolvedValue = (object)null
             });
 
-            //conflict.LocalValue.ToString().Should().Be("2022-01-02 00:00:00");
-            //conflict.RemoteValue.ToString().Should().Be("2022-01-01T00:00:00Z");
-
             // handle conflict
             conflict.TakeLocal();
             conflict.ResolvedValue.Type.Should().Be(JTokenType.Date);
@@ -1051,7 +1039,8 @@ namespace SQLiteStore.Tests
             service.SyncContext.PendingOperations.Should().Be(0); // operation now succeeds
 
             var localItem = await table.LookupAsync(originalItem.Id);
-            localItem.DateTime1.Should().Be(updatedDateTime); // item is updated
+            localItem.DateTime1.Should().Be(updatedDateTime.ToLocalTime()); 
+            localItem.DateTime1.Value.Kind.Should().Be(DateTimeKind.Local);
         }
 
         //
