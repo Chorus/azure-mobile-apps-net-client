@@ -1,9 +1,9 @@
-﻿using Microsoft.WindowsAzure.MobileServices.Sync;
+﻿using FluentAssertions;
+using Microsoft.WindowsAzure.MobileServices.Sync.Conflicts;
+using Moq;
 using Newtonsoft.Json.Linq;
 using System;
 using Xunit;
-using Moq;
-using FluentAssertions;
 using static FluentAssertions.FluentActions;
 
 namespace MobileClient.Tests.Table.Sync
@@ -77,7 +77,7 @@ namespace MobileClient.Tests.Table.Sync
             var remoteValue = JToken.Parse(@"{""Property1"":[]}");
             var localValue = JToken.Parse(@"{""Property1"":[]}");
             var baseValue = JToken.Parse(@"{""Property1"":[]}");
-            var error = Mock.Of<IMobileServiceUpdateOperationError>(x => 
+            var error = Mock.Of<IMobileServiceUpdateOperationError>(x =>
                 x.Result == remoteValue &&
                 x.Item == localValue &&
                 x.PreviousItem == baseValue);

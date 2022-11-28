@@ -1,12 +1,9 @@
 ﻿#nullable enable annotations
-using Microsoft.WindowsAzure.MobileServices.Sync;
-using Newtonsoft.Json.Linq;
-using System;
-using Xunit;
-using Moq;
 using FluentAssertions;
-using static FluentAssertions.FluentActions;
-using System.Linq;
+using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.WindowsAzure.MobileServices.Sync.Conflicts;
+using Newtonsoft.Json.Linq;
+using Xunit;
 
 namespace MobileClient.Tests.Table.Sync
 {
