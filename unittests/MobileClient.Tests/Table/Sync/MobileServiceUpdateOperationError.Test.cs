@@ -1,12 +1,9 @@
 ﻿#nullable enable annotations
-using Microsoft.WindowsAzure.MobileServices.Sync;
-using Newtonsoft.Json.Linq;
-using System;
-using Xunit;
-using Moq;
 using FluentAssertions;
-using static FluentAssertions.FluentActions;
-using System.Linq;
+using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.WindowsAzure.MobileServices.Sync.Conflicts;
+using Newtonsoft.Json.Linq;
+using Xunit;
 
 namespace MobileClient.Tests.Table.Sync
 {
@@ -28,7 +25,7 @@ namespace MobileClient.Tests.Table.Sync
         }
 
         [Fact]
-        public void WhenRemoteDifferentFromBase_ThenNoConflicts()
+        public void WhenRemoteDifferentFromBase_Then1RemoteConflict()
         {
             // Arrange
             var local = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abc", "version": "local" }""");
@@ -39,11 +36,12 @@ namespace MobileClient.Tests.Table.Sync
             var sut = CreateSut(local, remote, @base);
 
             // Assert
-            sut.PropertyConflicts.Should().BeEmpty();
+            var conflict = sut.PropertyConflicts.Should().ContainSingle().Which;
+            conflict.Should().BeEquivalentTo(new { PropertyName = "Property2", IsLocalChanged = false, IsRemoteChanged = true });
         }
 
         [Fact]
-        public void WhenLocalDifferentFromBase_ThenNoConflicts()
+        public void WhenLocalDifferentFromBase_Then1LocalConflict()
         {
             // Arrange
             var local = (JObject)JToken.Parse(""" {"Property1": 0, "Property2": "abcdef", "version": "local" }""");
@@ -54,7 +52,8 @@ namespace MobileClient.Tests.Table.Sync
             var sut = CreateSut(local, remote, @base);
 
             // Assert
-            sut.PropertyConflicts.Should().BeEmpty();
+            var conflict = sut.PropertyConflicts.Should().ContainSingle().Which;
+            conflict.Should().BeEquivalentTo(new { PropertyName = "Property2", IsLocalChanged = true, IsRemoteChanged = false });
         }
 
         [Fact]

@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.WindowsAzure.MobileServices.SQLiteStore;
 using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.WindowsAzure.MobileServices.Sync.Conflicts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SQLiteStore.Tests.Helpers;
@@ -21,7 +22,7 @@ using Xunit;
 
 namespace SQLiteStore.Tests
 {
-    public class SQLiteStoreIntegration
+    public partial class SQLiteStoreIntegration
     {
         private const string TestTable = "stringId_test_table";
         private const string PropertyConflictsTestTable = "propertyConflicts_test_table";
@@ -866,21 +867,21 @@ namespace SQLiteStore.Tests
             var hijack = new TestHttpHandler();
 
             // 1st push
-            string push1SuccessResult = """{"id":"b","String1":"1","String2":"1","String3":null,"version":"abc"}""";
+            string push1SuccessResult = """{"id":"b","String1":"1","String2":"1","DateTime1":null,"version":"abc"}""";
             hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content =
                 new StringContent(push1SuccessResult)
             });
             // 2nd push
-            string conflictResult = """{"id":"b","String1":"1","String2":"1","String3":null,"version":"def"}""";
+            string conflictResult = """{"id":"b","String1":"1","String2":"1","DateTime1":null,"version":"def"}""";
             hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.PreconditionFailed)
             {
                 Content =
                 new StringContent(conflictResult)
             });
             // 3rd push
-            string push3SuccessResult = """{"id":"b","String1":"1","String2":"2","String3":null,"version":"efg"}""";
+            string push3SuccessResult = """{"id":"b","String1":"1","String2":"2","DateTime1":null,"version":"efg"}""";
             hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content =
@@ -953,12 +954,92 @@ namespace SQLiteStore.Tests
             // 3rd push
             await service.SyncContext.PushAsync();
 
-            hijack.RequestContents[^1].Should().Be(@"{""id"":""b"",""String1"":""1"",""String2"":""2"",""String3"":null}");
+            hijack.RequestContents[^1].Should().Be(@"{""id"":""b"",""String1"":""1"",""String2"":""2"",""DateTime1"":null}");
 
             service.SyncContext.PendingOperations.Should().Be(0); // operation now succeeds
 
             localItem = await table.LookupAsync(originalItem.Id);
             localItem.String2.Should().Be("2"); // item is updated
+        }
+
+        [Fact]
+        public async Task TestDateTime()
+        {
+            ResetDatabase(PropertyConflictsTestTable);
+            PropertyConflict.Comparer = new TestDateTimePropertyValuesComparer();
+
+            var hijack = new TestHttpHandler();
+
+            // 1st push
+            string push1SuccessResult = """{"id":"b","String1":"1","String2":"1","DateTime1":"2022-01-01T00:00:00Z","version":"abc"}""";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content =
+                new StringContent(push1SuccessResult)
+            });
+            // 2nd push
+            string conflictResult = """{"id":"b","String1":"1","String2":"1","DateTime1":"2022-01-01T00:00:00Z","version":"def"}""";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.PreconditionFailed)
+            {
+                Content =
+                new StringContent(conflictResult)
+            });
+            // 3rd push
+            string push3SuccessResult = """{"id":"b","String1":"1","String2":"1","DateTime1":"2022-01-02T00:00:00Z","version":"efg"}""";
+            hijack.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content =
+                new StringContent(push3SuccessResult)
+            });
+
+            var store = new MobileServiceSQLiteStore(TestDbName);
+            store.DefineTable<ItemForPropertyConflicts>();
+
+            IMobileServiceClient service = await CreateClient(hijack, store);
+            IMobileServiceSyncTable<ItemForPropertyConflicts> table = service.GetSyncTable<ItemForPropertyConflicts>();
+
+            // first, insert and push an item
+            var originalItem = new ItemForPropertyConflicts { Id = "b", String1 = "1", String2 = "1", DateTime1 = new DateTime(2022, 01, 01, 0, 00, 00, DateTimeKind.Utc) };
+            await table.InsertAsync(originalItem);
+            // 1st push
+            await service.SyncContext.PushAsync();
+
+            // then update the date
+            var updatedDateTime = new DateTime(2022, 01, 02, 0, 00, 00, DateTimeKind.Utc);
+            var updatedItem1 = new ItemForPropertyConflicts { Id = "b", String1 = "1", String2 = "1", DateTime1 = updatedDateTime };
+            await table.UpdateAsync(updatedItem1);
+
+            // then push it to server - 2nd push
+            var ex = await Assert.ThrowsAsync<MobileServicePushFailedException>(service.SyncContext.PushAsync);
+
+            var error = ex.PushResult.Errors.Should().ContainSingle().Which.Should().BeOfType<MobileServiceUpdateOperationError>().Which;
+
+            var conflict = error.PropertyConflicts.Should().ContainSingle().Subject;
+            conflict.Should().BeEquivalentTo(new
+            {
+                PropertyName = nameof(ItemForPropertyConflicts.DateTime1),
+                IsLocalChanged = true,
+                IsRemoteChanged = false,
+                Handled = false,
+                ResolvedValue = (object)null
+            });
+
+            // handle conflict
+            conflict.TakeLocal();
+
+            // merge with the server version
+            await error.MergeAndUpdateOperationAsync();
+
+            // 3rd push
+            await service.SyncContext.PushAsync();
+
+            hijack.RequestContents[^1].Should().Be("""{"id":"b","String1":"1","String2":"1","DateTime1":"2022-01-02T00:00:00Z"}""");
+
+            service.SyncContext.PendingOperations.Should().Be(0); // operation now succeeds
+
+            var localItem = await table.LookupAsync(originalItem.Id);
+            localItem.DateTime1.Should().Be(updatedDateTime.ToLocalTime()); 
+            localItem.DateTime1.Value.Kind.Should().Be(DateTimeKind.Local);
         }
 
         //

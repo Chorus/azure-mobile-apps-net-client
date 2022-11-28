@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Threading;
 
-namespace Microsoft.WindowsAzure.MobileServices.Sync
+namespace Microsoft.WindowsAzure.MobileServices.Sync.Conflicts
 {
     public class PropertyConflict : IPropertyConflict
     {
