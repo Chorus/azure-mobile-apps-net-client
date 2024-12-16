@@ -222,6 +222,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             using var trackedStore = CreateTrackedStore(StoreOperationSource.ServerPull);
             var action = new PullAction(table, tableKind, this, queryId, queryDescription, parameters, relatedTables,
                 opQueue, settings, trackedStore, options, pullOptions, reader, cancellationToken);
+
+            if (pullOptions.AllowParallel)
+            {
+                await action.ExecuteAsync();
+                await action.CompletionTask;
+                return;
+            }
+
             await ExecuteSyncAction(action);
         }
 

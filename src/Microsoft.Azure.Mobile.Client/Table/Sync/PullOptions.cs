@@ -19,6 +19,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public PullOptions()
         {
             MaxPageSize = 50;
+            AllowParallel = false;
         }
 
         /// <summary>
@@ -37,5 +38,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 _maxPageSize = value;
             }
         }
+
+        /// <summary>
+        /// Whether to allow parallel pull operations without across different tables
+        /// </summary>
+        public bool AllowParallel { get; set; }
     }
 }
