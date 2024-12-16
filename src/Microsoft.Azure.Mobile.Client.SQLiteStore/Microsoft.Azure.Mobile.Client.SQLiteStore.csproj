@@ -22,7 +22,7 @@
     <RootNamespace>Microsoft.WindowsAzure.MobileServices.SQLiteStore</RootNamespace>
     <Company>Microsoft</Company>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <Version>4.4.2</Version>
+    <Version>4.4.4</Version>
     <PackageId>Chorus.Azure.Mobile.Client.SQLiteStore</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
